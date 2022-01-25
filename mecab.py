@@ -1,6 +1,7 @@
 import re
-import sys
 from subprocess import PIPE, Popen
+
+from util import warn
 
 _unit_re = re.compile(r"(?P<hinsi>.+?),"
                       r"(?P<hinsi_class_1>.+?),"
@@ -19,7 +20,7 @@ class MecabException(Exception):
 
 def raise_ast(val: str) -> str:
     if val == "*":
-        raise MecabException
+        raise MecabException("unexpected empty value in unit")
     else:
         return val
 
@@ -56,8 +57,8 @@ class MecabUnit:
         else:
             m = _unit_re.fullmatch(data)
             if m is None:
-                print(f"invalid MeCab unit: {res}", file=sys.stderr)
-                raise MecabException
+                warn(f"invalid MeCab unit: {res}")
+                raise MecabException("invalid unit")
             else:
                 self.hinsi = raise_ast(m.group("hinsi"))
                 self.hinsi_class_1 = handle_ast(m.group("hinsi_class_1"))
@@ -93,8 +94,11 @@ class Mecab:
         self._inst = Popen(["mecab", "--unk-feature=未知語"], stdin=PIPE, stdout=PIPE)
 
     def _instance(self) -> Popen:
-        if self._inst is None:
-            self._init()
+        if self._inst is None or self._inst.poll() is not None:
+            try:
+                self._init()
+            except FileNotFoundError:
+                raise MecabException("executable not found")
         return self._inst
 
     def analyze(self, txt: str) -> [str]:
