@@ -3,15 +3,16 @@
 import json
 import lzma
 import sys
+from typing import List
 
 
 class Entry:
     word: str
     reading: str
-    accents: [int]
+    accents: List[int]
     source: str
 
-    def __init__(self, word: str, reading: str, accents: [[int]], source: str):
+    def __init__(self, word: str, reading: str, accents: List[List[int]], source: str):
         self.word = word
         self.reading = reading
         self.accents = [a for inner in accents for a in inner]
