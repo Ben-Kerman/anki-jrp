@@ -43,7 +43,9 @@ for src_path in sys.argv[2:]:
         entries.append(Entry(src_entry[0], src_entry[1], src_entry[5], src_entry[7]))
 
 with lzma.open(sys.argv[1], "wt", encoding="utf-8") as tfd:
-    tfd.write("# 日: NHKアクセント 1998版; 林: 大辞林 第二版; Ｍ: manual changes from MIA; 和: 和独辞典; 新: 新明解 第五版\n")
+    tfd.write("# compiled pitch accent dictionary by Yoga, taken from the Migaku Japanese addon\n")
+    tfd.write("# sources: 日: NHKアクセント 1998版; 林: 大辞林 第二版; Ｍ: manual changes from MIA; 和: 和独辞典; 新: 新明解 第五版\n")
+    tfd.write("# format: word<TAB>reading<TAB>accent{,accent}<TAB>source\n")
     for entry in entries:
         tfd.write(entry.fmt_line())
 
