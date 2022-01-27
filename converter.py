@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 from accent_dict import AccentDict
 from mecab import Mecab, MecabUnit
-from normalize import to_hiragana
+from normalize import is_hiragana, to_hiragana
 
 _mecab_inst: Mecab | None = None
 _acc_dict: AccentDict | None = None
@@ -64,8 +64,22 @@ def _handle_josi(munit: MecabUnit) -> Unit:
 
 
 def _handle_yougen(acc_dict: AccentDict, munits: List[MecabUnit], idx: int) -> Tuple[int, Unit]:
-    munit = munits[idx]
-    return idx + 1, Unit([Segment(munit.orig, munit.reading)])
+    def gen_mecab_reading(unit: MecabUnit) -> str:
+        if is_hiragana(unit.base_form):
+            return unit.base_form
+
+        itr = enumerate(zip(reversed(unit.orig), reversed(unit.reading)))
+        for i, (co, cr) in itr:
+            if co != cr:
+                break
+
+        # TODO: handle undefined i
+        return unit.reading[0:len(unit.reading) - i] + unit.base_form[len(unit.orig) - i:]
+
+    mu = munits[idx]
+    mecab_reading: str = gen_mecab_reading(mu)
+
+    return idx + 1, Unit([Segment(mu.orig, mecab_reading)])
 
 
 def _handle_other(acc_dict: AccentDict, munits: List[MecabUnit], idx: int) -> Tuple[int, Unit]:
