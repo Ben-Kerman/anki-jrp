@@ -91,6 +91,9 @@ def convert(txt: str,
                 i += 1
             case "動詞" | "形容詞":
                 i, unit = _handle_yougen(acc_dict, munits, i)
+            case "記号":
+                unit = Unit([Segment(munits[i].orig)])
+                i += 1
             case _:
                 i, unit = _handle_other(acc_dict, munits, i)
         units.append(unit)
