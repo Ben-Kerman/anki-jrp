@@ -31,8 +31,8 @@ def handle_ast(val: str) -> str | None:
 
 
 class MecabUnit:
-    orig: str | None
-    hinsi: str | None
+    orig: str
+    hinsi: str
     hinsi_class_1: str | None
     hinsi_class_2: str | None
     hinsi_class_3: str | None
