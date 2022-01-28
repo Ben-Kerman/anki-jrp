@@ -1,6 +1,6 @@
 import lzma
 import sys
-from typing import Dict, List, TextIO
+from typing import TextIO
 
 from util import warn
 
@@ -12,10 +12,10 @@ class DictionaryException(Exception):
 class Entry:
     word: str
     reading: str
-    accents: List[int]
+    accents: list[int]
     source: str
 
-    def __init__(self, word: str, reading: str, accents: List[int], source: str):
+    def __init__(self, word: str, reading: str, accents: list[int], source: str):
         self.word = sys.intern(word)
         self.reading = sys.intern(reading)
         self.accents = accents
@@ -31,12 +31,12 @@ class Entry:
 
 
 class AccentDict:
-    _entries: List[Entry]
-    _word_idx: Dict[str, Entry]
-    _rdng_idx: Dict[str, Entry]
+    _entries: list[Entry]
+    _word_idx: dict[str, Entry]
+    _rdng_idx: dict[str, Entry]
 
     def __init__(self, path):
-        def get_index(idx: dict, key: str) -> List[Entry]:
+        def get_index(idx: dict, key: str) -> list[Entry]:
             if key not in idx:
                 idx[key] = []
             return idx[key]
@@ -59,8 +59,8 @@ class AccentDict:
                 except ValueError:
                     warn(f"skipping invalid dict entry: {line}")
 
-    def look_up_word(self, word: str) -> List[Entry] | None:
+    def look_up_word(self, word: str) -> list[Entry] | None:
         return self._word_idx.get(word)
 
-    def look_up_reading(self, reading: str) -> List[Entry] | None:
+    def look_up_reading(self, reading: str) -> list[Entry] | None:
         return self._rdng_idx.get(reading)

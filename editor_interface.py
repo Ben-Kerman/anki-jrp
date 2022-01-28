@@ -1,4 +1,4 @@
-from typing import Callable, List
+from collections.abc import Callable
 
 from aqt import editor, gui_hooks
 
@@ -14,7 +14,7 @@ def _escape_js_str(val: str) -> str:
     return "".join([_trans[c] if c in _trans else c for c in val])
 
 
-def _replace(edit: editor.Editor, transform: Callable[List[str], str]):
+def _replace(edit: editor.Editor, transform: Callable[[str], str]):
     def inject_html(new_html: str):
         nonlocal edit
         edit.web.page().runJavaScript(f"""

@@ -1,6 +1,5 @@
 import re
 from subprocess import PIPE, Popen
-from typing import List
 
 from util import warn
 
@@ -102,7 +101,7 @@ class Mecab:
                 raise MecabException("executable not found")
         return self._inst
 
-    def analyze(self, txt: str) -> List[MecabUnit]:
+    def analyze(self, txt: str) -> list[MecabUnit]:
         inst = self._instance()
         inst.stdin.write(txt.encode("utf-8") + b"\n")
         inst.stdin.flush()

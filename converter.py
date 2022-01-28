@@ -38,12 +38,12 @@ class Segment:
 
 
 class Unit:
-    segments: List[Segment]
-    accents: List[int]
+    segments: list[Segment]
+    accents: list[int]
     base_form: Segment | None
 
-    def __init__(self, segments: List[Segment],
-                 accents: List[int] | None = None,
+    def __init__(self, segments: list[Segment],
+                 accents: list[int] | None = None,
                  base_form: Segment | None = None):
         self.segments = segments
         if accents is None:
@@ -63,7 +63,7 @@ def _handle_josi(munit: MecabUnit) -> Unit:
         return Unit([Segment(munit.orig, to_hiragana(munit.reading))])
 
 
-def _handle_yougen(acc_dict: AccentDict, munits: List[MecabUnit], idx: int) -> Tuple[int, Unit]:
+def _handle_yougen(acc_dict: AccentDict, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
     def gen_mecab_reading(unit: MecabUnit) -> str:
         if is_hiragana(unit.base_form):
             return unit.base_form
@@ -82,21 +82,21 @@ def _handle_yougen(acc_dict: AccentDict, munits: List[MecabUnit], idx: int) -> T
     return idx + 1, Unit([Segment(mu.orig, mecab_reading)])
 
 
-def _handle_other(acc_dict: AccentDict, munits: List[MecabUnit], idx: int) -> Tuple[int, Unit]:
+def _handle_other(acc_dict: AccentDict, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
     munit = munits[idx]
     return idx + 1, Unit([Segment(munit.orig, munit.reading)])
 
 
 def convert(txt: str,
             mecab: Mecab = None,
-            acc_dict: AccentDict = None) -> List[Unit]:
+            acc_dict: AccentDict = None) -> list[Unit]:
     if mecab is None:
         mecab = _get_mecab_inst()
     if acc_dict is None:
         acc_dict = _get_acc_dict()
 
     munits = mecab.analyze(txt)
-    units: List[Unit] = []
+    units: list[Unit] = []
     i = 0
     while i < len(munits):
         match munits[i].hinsi:
