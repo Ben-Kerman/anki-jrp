@@ -1,4 +1,5 @@
 import lzma
+import sys
 from typing import Dict, List, TextIO
 
 from util import warn
@@ -15,10 +16,10 @@ class Entry:
     source: str
 
     def __init__(self, word: str, reading: str, accents: List[int], source: str):
-        self.word = word
-        self.reading = reading
+        self.word = sys.intern(word)
+        self.reading = sys.intern(reading)
         self.accents = accents
-        self.source = source
+        self.source = sys.intern(source)
 
     @classmethod
     def from_line(cls, line: str):
