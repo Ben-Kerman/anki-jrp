@@ -24,10 +24,7 @@ class Unit:
                  accents: list[int] | None = None,
                  base_form: Segment | None = None):
         self.segments = segments
-        if accents is None:
-            self.accents = []
-        else:
-            self.accents = accents
+        self.accents = accents or []
         self.base_form = base_form
 
     def __repr__(self):
