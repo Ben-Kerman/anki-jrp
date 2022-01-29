@@ -1,13 +1,38 @@
 import lzma
 import os
 import sys
-from typing import TextIO
+from typing import Generic, TextIO, Type, TypeVar
 
 from util import warn
 
+T = TypeVar('T')
 
-class DictionaryException(Exception):
-    pass
+
+class BasicDict(Generic[T]):
+    _readings: dict[str, list[T]]
+    _variants: dict[str, list[T]]
+
+    def __init__(self, entry_type: Type[T], path):
+        self.variants = {}
+        self.readings = {}
+
+        fd: TextIO
+        with lzma.open(path, "rt", encoding="utf-8") as fd:
+            for line in (rl.rstrip("\r\n") for rl in fd):
+                if line.startswith("#"):
+                    continue
+
+                try:
+                    entry = entry_type.from_line(line)
+                    entry_type.dict_insert(self, entry)
+                except ValueError:
+                    warn(f"skipping invalid dict entry: {line}")
+
+    def look_up_variant(self, val: str) -> list[T] | None:
+        return self.variants.get(val)
+
+    def look_up_reading(self, val: str) -> list[T] | None:
+        return self.readings.get(val)
 
 
 class AccentEntry:
@@ -30,36 +55,10 @@ class AccentEntry:
         accents = [int(acc) for acc in vals[2].split(",")]
         return cls(vals[0], vals[1], accents, vals[3])
 
-
-class AccentDict:
-    _entries: list[AccentEntry]
-    _variants: dict[str, list[AccentEntry]]
-    _readings: dict[str, list[AccentEntry]]
-
-    def __init__(self, path):
-        self._entries = []
-        self._variants = {}
-        self._readings = {}
-
-        fd: TextIO
-        with lzma.open(path, "rt", encoding="utf-8") as fd:
-            for line in (rl.rstrip("\r\n") for rl in fd):
-                if line.startswith("#"):
-                    continue
-
-                try:
-                    entry = AccentEntry.from_line(line)
-                    self._entries.append(entry)
-                    self._variants.setdefault(entry.word, []).append(entry)
-                    self._readings.setdefault(entry.reading, []).append(entry)
-                except ValueError:
-                    warn(f"skipping invalid dict entry: {line}")
-
-    def look_up_variant(self, word: str) -> list[AccentEntry] | None:
-        return self._variants.get(word)
-
-    def look_up_reading(self, reading: str) -> list[AccentEntry] | None:
-        return self._readings.get(reading)
+    @classmethod
+    def dict_insert(cls, bdict, entry):
+        bdict.variants.setdefault(entry.word, []).append(entry)
+        bdict.readings.setdefault(entry.reading, []).append(entry)
 
 
 class VariantEntry:
@@ -77,37 +76,15 @@ class VariantEntry:
             raise ValueError
         return cls(vals[0], vals[1].split(","))
 
+    @classmethod
+    def dict_insert(cls, bdict, entry):
+        bdict.readings.setdefault(entry.reading, []).append(entry)
+        for var in entry.variants:
+            bdict.variants.setdefault(var, []).append(entry)
 
-class VariantDict:
-    _entries: list[VariantEntry]
-    _readings: dict[str, list[VariantEntry]]
-    _variants: dict[str, list[VariantEntry]]
 
-    def __init__(self, path):
-        self._entries = []
-        self._variants = {}
-        self._readings = {}
-
-        fd: TextIO
-        with lzma.open(path, "rt", encoding="utf-8") as fd:
-            for line in (rl.rstrip("\r\n") for rl in fd):
-                if line.startswith("#"):
-                    continue
-
-                try:
-                    entry = VariantEntry.from_line(line)
-                    self._entries.append(entry)
-                    self._readings.setdefault(entry.reading, []).append(entry)
-                    for var in entry.variants:
-                        self._variants.setdefault(var, []).append(entry)
-                except ValueError:
-                    warn(f"skipping invalid dict entry: {line}")
-
-    def look_up_variant(self, val: str) -> list[VariantEntry] | None:
-        return self._variants.get(val)
-
-    def look_up_reading(self, val: str) -> list[VariantEntry] | None:
-        return self._readings.get(val)
+AccentDict = BasicDict[AccentEntry]
+VariantDict = BasicDict[VariantEntry]
 
 
 class Dictionary:
