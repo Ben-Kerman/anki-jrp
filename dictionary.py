@@ -106,5 +106,8 @@ class VariantDict:
                         except ValueError:
                             warn(f"skipping invalid dict entry: {line}")
 
-    def look_up(self, val: str):
-        return self._variants[val]
+    def look_up_variant(self, val: str) -> list[VariantEntry] | None:
+        return self._variants.get(val)
+
+    def look_up_reading(self, val: str) -> list[VariantEntry] | None:
+        return self._readings.get(val)
