@@ -10,7 +10,7 @@ class DictionaryException(Exception):
     pass
 
 
-class Entry:
+class AccentEntry:
     word: str
     reading: str
     accents: list[int]
@@ -32,9 +32,9 @@ class Entry:
 
 
 class AccentDict:
-    _entries: list[Entry]
-    _word_idx: dict[str, list[Entry]]
-    _rdng_idx: dict[str, list[Entry]]
+    _entries: list[AccentEntry]
+    _word_idx: dict[str, list[AccentEntry]]
+    _rdng_idx: dict[str, list[AccentEntry]]
 
     def __init__(self, path):
         self._entries = []
@@ -48,25 +48,45 @@ class AccentDict:
                     continue
 
                 try:
-                    entry = Entry.from_line(line)
+                    entry = AccentEntry.from_line(line)
                     self._entries.append(entry)
                     self._word_idx.setdefault(entry.word, []).append(entry)
                     self._rdng_idx.setdefault(entry.reading, []).append(entry)
                 except ValueError:
                     warn(f"skipping invalid dict entry: {line}")
 
-    def look_up_word(self, word: str) -> list[Entry] | None:
+    def look_up_word(self, word: str) -> list[AccentEntry] | None:
         return self._word_idx.get(word)
 
-    def look_up_reading(self, reading: str) -> list[Entry] | None:
+    def look_up_reading(self, reading: str) -> list[AccentEntry] | None:
         return self._rdng_idx.get(reading)
 
 
-class ReadingDict:
-    _variants: dict[str, list[str]]
+class VariantEntry:
+    reading: str
+    variants: list[str]
+
+    def __init__(self, reading: str, variants: list[str]):
+        self.variants = [sys.intern(v) for v in variants]
+        self.reading = sys.intern(reading)
+
+    @classmethod
+    def from_line(cls, line: str):
+        vals = line.split("\t")
+        if len(vals) != 2:
+            raise ValueError
+        return cls(vals[0], vals[1].split(","))
+
+
+class VariantDict:
+    _entries: list[VariantEntry]
+    _readings: dict[str, list[VariantEntry]]
+    _variants: dict[str, list[VariantEntry]]
 
     def __init__(self, dir):
+        self._entries = []
         self._variants = {}
+        self._readings = {}
 
         with os.scandir(dir) as itr:
             e: os.DirEntry
@@ -78,11 +98,11 @@ class ReadingDict:
                             continue
 
                         try:
-                            variant, reading = [sys.intern(s) for s in line.split("\t")]
-                            if variant not in self._variants:
-                                self._variants[variant] = [reading]
-                            elif reading not in self._variants[variant]:
-                                self._variants[variant].append(reading)
+                            entry = VariantEntry.from_line(line)
+                            self._entries.append(entry)
+                            self._readings.setdefault(entry.reading, []).append(entry)
+                            for var in entry.variants:
+                                self._variants.setdefault(var, []).append(entry)
                         except ValueError:
                             warn(f"skipping invalid dict entry: {line}")
 
