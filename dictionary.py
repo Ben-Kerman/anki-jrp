@@ -5,6 +5,7 @@ from typing import Generic, TextIO, Type, TypeVar
 
 from attr import dataclass
 
+from normalize import to_hiragana
 from util import warn
 
 T = TypeVar("T")
@@ -34,7 +35,7 @@ class BasicDict(Generic[T]):
         return self.variants.get(val)
 
     def look_up_reading(self, val: str) -> list[T] | None:
-        return self.readings.get(val)
+        return self.readings.get(to_hiragana(val))
 
 
 class AccentEntry:
@@ -122,7 +123,7 @@ class Dictionary:
         self.accent = adict or BasicDict(AccentEntry, os.path.join(type(self).default_path(), "accents.xz"))
         self.variant = vdict or BasicDict(VariantEntry, os.path.join(type(self).default_path(), "variants.xz"))
 
-    def _find_from_var(self, ve: VariantEntry, reading: str | None = None) -> Lookup | None:
+    def _variant_lookup(self, ve: VariantEntry, reading: str | None = None) -> Lookup | None:
         rdng = reading or ve.reading
         for var in ve.variants:
             acc_lookup = self.accent.look_up_variant(var)
@@ -151,14 +152,14 @@ class Dictionary:
             vars_with_cr = [e for e in vars_by_word if e.reading == candidate_reading]
             vars = vars_with_cr if len(vars_with_cr) > 0 else vars_by_word
             for var in vars:
-                if (res := self._find_from_var(var)) is not None:
+                if (res := self._variant_lookup(var)) is not None:
                     return res
             return Lookup([LookupResult(vars[0].reading)])
 
         if candidate_reading is not None:
             vars_by_reading = self.variant.look_up_reading(candidate_reading)
             if vars_by_reading is not None and len(vars_by_reading) == 1:
-                if (res := self._find_from_var(vars_by_reading[0], candidate_reading)) is not None:
+                if (res := self._variant_lookup(vars_by_reading[0], candidate_reading)) is not None:
                     return res
 
         return None
