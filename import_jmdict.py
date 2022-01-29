@@ -4,16 +4,8 @@ import gzip
 import lzma
 import sys
 import xml.etree.ElementTree
-from typing import Iterable
 
-from normalize import to_hiragana
-
-
-def itr_to_hira(itr: Iterable[str]):
-    hira_itr = (to_hiragana(e) for e in itr)
-    seen = set()
-    return [e for e in hira_itr if not (e in seen or seen.add(e))]
-
+from normalize import itr_to_hira, to_hiragana
 
 with gzip.open(sys.argv[2], "rt", encoding="utf-8") as sfd:
     jmd_root = xml.etree.ElementTree.parse(sfd).getroot()
