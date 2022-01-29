@@ -33,15 +33,10 @@ class Entry:
 
 class AccentDict:
     _entries: list[Entry]
-    _word_idx: dict[str, Entry]
-    _rdng_idx: dict[str, Entry]
+    _word_idx: dict[str, list[Entry]]
+    _rdng_idx: dict[str, list[Entry]]
 
     def __init__(self, path):
-        def get_index(idx: dict, key: str) -> list[Entry]:
-            if key not in idx:
-                idx[key] = []
-            return idx[key]
-
         self._entries = []
         self._word_idx = {}
         self._rdng_idx = {}
@@ -55,8 +50,8 @@ class AccentDict:
                 try:
                     entry = Entry.from_line(line)
                     self._entries.append(entry)
-                    get_index(self._word_idx, entry.word).append(entry)
-                    get_index(self._rdng_idx, entry.reading).append(entry)
+                    self._word_idx.setdefault(entry.word, []).append(entry)
+                    self._rdng_idx.setdefault(entry.reading, []).append(entry)
                 except ValueError:
                     warn(f"skipping invalid dict entry: {line}")
 
