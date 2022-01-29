@@ -3,9 +3,11 @@ import os
 import sys
 from typing import Generic, TextIO, Type, TypeVar
 
+from attr import dataclass
+
 from util import warn
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class BasicDict(Generic[T]):
@@ -87,6 +89,27 @@ AccentDict = BasicDict[AccentEntry]
 VariantDict = BasicDict[VariantEntry]
 
 
+@dataclass(repr=False)
+class LookupResult:
+    reading: str
+    accents: list[int] | None = None
+
+    def __repr__(self):
+        return f"R[{self.reading},{self.accents}]"
+
+
+@dataclass(repr=False)
+class Lookup:
+    results: list[LookupResult]
+    uncertain: bool = False
+
+    def __repr__(self):
+        return f"LU[{self.results}{';uncertain' if self.uncertain else ''}]"
+
+    def has_accents(self):
+        return all(r.accents for r in self.results)
+
+
 class Dictionary:
     accent: AccentDict
     variant: VariantDict
@@ -99,29 +122,29 @@ class Dictionary:
         self.accent = adict or BasicDict(AccentEntry, os.path.join(type(self).default_path(), "accents.xz"))
         self.variant = vdict or BasicDict(VariantEntry, os.path.join(type(self).default_path(), "variants.xz"))
 
-    def _find_from_var(self, ve: VariantEntry, reading: str | None = None) -> tuple[str, list[int]] | None:
+    def _find_from_var(self, ve: VariantEntry, reading: str | None = None) -> Lookup | None:
         rdng = reading or ve.reading
         for var in ve.variants:
             acc_lookup = self.accent.look_up_variant(var)
             if acc_lookup is not None:
                 acc_res = next((e for e in acc_lookup if e.reading == rdng), None)
                 if acc_res is not None:
-                    return rdng, acc_res.accents
+                    return Lookup([LookupResult(rdng, acc_res.accents)])
         return None
 
-    def look_up(self, word: str, candidate_reading: str | None = None) -> tuple[str, list[int]] | None:
+    def look_up(self, word: str, candidate_reading: str | None = None) -> Lookup | None:
         by_word = self.accent.look_up_variant(word)
         if by_word is not None:
             ent = next((e for e in by_word if e.reading == candidate_reading), None)
             if ent is not None:
-                return ent.reading, ent.accents
+                return Lookup([LookupResult(ent.reading, ent.accents)])
             else:
-                return by_word[0].reading, by_word[0].accents
+                return Lookup([LookupResult(by_word[0].reading, by_word[0].accents)])
 
         if candidate_reading is not None:
             by_reading = self.accent.look_up_reading(candidate_reading)
             if by_reading is not None and len(by_reading) == 1:
-                return by_reading[0].reading, by_reading[0].accents
+                return Lookup([LookupResult(by_reading[0].reading, by_reading[0].accents)])
 
         vars_by_word = self.variant.look_up_variant(word)
         if vars_by_word is not None:
@@ -130,7 +153,7 @@ class Dictionary:
             for var in vars:
                 if (res := self._find_from_var(var)) is not None:
                     return res
-            return vars[0].reading, []
+            return Lookup([LookupResult(vars[0].reading)])
 
         if candidate_reading is not None:
             vars_by_reading = self.variant.look_up_reading(candidate_reading)
