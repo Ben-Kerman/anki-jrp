@@ -91,9 +91,13 @@ class Dictionary:
     accent: AccentDict
     variant: VariantDict
 
-    def __init__(self, adict: AccentDict, rdict: VariantDict):
-        self.accent = adict
-        self.variant = rdict
+    @classmethod
+    def default_path(cls) -> str:
+        return os.path.join(os.path.dirname(__file__), "user_data")
+
+    def __init__(self, adict: AccentDict | None = None, vdict: VariantDict | None = None):
+        self.accent = adict or BasicDict(AccentEntry, os.path.join(type(self).default_path(), "accents.xz"))
+        self.variant = vdict or BasicDict(VariantEntry, os.path.join(type(self).default_path(), "variants.xz"))
 
     def _find_from_var(self, ve: VariantEntry, reading: str | None = None) -> tuple[str, list[int]] | None:
         rdng = reading or ve.reading
