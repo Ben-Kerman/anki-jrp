@@ -1,28 +1,6 @@
-import os.path
-from typing import List, Tuple
-
-from accent_dict import AccentDict
+from dictionary import Dictionary
 from mecab import Mecab, MecabUnit
 from normalize import is_hiragana, to_hiragana
-
-_mecab_inst: Mecab | None = None
-_acc_dict: AccentDict | None = None
-
-
-def _get_mecab_inst() -> Mecab:
-    global _mecab_inst
-
-    if _mecab_inst is None:
-        _mecab_inst = Mecab()
-    return _mecab_inst
-
-
-def _get_acc_dict() -> AccentDict:
-    global _acc_dict
-
-    if _acc_dict is None:
-        _acc_dict = AccentDict(os.path.join(os.path.dirname(__file__), "acc_dict.xz"))
-    return _acc_dict
 
 
 class Segment:
@@ -63,7 +41,7 @@ def _handle_josi(munit: MecabUnit) -> Unit:
         return Unit([Segment(munit.orig, to_hiragana(munit.reading))])
 
 
-def _handle_yougen(acc_dict: AccentDict, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
+def _handle_yougen(dic: Dictionary, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
     def gen_mecab_reading(unit: MecabUnit) -> str:
         if is_hiragana(unit.base_form):
             return unit.base_form
@@ -82,19 +60,12 @@ def _handle_yougen(acc_dict: AccentDict, munits: list[MecabUnit], idx: int) -> t
     return idx + 1, Unit([Segment(mu.orig, mecab_reading)])
 
 
-def _handle_other(acc_dict: AccentDict, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
+def _handle_other(dic: Dictionary, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
     munit = munits[idx]
     return idx + 1, Unit([Segment(munit.orig, munit.reading)])
 
 
-def convert(txt: str,
-            mecab: Mecab = None,
-            acc_dict: AccentDict = None) -> list[Unit]:
-    if mecab is None:
-        mecab = _get_mecab_inst()
-    if acc_dict is None:
-        acc_dict = _get_acc_dict()
-
+def convert(txt: str, mecab: Mecab, dic: Dictionary) -> list[Unit]:
     munits = mecab.analyze(txt)
     units: list[Unit] = []
     i = 0
@@ -104,11 +75,11 @@ def convert(txt: str,
                 unit = _handle_josi(munits[i])
                 i += 1
             case "動詞" | "形容詞":
-                i, unit = _handle_yougen(acc_dict, munits, i)
+                i, unit = _handle_yougen(dic, munits, i)
             case "記号":
                 unit = Unit([Segment(munits[i].orig)])
                 i += 1
             case _:
-                i, unit = _handle_other(acc_dict, munits, i)
+                i, unit = _handle_other(dic, munits, i)
         units.append(unit)
     return units
