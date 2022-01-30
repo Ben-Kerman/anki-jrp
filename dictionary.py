@@ -1,11 +1,12 @@
 import lzma
 import os
 import sys
+from collections.abc import Iterable
 from typing import Generic, TextIO, Type, TypeVar
 
 from attr import dataclass
 
-from normalize import to_hiragana
+from normalize import is_hiragana, to_hiragana
 from util import warn
 
 T = TypeVar("T")
@@ -88,6 +89,7 @@ class VariantEntry:
 
 AccentDict = BasicDict[AccentEntry]
 VariantDict = BasicDict[VariantEntry]
+Entry = TypeVar("Entry", AccentEntry, VariantEntry)
 
 
 @dataclass(repr=False)
@@ -97,6 +99,10 @@ class LookupResult:
 
     def __repr__(self):
         return f"R[{self.reading},{self.accents}]"
+
+    @classmethod
+    def convert_entries(cls, entries: Iterable[Entry]) -> list["LookupResult"]:
+        return [cls(e.reading, e.accents if isinstance(e, AccentEntry) else None) for e in entries]
 
 
 @dataclass(repr=False)
@@ -111,6 +117,10 @@ class Lookup:
         return all(r.accents for r in self.results)
 
 
+def _filter_for_guess(entries: list[Entry], guess: str) -> list[Entry]:
+    return [e for e in entries if e.reading == guess]
+
+
 class Dictionary:
     accent: AccentDict
     variant: VariantDict
@@ -123,43 +133,48 @@ class Dictionary:
         self.accent = adict or BasicDict(AccentEntry, os.path.join(type(self).default_path(), "accents.xz"))
         self.variant = vdict or BasicDict(VariantEntry, os.path.join(type(self).default_path(), "variants.xz"))
 
-    def _variant_lookup(self, ve: VariantEntry, reading: str | None = None) -> Lookup | None:
-        rdng = reading or ve.reading
-        for var in ve.variants:
-            acc_lookup = self.accent.look_up_variant(var)
-            if acc_lookup is not None:
-                acc_res = next((e for e in acc_lookup if e.reading == rdng), None)
-                if acc_res is not None:
-                    return Lookup([LookupResult(rdng, acc_res.accents)])
-        return None
+    def _variant_lookup(self, word: str, as_reading: bool = False) -> list[AccentEntry] | None:
+        lu_fn = self.variant.look_up_reading if as_reading else self.variant.look_up_variant
+        res = []
+        var_ents = lu_fn(word)
+        if not var_ents:
+            return None
+        for var in (var for ve in var_ents for var in ve.variants):
+            acc_ents = self.accent.look_up_variant(var)
+            if acc_ents:
+                res.extend(acc_ent for acc_ent in acc_ents if acc_ent not in res)
+        return res
 
-    def look_up(self, word: str, candidate_reading: str | None = None) -> Lookup | None:
-        by_word = self.accent.look_up_variant(word)
-        if by_word is not None:
-            ent = next((e for e in by_word if e.reading == candidate_reading), None)
-            if ent is not None:
-                return Lookup([LookupResult(ent.reading, ent.accents)])
-            else:
-                return Lookup([LookupResult(by_word[0].reading, by_word[0].accents)])
+    def look_up(self, word: str, reading_guess: str | None = None) -> Lookup | None:
+        word_direct_aent = self.accent.look_up_variant(word)
+        if word_direct_aent:
+            match_guess = _filter_for_guess(word_direct_aent, reading_guess)
+            return Lookup(LookupResult.convert_entries(match_guess if match_guess else word_direct_aent))
 
-        if candidate_reading is not None:
-            by_reading = self.accent.look_up_reading(candidate_reading)
-            if by_reading is not None and len(by_reading) == 1:
-                return Lookup([LookupResult(by_reading[0].reading, by_reading[0].accents)])
+        word_var_aent = self._variant_lookup(word)
+        if word_var_aent:
+            match_guess = _filter_for_guess(word_var_aent, reading_guess)
+            return Lookup(LookupResult.convert_entries(match_guess if match_guess else word_var_aent))
 
-        vars_by_word = self.variant.look_up_variant(word)
-        if vars_by_word is not None:
-            vars_with_cr = [e for e in vars_by_word if e.reading == candidate_reading]
-            vars = vars_with_cr if len(vars_with_cr) > 0 else vars_by_word
-            for var in vars:
-                if (res := self._variant_lookup(var)) is not None:
-                    return res
-            return Lookup([LookupResult(vars[0].reading)])
+        current_lu: Lookup | None = None
+        read_direct_aent = self.accent.look_up_reading(word)
+        if read_direct_aent:
+            current_lu = Lookup(LookupResult.convert_entries(read_direct_aent), len(read_direct_aent) > 1)
+            if not current_lu.uncertain:
+                return current_lu
 
-        if candidate_reading is not None:
-            vars_by_reading = self.variant.look_up_reading(candidate_reading)
-            if vars_by_reading is not None and len(vars_by_reading) == 1:
-                if (res := self._variant_lookup(vars_by_reading[0], candidate_reading)) is not None:
-                    return res
+        read_var_aent = self._variant_lookup(word, as_reading=True)
+        if read_var_aent:
+            current_lu = Lookup(LookupResult.convert_entries(read_var_aent), len(read_var_aent) > 1)
+            if not current_lu.uncertain:
+                return current_lu
 
-        return None
+        if current_lu:
+            return current_lu
+
+        if not is_hiragana(to_hiragana(word)):
+            word_direct_vent = self.variant.look_up_variant(word)
+            if word_direct_vent:
+                return Lookup(LookupResult.convert_entries(word_direct_vent))
+
+        return current_lu
