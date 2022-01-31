@@ -2,9 +2,8 @@ import lzma
 import os
 import sys
 from collections.abc import Iterable
+from dataclasses import dataclass
 from typing import Generic, TextIO, Type, TypeVar
-
-from attr import dataclass
 
 from normalize import is_hiragana, to_hiragana
 from util import warn
@@ -52,7 +51,7 @@ class AccentEntry:
         self.source = sys.intern(source)
 
     @classmethod
-    def from_line(cls, line: str):
+    def from_line(cls, line: str) -> "AccentEntry":
         vals = line.split("\t")
         if len(vals) != 4:
             raise ValueError
@@ -74,7 +73,7 @@ class VariantEntry:
         self.reading = sys.intern(reading)
 
     @classmethod
-    def from_line(cls, line: str):
+    def from_line(cls, line: str) -> "VariantEntry":
         vals = line.split("\t")
         if len(vals) != 2:
             raise ValueError
@@ -92,7 +91,7 @@ VariantDict = BasicDict[VariantEntry]
 Entry = TypeVar("Entry", AccentEntry, VariantEntry)
 
 
-@dataclass(repr=False)
+@dataclass
 class LookupResult:
     reading: str
     accents: list[int] | None = None
@@ -105,7 +104,7 @@ class LookupResult:
         return [cls(e.reading, e.accents if isinstance(e, AccentEntry) else None) for e in entries]
 
 
-@dataclass(repr=False)
+@dataclass
 class Lookup:
     results: list[LookupResult]
     uncertain: bool = False
