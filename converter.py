@@ -32,10 +32,10 @@ class Unit:
 
 
 def _handle_josi(munit: MecabUnit) -> Unit:
-    if to_hiragana(munit.orig) == to_hiragana(munit.reading):
-        return Unit([Segment(munit.orig)])
+    if to_hiragana(munit.value) == to_hiragana(munit.reading):
+        return Unit([Segment(munit.value)])
     else:
-        return Unit([Segment(munit.orig, to_hiragana(munit.reading))])
+        return Unit([Segment(munit.value, to_hiragana(munit.reading))])
 
 
 def _handle_yougen(dic: Dictionary, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
@@ -43,23 +43,23 @@ def _handle_yougen(dic: Dictionary, munits: list[MecabUnit], idx: int) -> tuple[
         if is_hiragana(unit.base_form):
             return unit.base_form
 
-        itr = enumerate(zip(reversed(unit.orig), reversed(unit.reading)))
+        itr = enumerate(zip(reversed(unit.value), reversed(unit.reading)))
         for i, (co, cr) in itr:
             if co != cr:
                 break
 
         # TODO: handle undefined i
-        return unit.reading[0:len(unit.reading) - i] + unit.base_form[len(unit.orig) - i:]
+        return unit.reading[0:len(unit.reading) - i] + unit.base_form[len(unit.value) - i:]
 
     mu = munits[idx]
     mecab_reading: str = gen_mecab_reading(mu)
 
-    return idx + 1, Unit([Segment(mu.orig, mecab_reading)])
+    return idx + 1, Unit([Segment(mu.value, mecab_reading)])
 
 
 def _handle_other(dic: Dictionary, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
     munit = munits[idx]
-    return idx + 1, Unit([Segment(munit.orig, munit.reading)])
+    return idx + 1, Unit([Segment(munit.value, munit.reading)])
 
 
 def convert(txt: str, mecab: Mecab, dic: Dictionary) -> list[Unit]:
@@ -74,7 +74,7 @@ def convert(txt: str, mecab: Mecab, dic: Dictionary) -> list[Unit]:
             case "動詞" | "形容詞":
                 i, unit = _handle_yougen(dic, munits, i)
             case "記号":
-                unit = Unit([Segment(munits[i].orig)])
+                unit = Unit([Segment(munits[i].value)])
                 i += 1
             case _:
                 i, unit = _handle_other(dic, munits, i)

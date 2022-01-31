@@ -1,17 +1,5 @@
-import re
+from dataclasses import dataclass
 from subprocess import PIPE, Popen
-
-from util import warn
-
-_unit_re = re.compile(r"(?P<hinsi>.+?),"
-                      r"(?P<hinsi_class_1>.+?),"
-                      r"(?P<hinsi_class_2>.+?),"
-                      r"(?P<hinsi_class_3>.+?),"
-                      r"(?P<conj_type>.+?),"
-                      r"(?P<conj_form>.+?),"
-                      r"(?P<base_form>.+?),"
-                      r"(?P<reading>.+?),"
-                      r"(?P<pronunciation>.+?)")
 
 
 class MecabException(Exception):
@@ -29,50 +17,29 @@ def handle_ast(val: str) -> str | None:
     return None if val == "*" else val
 
 
-class MecabUnit:
-    orig: str
-    hinsi: str
-    hinsi_class_1: str | None
-    hinsi_class_2: str | None
-    hinsi_class_3: str | None
-    conj_type: str | None
-    conj_form: str | None
-    base_form: str | None
-    reading: str | None
-    pronunciation: str | None
+@dataclass
+class ParserUnit:
+    value: str
 
-    def __init__(self, res: str):
-        orig, data = res.split("\t", 1)
-        self.orig = raise_ast(orig)
-        if data == "未知語":
-            self.hinsi = "未知語"
-            self.hinsi_class_1 = None
-            self.hinsi_class_2 = None
-            self.hinsi_class_3 = None
-            self.conj_type = None
-            self.conj_form = None
-            self.base_form = None
-            self.reading = None
-            self.pronunciation = None
-        else:
-            m = _unit_re.fullmatch(data)
-            if m is None:
-                warn(f"invalid MeCab unit: {res}")
-                raise MecabException("invalid unit")
-            else:
-                self.hinsi = raise_ast(m.group("hinsi"))
-                self.hinsi_class_1 = handle_ast(m.group("hinsi_class_1"))
-                self.hinsi_class_2 = handle_ast(m.group("hinsi_class_2"))
-                self.hinsi_class_3 = handle_ast(m.group("hinsi_class_3"))
-                self.conj_type = handle_ast(m.group("conj_type"))
-                self.conj_form = handle_ast(m.group("conj_form"))
-                self.base_form = raise_ast(m.group("base_form"))
-                self.reading = raise_ast(m.group("reading"))
-                self.pronunciation = raise_ast(m.group("pronunciation"))
+    def __repr__(self):
+        return f"InputUnit[{self.value}]"
+
+
+@dataclass
+class MecabUnit(ParserUnit):
+    hinsi: str
+    hinsi_class_1: str | None = None
+    hinsi_class_2: str | None = None
+    hinsi_class_3: str | None = None
+    conj_type: str | None = None
+    conj_form: str | None = None
+    base_form: str | None = None
+    reading: str | None = None
+    pronunciation: str | None = None
 
     def __repr__(self):
         return "MecabUnit[" \
-               f"{self.orig}:" \
+               f"{self.value}:" \
                f"{self.hinsi}," \
                f"{self.hinsi_class_1}," \
                f"{self.hinsi_class_2}," \
@@ -82,6 +49,27 @@ class MecabUnit:
                f"{self.base_form}," \
                f"{self.reading}," \
                f"{self.pronunciation}]"
+
+    @classmethod
+    def from_line(cls, line: str) -> "MecabUnit":
+        # format: %m(表層形)\t%H(品詞,品詞細分類1,品詞細分類2,品詞細分類3,活用型,活用形,原形,読み,発音)
+        orig: str
+        data: str
+        orig, data = line.split("\t", 1)
+        fields = data.split(",")
+        if fields[0] != "未知語":
+            obj = cls(orig, fields[0],
+                      handle_ast(fields[1]),
+                      handle_ast(fields[2]),
+                      handle_ast(fields[3]),
+                      handle_ast(fields[4]),
+                      handle_ast(fields[5]),
+                      raise_ast(fields[6]),
+                      raise_ast(fields[7]),
+                      raise_ast(fields[8]))
+        else:
+            obj = cls(orig, fields[2])
+        return obj
 
 
 class Mecab:
@@ -107,5 +95,5 @@ class Mecab:
         inst.stdin.flush()
         units = []
         while (line := inst.stdout.readline().rstrip(b"\r\n")) != b"EOS":
-            units.append(MecabUnit(line.decode("utf-8")))
+            units.append(MecabUnit.from_line(line.decode("utf-8")))
         return units
