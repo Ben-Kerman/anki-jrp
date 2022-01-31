@@ -117,10 +117,6 @@ class Lookup:
         return all(r.accents for r in self.results)
 
 
-def _filter_for_guess(entries: list[Entry], guess: str) -> list[Entry]:
-    return [e for e in entries if e.reading == guess]
-
-
 class Dictionary:
     accent: AccentDict
     variant: VariantDict
@@ -146,14 +142,17 @@ class Dictionary:
         return res
 
     def look_up(self, word: str, reading_guess: str | None = None) -> Lookup | None:
+        def filter_for_guess(entries: list[Entry], guess: str) -> list[Entry]:
+            return [e for e in entries if e.reading == guess]
+
         word_direct_aent = self.accent.look_up_variant(word)
         if word_direct_aent:
-            match_guess = _filter_for_guess(word_direct_aent, reading_guess)
+            match_guess = filter_for_guess(word_direct_aent, reading_guess)
             return Lookup(LookupResult.convert_entries(match_guess if match_guess else word_direct_aent))
 
         word_var_aent = self._variant_lookup(word)
         if word_var_aent:
-            match_guess = _filter_for_guess(word_var_aent, reading_guess)
+            match_guess = filter_for_guess(word_var_aent, reading_guess)
             return Lookup(LookupResult.convert_entries(match_guess if match_guess else word_var_aent))
 
         current_lu: Lookup | None = None
