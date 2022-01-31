@@ -51,25 +51,25 @@ class MecabUnit(ParserUnit):
                f"{self.pronunciation}]"
 
     @classmethod
-    def from_line(cls, line: str) -> "MecabUnit":
-        # format: %m(表層形)\t%H(品詞,品詞細分類1,品詞細分類2,品詞細分類3,活用型,活用形,原形,読み,発音)
+    def from_line(cls, line: str) -> tuple["MecabUnit", int, int]:
+        # format: %m(表層形)\t%ps,%pe,%H(品詞,品詞細分類1,品詞細分類2,品詞細分類3,活用型,活用形,原形,読み,発音)
         orig: str
         data: str
         orig, data = line.split("\t", 1)
         fields = data.split(",")
-        if fields[0] != "未知語":
-            obj = cls(orig, fields[0],
-                      handle_ast(fields[1]),
-                      handle_ast(fields[2]),
+        if fields[2] != "未知語":
+            obj = cls(orig, fields[2],
                       handle_ast(fields[3]),
                       handle_ast(fields[4]),
                       handle_ast(fields[5]),
-                      raise_ast(fields[6]),
-                      raise_ast(fields[7]),
-                      raise_ast(fields[8]))
+                      handle_ast(fields[6]),
+                      handle_ast(fields[7]),
+                      raise_ast(fields[8]),
+                      raise_ast(fields[9]),
+                      raise_ast(fields[10]))
         else:
             obj = cls(orig, fields[2])
-        return obj
+        return obj, int(fields[0]), int(fields[1])
 
 
 class Mecab:
@@ -79,7 +79,7 @@ class Mecab:
         self._inst = None
 
     def _init(self):
-        self._inst = Popen(["mecab", "--unk-feature=未知語"], stdin=PIPE, stdout=PIPE)
+        self._inst = Popen(["mecab", "--unk-feature=未知語", "--node-format=%m\\t%ps,%pe,%H\\n"], stdin=PIPE, stdout=PIPE)
 
     def _instance(self) -> Popen:
         if self._inst is None or self._inst.poll() is not None:
@@ -91,9 +91,15 @@ class Mecab:
 
     def analyze(self, txt: str) -> list[MecabUnit]:
         inst = self._instance()
-        inst.stdin.write(txt.encode("utf-8") + b"\n")
+        utf8_bytes = txt.encode("utf-8")
+        inst.stdin.write(utf8_bytes + b"\n")
         inst.stdin.flush()
         units = []
+        last_end = 0
         while (line := inst.stdout.readline().rstrip(b"\r\n")) != b"EOS":
-            units.append(MecabUnit.from_line(line.decode("utf-8")))
+            unit, start, end = MecabUnit.from_line(line.decode("utf-8"))
+            if last_end != start:
+                units.append(ParserUnit(utf8_bytes[last_end:start].decode("utf-8")))
+            last_end = end
+            units.append(unit)
         return units
