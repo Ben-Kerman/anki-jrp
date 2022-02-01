@@ -1,6 +1,7 @@
 from dictionary import Dictionary
 from mecab import Mecab, MecabUnit
 from normalize import is_kana, to_hiragana
+from preferences import ConvPrefs
 
 
 class Segment:
@@ -38,7 +39,7 @@ def _handle_josi(munit: MecabUnit) -> Unit:
         return Unit([Segment(munit.value, to_hiragana(munit.reading))])
 
 
-def _handle_yougen(dic: Dictionary, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
+def _handle_yougen(p: ConvPrefs, dic: Dictionary, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
     def gen_mecab_reading(unit: MecabUnit) -> str:
         if is_kana(unit.base_form):
             return unit.base_form
@@ -62,7 +63,7 @@ def _handle_other(dic: Dictionary, munits: list[MecabUnit], idx: int) -> tuple[i
     return idx + 1, Unit([Segment(munit.value, munit.reading)])
 
 
-def convert(txt: str, mecab: Mecab, dic: Dictionary) -> list[Unit]:
+def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[Unit]:
     munits = mecab.analyze(txt)
     units: list[Unit] = []
     i = 0
