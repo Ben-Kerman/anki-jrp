@@ -1,6 +1,6 @@
 from dictionary import Dictionary
 from mecab import Mecab, MecabUnit
-from normalize import is_hiragana, to_hiragana
+from normalize import is_kana, to_hiragana
 
 
 class Segment:
@@ -40,7 +40,7 @@ def _handle_josi(munit: MecabUnit) -> Unit:
 
 def _handle_yougen(dic: Dictionary, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
     def gen_mecab_reading(unit: MecabUnit) -> str:
-        if is_hiragana(unit.base_form):
+        if is_kana(unit.base_form):
             return unit.base_form
 
         itr = enumerate(zip(reversed(unit.value), reversed(unit.reading)))

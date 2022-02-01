@@ -36,5 +36,9 @@ def to_katakana(val: str) -> str:
     return val.translate(_to_kata_tbl)
 
 
+def is_kana(val: str) -> bool:
+    return is_katakana(to_katakana(val))
+
+
 def itr_to_kata(itr: Iterable[str]) -> list[str]:
     return _itr_conv(itr, to_katakana)

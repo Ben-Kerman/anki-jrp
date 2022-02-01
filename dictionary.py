@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Generic, TextIO, Type, TypeVar
 
-from normalize import is_hiragana, to_hiragana
+from normalize import is_kana, to_hiragana
 from util import warn
 
 T = TypeVar("T")
@@ -170,7 +170,7 @@ class Dictionary:
         if current_lu:
             return current_lu
 
-        if not is_hiragana(to_hiragana(word)):
+        if not is_kana(word):
             word_direct_vent = self.variant.look_up_variant(word)
             if word_direct_vent:
                 return Lookup(LookupResult.convert_entries(word_direct_vent))
