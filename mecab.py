@@ -6,17 +6,6 @@ class MecabException(Exception):
     pass
 
 
-def raise_ast(val: str) -> str:
-    if val == "*":
-        raise MecabException("unexpected empty value in unit")
-    else:
-        return val
-
-
-def handle_ast(val: str) -> str | None:
-    return None if val == "*" else val
-
-
 @dataclass
 class ParserUnit:
     value: str
@@ -52,6 +41,15 @@ class MecabUnit(ParserUnit):
 
     @classmethod
     def from_line(cls, line: str) -> tuple["MecabUnit", int, int]:
+        def raise_on_ast(val: str) -> str:
+            if val == "*":
+                raise MecabException("unexpected empty value in unit")
+            else:
+                return val
+
+        def ast_to_none(val: str) -> str | None:
+            return None if val == "*" else val
+
         # format: %m(表層形)\t%ps,%pe,%H(品詞,品詞細分類1,品詞細分類2,品詞細分類3,活用型,活用形,原形,読み,発音)
         orig: str
         data: str
@@ -59,14 +57,14 @@ class MecabUnit(ParserUnit):
         fields = data.split(",")
         if fields[2] != "未知語":
             obj = cls(orig, fields[2],
-                      handle_ast(fields[3]),
-                      handle_ast(fields[4]),
-                      handle_ast(fields[5]),
-                      handle_ast(fields[6]),
-                      handle_ast(fields[7]),
-                      raise_ast(fields[8]),
-                      raise_ast(fields[9]),
-                      raise_ast(fields[10]))
+                      ast_to_none(fields[3]),
+                      ast_to_none(fields[4]),
+                      ast_to_none(fields[5]),
+                      ast_to_none(fields[6]),
+                      ast_to_none(fields[7]),
+                      raise_on_ast(fields[8]),
+                      raise_on_ast(fields[9]),
+                      raise_on_ast(fields[10]))
         else:
             obj = cls(orig, fields[2])
         return obj, int(fields[0]), int(fields[1])
