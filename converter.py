@@ -61,9 +61,10 @@ def _dsc(_) -> bool:
 
 
 def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
-                       stop_cond: Callable[[MecabUnit], bool] = _dsc) -> tuple[Match | None, Match | None]:
-    has_accent: Match | None = None
-    no_accent: Match | None = None
+                       prefer_accent: bool = False,
+                       stop_cond: Callable[[MecabUnit], bool] = _dsc) -> Match | None:
+    acc_match: Match | None = None
+    plain_match: Match | None = None
     for i in range(idx, len(punits)):
         pu = punits[i]
         if not isinstance(pu, MecabUnit) or stop_cond(pu):
@@ -78,10 +79,18 @@ def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
         if lu:
             match = Match(i + 1, pu.hinsi_type(), lu)
             if lu.has_accents():
-                has_accent = match
+                acc_match = match
             else:
-                no_accent = match
-    return has_accent, no_accent
+                plain_match = match
+    if acc_match:
+        if prefer_accent:
+            return acc_match
+        elif plain_match and plain_match.next_idx > acc_match.next_idx:
+            return plain_match
+        else:
+            return acc_match
+    else:
+        return plain_match
 
 
 def _handle_josi(munit: MecabUnit) -> Unit:
