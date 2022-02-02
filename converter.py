@@ -1,5 +1,5 @@
 from dictionary import Dictionary
-from mecab import Mecab, MecabUnit
+from mecab import HinsiType, Mecab, MecabUnit
 from normalize import is_kana, to_hiragana
 from preferences import ConvPrefs
 
@@ -68,13 +68,13 @@ def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[U
     units: list[Unit] = []
     i = 0
     while i < len(munits):
-        match munits[i].hinsi:
-            case "助詞" | "助動詞":
+        match munits[i].hinsi_type():
+            case HinsiType.ZYOSI:
                 unit = _handle_josi(munits[i])
                 i += 1
-            case "動詞" | "形容詞":
-                i, unit = _handle_yougen(dic, munits, i)
-            case "記号":
+            case HinsiType.YOUGEN:
+                i, unit = _handle_yougen(prefs, dic, munits, i)
+            case HinsiType.SYMBOL:
                 unit = Unit([Segment(munits[i].value)])
                 i += 1
             case _:

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum, auto
 from subprocess import PIPE, Popen
 
 
@@ -12,6 +13,13 @@ class ParserUnit:
 
     def __repr__(self):
         return f"InputUnit[{self.value}]"
+
+
+class HinsiType(Enum):
+    ZYOSI = auto()
+    YOUGEN = auto()
+    SYMBOL = auto()
+    OTHER = auto()
 
 
 @dataclass
@@ -38,6 +46,17 @@ class MecabUnit(ParserUnit):
                f"{self.base_form}," \
                f"{self.reading}," \
                f"{self.pronunciation}]"
+
+    def hinsi_type(self) -> HinsiType:
+        match self.hinsi:
+            case "助詞" | "助動詞":
+                return HinsiType.ZYOSI
+            case "動詞" | "形容詞":
+                return HinsiType.YOUGEN
+            case "記号":
+                return HinsiType.SYMBOL
+            case _:
+                return HinsiType.OTHER
 
     @classmethod
     def from_line(cls, line: str) -> tuple["MecabUnit", int, int]:
