@@ -51,8 +51,10 @@ def _yougen_base_reading(unit: MecabUnit) -> str:
 
 @dataclass
 class Match:
-    next_idx: int
+    last_idx: int
     hinsi_type: HinsiType
+    word: str
+    base_word: str | None
     lookup: Lookup
 
 
@@ -70,14 +72,16 @@ def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
         if not isinstance(pu, MecabUnit) or stop_cond(pu):
             break
 
+        hinsi = pu.hinsi_type()
         reading_guess = "".join(map(lambda u: u.reading, punits[idx:i]))
-        reading_guess += pu.reading if pu.hinsi_type() != HinsiType.YOUGEN else _yougen_base_reading(pu)
-        word = "".join(map(lambda u: u.value, punits[idx:i]))
-        word += pu.value if pu.hinsi_type() != HinsiType.YOUGEN else pu.base_form
+        reading_guess += pu.reading if hinsi != HinsiType.YOUGEN else _yougen_base_reading(pu)
+        part_word = "".join(map(lambda u: u.value, punits[idx:i]))
+        word = part_word + pu.value
+        base_word = part_word + pu.value if hinsi == HinsiType.YOUGEN else None
 
-        lu = dic.look_up(word, reading_guess)
+        lu = dic.look_up(base_word or word, reading_guess)
         if lu:
-            match = Match(i + 1, pu.hinsi_type(), lu)
+            match = Match(i, hinsi, word, base_word, lu)
             if lu.has_accents():
                 acc_match = match
             else:
@@ -85,7 +89,7 @@ def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
     if acc_match:
         if prefer_accent:
             return acc_match
-        elif plain_match and plain_match.next_idx > acc_match.next_idx:
+        elif plain_match and plain_match.last_idx > acc_match.last_idx:
             return plain_match
         else:
             return acc_match
