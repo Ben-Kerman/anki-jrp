@@ -111,9 +111,14 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
     return idx + 1, Unit([Segment(mu.value, mecab_reading)])
 
 
-def _handle_other(dic: Dictionary, munits: list[ParserUnit], idx: int) -> tuple[int, Unit]:
-    munit = cast(MecabUnit, munits[idx])
-    return idx + 1, Unit([Segment(munit.value, munit.reading)])
+def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit]:
+    m = find_longest_match(dic, idx, punits, p.prefer_accent_lookups, lambda u: u.hinsi_type() == HinsiType.ZYOSI)
+    if m:
+        res = m.lookup.results[0]
+        return m.last_idx + 1, Unit([Segment(m.word, res.reading)], res.accents)
+    else:
+        mu = cast(MecabUnit, punits[idx])
+        return idx + 1, Unit([Segment(mu.value, mu.reading)])
 
 
 def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[Unit]:
@@ -133,7 +138,7 @@ def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[U
                     unit = Unit([Segment(pu.value)])
                     i += 1
                 case _:
-                    i, unit = _handle_other(dic, punits, i)
+                    i, unit = _handle_other(prefs, dic, punits, i)
         else:
             unit = Unit([Segment(pu.value)])
         units.append(unit)

@@ -1,4 +1,5 @@
 class ConvPrefs:
+    prefer_accent_lookups: bool
     yougen_join_nai: bool
     yougen_join_u: bool
     yougen_join_ta: bool
@@ -13,6 +14,7 @@ class ConvPrefs:
     dousi_split_teru: bool
 
     def __init__(self,
+                 prefer_accent_lookups: bool = False,
                  yougen_join_nai: bool = True,
                  yougen_join_u: bool = True,
                  yougen_join_ta: bool = True,
@@ -25,6 +27,7 @@ class ConvPrefs:
                  dousi_join_masu: bool = True,
                  dousi_join_tyau: bool = False,
                  dousi_split_teru: bool = True):
+        self.prefer_accent_lookups = prefer_accent_lookups
         self.yougen_join_nai = yougen_join_nai
         self.yougen_join_u = yougen_join_u
         self.yougen_join_ta = yougen_join_ta
