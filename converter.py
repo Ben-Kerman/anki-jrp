@@ -34,6 +34,19 @@ class Unit:
         return f"U[{self.segments},{self.accents},{self.base_form}]"
 
 
+def _yougen_base_reading(unit: MecabUnit) -> str:
+    if is_kana(unit.base_form):
+        return unit.base_form
+
+    itr = enumerate(zip(reversed(unit.value), reversed(unit.reading)))
+    for i, (co, cr) in itr:
+        if co != cr:
+            break
+
+    # TODO: handle undefined i
+    return unit.reading[0:len(unit.reading) - i] + unit.base_form[len(unit.value) - i:]
+
+
 def _handle_josi(munit: MecabUnit) -> Unit:
     if to_hiragana(munit.value) == to_hiragana(munit.reading):
         return Unit([Segment(munit.value)])
@@ -42,20 +55,8 @@ def _handle_josi(munit: MecabUnit) -> Unit:
 
 
 def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit]:
-    def gen_mecab_reading(unit: MecabUnit) -> str:
-        if is_kana(unit.base_form):
-            return unit.base_form
-
-        itr = enumerate(zip(reversed(unit.value), reversed(unit.reading)))
-        for i, (co, cr) in itr:
-            if co != cr:
-                break
-
-        # TODO: handle undefined i
-        return unit.reading[0:len(unit.reading) - i] + unit.base_form[len(unit.value) - i:]
-
     mu = cast(MecabUnit, punits[idx])
-    mecab_reading: str = gen_mecab_reading(mu)
+    mecab_reading: str = _yougen_base_reading(mu)
 
     return idx + 1, Unit([Segment(mu.value, mecab_reading)])
 
