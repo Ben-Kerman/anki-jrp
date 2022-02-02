@@ -1,5 +1,7 @@
+from typing import cast
+
 from dictionary import Dictionary
-from mecab import HinsiType, Mecab, MecabUnit
+from mecab import HinsiType, Mecab, MecabUnit, ParserUnit
 from normalize import is_kana, to_hiragana
 from preferences import ConvPrefs
 
@@ -39,7 +41,7 @@ def _handle_josi(munit: MecabUnit) -> Unit:
         return Unit([Segment(munit.value, to_hiragana(munit.reading))])
 
 
-def _handle_yougen(p: ConvPrefs, dic: Dictionary, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
+def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit]:
     def gen_mecab_reading(unit: MecabUnit) -> str:
         if is_kana(unit.base_form):
             return unit.base_form
@@ -52,32 +54,36 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, munits: list[MecabUnit], idx: 
         # TODO: handle undefined i
         return unit.reading[0:len(unit.reading) - i] + unit.base_form[len(unit.value) - i:]
 
-    mu = munits[idx]
+    mu = cast(MecabUnit, punits[idx])
     mecab_reading: str = gen_mecab_reading(mu)
 
     return idx + 1, Unit([Segment(mu.value, mecab_reading)])
 
 
-def _handle_other(dic: Dictionary, munits: list[MecabUnit], idx: int) -> tuple[int, Unit]:
-    munit = munits[idx]
+def _handle_other(dic: Dictionary, munits: list[ParserUnit], idx: int) -> tuple[int, Unit]:
+    munit = cast(MecabUnit, munits[idx])
     return idx + 1, Unit([Segment(munit.value, munit.reading)])
 
 
 def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[Unit]:
-    munits = mecab.analyze(txt)
+    punits = mecab.analyze(txt)
     units: list[Unit] = []
     i = 0
-    while i < len(munits):
-        match munits[i].hinsi_type():
-            case HinsiType.ZYOSI:
-                unit = _handle_josi(munits[i])
-                i += 1
-            case HinsiType.YOUGEN:
-                i, unit = _handle_yougen(prefs, dic, munits, i)
-            case HinsiType.SYMBOL:
-                unit = Unit([Segment(munits[i].value)])
-                i += 1
-            case _:
-                i, unit = _handle_other(dic, munits, i)
+    while i < len(punits):
+        pu = punits[i]
+        if isinstance(pu, MecabUnit):
+            match pu.hinsi_type():
+                case HinsiType.ZYOSI:
+                    unit = _handle_josi(pu)
+                    i += 1
+                case HinsiType.YOUGEN:
+                    i, unit = _handle_yougen(prefs, dic, punits, i)
+                case HinsiType.SYMBOL:
+                    unit = Unit([Segment(pu.value)])
+                    i += 1
+                case _:
+                    i, unit = _handle_other(dic, punits, i)
+        else:
+            unit = Unit([Segment(pu.value)])
         units.append(unit)
     return units

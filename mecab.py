@@ -106,7 +106,7 @@ class Mecab:
                 raise MecabException("executable not found")
         return self._inst
 
-    def analyze(self, txt: str) -> list[MecabUnit]:
+    def analyze(self, txt: str) -> list[ParserUnit]:
         inst = self._instance()
         utf8_bytes = txt.encode("utf-8")
         inst.stdin.write(utf8_bytes + b"\n")
