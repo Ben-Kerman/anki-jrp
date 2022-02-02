@@ -1,6 +1,8 @@
+from collections.abc import Callable
+from dataclasses import dataclass
 from typing import cast
 
-from dictionary import Dictionary
+from dictionary import Dictionary, Lookup
 from mecab import HinsiType, Mecab, MecabUnit, ParserUnit
 from normalize import is_kana, to_hiragana
 from preferences import ConvPrefs
@@ -45,6 +47,41 @@ def _yougen_base_reading(unit: MecabUnit) -> str:
 
     # TODO: handle undefined i
     return unit.reading[0:len(unit.reading) - i] + unit.base_form[len(unit.value) - i:]
+
+
+@dataclass
+class Match:
+    next_idx: int
+    hinsi_type: HinsiType
+    lookup: Lookup
+
+
+def _dsc(_) -> bool:
+    return False
+
+
+def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
+                       stop_cond: Callable[[MecabUnit], bool] = _dsc) -> tuple[Match | None, Match | None]:
+    has_accent: Match | None = None
+    no_accent: Match | None = None
+    for i in range(idx, len(punits)):
+        pu = punits[i]
+        if not isinstance(pu, MecabUnit) or stop_cond(pu):
+            break
+
+        reading_guess = "".join(map(lambda u: u.reading, punits[idx:i]))
+        reading_guess += pu.reading if pu.hinsi_type() != HinsiType.YOUGEN else _yougen_base_reading(pu)
+        word = "".join(map(lambda u: u.value, punits[idx:i]))
+        word += pu.value if pu.hinsi_type() != HinsiType.YOUGEN else pu.base_form
+
+        lu = dic.look_up(word, reading_guess)
+        if lu:
+            match = Match(i + 1, pu.hinsi_type(), lu)
+            if lu.has_accents():
+                has_accent = match
+            else:
+                no_accent = match
+    return has_accent, no_accent
 
 
 def _handle_josi(munit: MecabUnit) -> Unit:
