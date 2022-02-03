@@ -76,7 +76,7 @@ def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
         reading_guess += pu.reading if hinsi != HinsiType.YOUGEN else _yougen_base_reading(pu)
         part_word = "".join(map(lambda u: u.value, punits[idx:i]))
         word = part_word + pu.value
-        base_word = part_word + pu.value if hinsi == HinsiType.YOUGEN else None
+        base_word = part_word + pu.base_form if hinsi == HinsiType.YOUGEN else None
 
         lu = dic.look_up(base_word or word, reading_guess)
         if lu:
@@ -193,6 +193,7 @@ def _yougen_join(p: ConvPrefs, punits: list[ParserUnit], bmu: MecabUnit,
         for_cur = mu.comp_hinsi("動詞", "非自立") and mu.base_form == ("てる", "でる")
         if for_base and for_cur:
             return idx + 1, prev + mu.value[0], Unit([Segment(mu.value[1:])])
+    return idx + 1, "", None
 
 
 def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
