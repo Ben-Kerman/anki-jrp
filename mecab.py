@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from subprocess import PIPE, Popen
 
+from normalize import to_hiragana
+
 
 class MecabException(Exception):
     pass
@@ -93,8 +95,8 @@ class MecabUnit(ParserUnit):
                       ast_to_none(fields[6]),
                       ast_to_none(fields[7]),
                       raise_on_ast(fields[8]),
-                      raise_on_ast(fields[9]),
-                      raise_on_ast(fields[10]))
+                      to_hiragana(raise_on_ast(fields[9])),
+                      to_hiragana(raise_on_ast(fields[10])))
         else:
             obj = cls(orig, fields[2])
         return obj, int(fields[0]), int(fields[1])
