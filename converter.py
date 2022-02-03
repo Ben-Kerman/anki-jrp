@@ -198,6 +198,8 @@ def _yougen_join(p: ConvPrefs, punits: list[ParserUnit], bmu: MecabUnit,
 
 def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
     def find_reading(word: str, base_word: str, base_reading: str):
+        if word == base_word:
+            return base_reading
         if is_kana(word):
             return word
 
