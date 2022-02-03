@@ -79,3 +79,9 @@ class Unit:
 
     def __repr__(self):
         return f"U[{self.segments},{self.accents},{self.base_form}]"
+
+    def reading(self, upper: int | None = None):
+        return "".join(map(lambda s: s.reading or s.text, self.segments[:upper]))
+
+    def text(self, upper: int | None = None):
+        return "".join(map(lambda s: s.text, self.segments[:upper]))
