@@ -105,9 +105,9 @@ def _handle_josi(munit: MecabUnit) -> Unit:
 
 def _yougen_join(p: ConvPrefs, punits: list[ParserUnit], bmu: MecabUnit,
                  idx: int, prev: str = "") -> tuple[int, str, Unit | None]:
-    mu = punits[idx]
-    if not isinstance(mu, MecabUnit):
+    if idx >= len(punits) or not isinstance(punits[idx], MecabUnit):
         return idx, prev, None
+    mu = cast(MecabUnit, punits[idx])
 
     if p.yougen_join_tai:
         pass
