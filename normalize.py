@@ -20,6 +20,10 @@ def is_hiragana(val: str) -> bool:
     return all(c in _is_hira_str for c in val)
 
 
+def has_hiragana(val: str) -> bool:
+    return any(c in _is_hira_str for c in val)
+
+
 def to_hiragana(val: str) -> str:
     return val.translate(_to_hira_tbl)
 
@@ -32,12 +36,20 @@ def is_katakana(val: str) -> bool:
     return all(c in _is_kata_str for c in val)
 
 
+def has_katakana(val: str) -> bool:
+    return any(c in _is_kata_str for c in val)
+
+
 def to_katakana(val: str) -> str:
     return val.translate(_to_kata_tbl)
 
 
 def is_kana(val: str) -> bool:
     return is_katakana(to_katakana(val))
+
+
+def has_kana(val: str) -> bool:
+    return any(c in _kata for c in to_katakana(val))
 
 
 def itr_to_kata(itr: Iterable[str]) -> list[str]:

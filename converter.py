@@ -4,7 +4,7 @@ from typing import cast
 
 from dictionary import Dictionary, Lookup
 from mecab import HinsiType, Mecab, MecabUnit, ParserUnit
-from normalize import is_kana, to_hiragana
+from normalize import has_kana, is_kana, to_hiragana
 from preferences import ConvPrefs
 
 
@@ -18,6 +18,55 @@ class Segment:
 
     def __repr__(self):
         return f"S[{self.text},{self.reading}]"
+
+    @classmethod
+    def generate(cls, word: str, reading: str) -> list["Segment"]:
+        def segmentalize(reading: str, sections: list[str],
+                         r_idx: int, s_idx: int,
+                         segments: list[cls]) -> list[cls] | None:
+            if s_idx >= len(sections):
+                if r_idx < len(reading):
+                    return None
+                else:
+                    return segments
+
+            sect = sections[s_idx]
+            if not is_kana(sect):
+                return segmentalize(reading, sections, r_idx, s_idx + 1, segments)
+
+            m_idx = r_idx
+            while m_idx < len(reading):
+                m_idx = reading.find(to_hiragana(sect), m_idx)
+                if m_idx >= 0:
+                    n_segm = [Segment(sections[s_idx - 1], reading[r_idx:m_idx])] if s_idx > 0 else []
+                    n_segm.append(Segment(sect))
+                    if s_idx == len(sections) - 2:
+                        return n_segm + [Segment(sections[-1], reading[m_idx + len(sect):])]
+                    else:
+                        nxt = segmentalize(reading, sections, m_idx + len(sect), s_idx + 2, segments + n_segm)
+                        if nxt:
+                            return nxt
+                m_idx += 1
+            return None
+
+        if not reading:
+            return [Segment(word)]
+
+        reading = to_hiragana(reading)
+        if not has_kana(word):
+            return [cls(word, reading)]
+
+        sections = []
+        last_start = 0
+        kana = is_kana(word[0])
+        for i, c in enumerate(word):
+            kana_at_i = is_kana(c)
+            if kana_at_i != kana:
+                sections.append(word[last_start:i])
+                last_start = i
+                kana = kana_at_i
+        sections.append(word[last_start:])
+        return segmentalize(reading, sections, 0, 0, [])
 
 
 class Unit:
@@ -228,7 +277,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
         tail_mu = cast(MecabUnit, punits[m.last_idx])
         res = m.lookup.results[0]
         if tail_mu.hinsi_type() != HinsiType.YOUGEN:
-            return m.last_idx + 1, Unit([Segment(m.word, res.reading)], res.accents), None
+            return m.last_idx + 1, Unit(Segment.generate(m.word, res.reading), res.accents), None
         else:
             def has_special_reading(munit: MecabUnit) -> bool:
                 match munit.hinsi:
@@ -243,19 +292,20 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
             if has_special_reading(tail_mu):
                 word_reading = to_hiragana(word_reading[:-len(tail_mu.reading)] + tail_mu.reading)
             word_reading += trailing
-            return new_idx, Unit([Segment(m.word + trailing, word_reading)], res.accents, res.reading), split_unit
+            segments = Segment.generate(m.word + trailing, word_reading)
+            return new_idx, Unit(segments, res.accents, res.reading), split_unit
     else:
-        return idx + 1, Unit([Segment(mu.value, mu.reading)], base_form=_yougen_base_reading(mu)), None
+        return idx + 1, Unit(Segment.generate(mu.value, mu.reading), base_form=_yougen_base_reading(mu)), None
 
 
 def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit]:
     m = find_longest_match(dic, idx, punits, p.prefer_accent_lookups, _stop_cond)
     if m:
         res = m.lookup.results[0]
-        return m.last_idx + 1, Unit([Segment(m.word, res.reading)], res.accents)
+        return m.last_idx + 1, Unit(Segment.generate(m.word, res.reading), res.accents)
     else:
         mu = cast(MecabUnit, punits[idx])
-        return idx + 1, Unit([Segment(mu.value, mu.reading)])
+        return idx + 1, Unit(Segment.generate(mu.value, mu.reading))
 
 
 def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[Unit]:
