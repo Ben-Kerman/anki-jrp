@@ -220,10 +220,18 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
         if tail_mu.hinsi_type() != HinsiType.YOUGEN:
             return m.last_idx + 1, Unit([Segment(m.word, res.reading)], res.accents), None
         else:
+            def has_special_reading(munit: MecabUnit) -> bool:
+                match munit.hinsi:
+                    case "動詞":
+                        return munit.base_form in ("くる", "来る", "來る")
+                    case "形容詞":
+                        return munit.base_form in ("いい", "良い", "好い", "善い", "佳い", "吉い", "宜い")
+                return False
+
             new_idx, trailing, split_unit = _yougen_join(p, punits, tail_mu, m.last_idx + 1)
             word_reading = find_reading(m.word, m.base_word, res.reading)
-            if tail_mu.base_form in ("来る", "來る", "くる"):
-                word_reading = to_hiragana(word_reading[:-1] + tail_mu.reading[0])
+            if has_special_reading(tail_mu):
+                word_reading = to_hiragana(word_reading[:-len(tail_mu.reading)] + tail_mu.reading)
             word_reading += trailing
             return new_idx, Unit([Segment(m.word, word_reading)], res.accents, res.reading), split_unit
     else:
