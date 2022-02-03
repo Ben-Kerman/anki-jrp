@@ -131,6 +131,8 @@ def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
         base_word = part_word + pu.base_form if hinsi == HinsiType.YOUGEN else None
 
         lu = dic.look_up(base_word or word, reading_guess)
+        if not lu:
+            lu = dic.look_up(word, reading_guess)
         if lu:
             match = Match(i, word, base_word, lu)
             if lu.has_accents():
