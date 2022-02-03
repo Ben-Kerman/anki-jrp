@@ -16,7 +16,7 @@ class Segment:
         return f"S[{self.text},{self.reading}]"
 
     @classmethod
-    def generate(cls, word: str, reading: str) -> list["Segment"]:
+    def generate(cls, word: str, reading: str | None) -> list["Segment"]:
         def segmentalize(reading: str, sections: list[str],
                          r_idx: int, s_idx: int,
                          segments: list[cls]) -> list[cls] | None:
@@ -42,7 +42,9 @@ class Segment:
                         nxt = segmentalize(reading, sections, m_idx + len(sect), s_idx + 2, segments + n_segm)
                         if nxt:
                             return nxt
-                m_idx += 1
+                    m_idx += 1
+                else:
+                    break
             return None
 
         if not reading:
@@ -62,7 +64,9 @@ class Segment:
                 last_start = i
                 kana = kana_at_i
         sections.append(word[last_start:])
-        return segmentalize(reading, sections, 0, 0, [])
+
+        res = segmentalize(reading, sections, 0, 0, [])
+        return res if res else [Segment(word, reading)]
 
 
 class Unit:
