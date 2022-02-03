@@ -58,6 +58,17 @@ class MecabUnit(ParserUnit):
             case _:
                 return HinsiType.OTHER
 
+    def comp_hinsi(self, *args: str):
+        if self.hinsi != args[0]:
+            return False
+        if len(args) > 1 and self.hinsi_class_1 != args[1]:
+            return False
+        if len(args) > 2 and self.hinsi_class_2 != args[2]:
+            return False
+        if len(args) > 3 and self.hinsi_class_3 != args[3]:
+            return False
+        return True
+
     @classmethod
     def from_line(cls, line: str) -> tuple["MecabUnit", int, int]:
         def raise_on_ast(val: str) -> str:
