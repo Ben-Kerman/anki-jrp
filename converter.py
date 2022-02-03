@@ -72,8 +72,11 @@ def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
             break
 
         hinsi = pu.hinsi_type()
-        reading_guess = "".join(map(lambda u: u.reading, punits[idx:i]))
-        reading_guess += pu.reading if hinsi != HinsiType.YOUGEN else _yougen_base_reading(pu)
+        if all(isinstance(u, MecabUnit) and u.hinsi != "未知語" for u in punits[idx:i + 1]):
+            reading_guess = "".join(map(lambda u: u.reading, punits[idx:i]))
+            reading_guess += pu.reading if hinsi != HinsiType.YOUGEN else _yougen_base_reading(pu)
+        else:
+            reading_guess = None
         part_word = "".join(map(lambda u: u.value, punits[idx:i]))
         word = part_word + pu.value
         base_word = part_word + pu.base_form if hinsi == HinsiType.YOUGEN else None
