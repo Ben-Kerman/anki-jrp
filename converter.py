@@ -259,6 +259,7 @@ def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[U
                     i, unit = _handle_other(prefs, dic, punits, i)
         else:
             unit = Unit([Segment(pu.value)])
+            i += 1
         if split_unit:
             units.append(split_unit)
             split_unit = None
