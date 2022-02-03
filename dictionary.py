@@ -141,7 +141,9 @@ class Dictionary:
         return res
 
     def look_up(self, word: str, reading_guess: str | None = None) -> Lookup | None:
-        def filter_for_guess(entries: list[Entry], guess: str) -> list[Entry]:
+        def filter_for_guess(entries: list[Entry], guess: str) -> list[Entry] | None:
+            if not guess:
+                return None
             return [e for e in entries if to_hiragana(e.reading) == to_hiragana(guess)]
 
         word_direct_aent = self.accent.look_up_variant(word)
