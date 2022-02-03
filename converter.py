@@ -112,8 +112,6 @@ def _yougen_join(p: ConvPrefs, punits: list[ParserUnit], bmu: MecabUnit,
         return idx, prev, None
     mu = cast(MecabUnit, punits[idx])
 
-    if p.yougen_join_tai:
-        pass
     if p.yougen_join_nai:
         for_dousi = bmu.hinsi == "動詞" and bmu.conj_form == "未然形"
         for_keiyousi = bmu.hinsi == "形容詞" and bmu.conj_form == "連用テ接続"
@@ -161,6 +159,11 @@ def _yougen_join(p: ConvPrefs, punits: list[ParserUnit], bmu: MecabUnit,
         if for_keiyousi or for_zyosi and for_cur:
             return _yougen_join(p, punits, mu, idx + 1, prev + mu.value)
 
+    if p.dousi_join_tai:
+        for_base = bmu.hinsi == "動詞" and bmu.conj_form == "連用形"
+        for_cur = mu.hinsi == "助動詞" and mu.conj_type == "特殊・タイ"
+        if for_base and for_cur:
+            return _yougen_join(p, punits, mu, idx + 1, prev + mu.value)
     if p.dousi_join_nu:
         for_base = bmu.hinsi in ("動詞", "助動詞") and bmu.conj_form == "未然形"
         for_cur = mu.hinsi == "助動詞" and mu.conj_type == "特殊・ヌ"
