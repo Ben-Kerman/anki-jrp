@@ -129,14 +129,14 @@ def _yougen_join(p: ConvPrefs, punits: list[ParserUnit], bmu: MecabUnit,
     if p.yougen_join_ta:
         for_dousi = bmu.hinsi == "動詞" and bmu.conj_form in ("連用形", "連用タ接続")
         for_keiyousi = bmu.hinsi == "形容詞" and bmu.conj_form == "連用タ接続"
-        for_zyosi = bmu.conj_type in ("特殊・タイ", "特殊・ナイ") and bmu.conj_form == "連用タ接続"
+        for_zyosi = bmu.hinsi == "助動詞" and bmu.conj_form in ("連用形", "連用タ接続")
         for_cur = mu.hinsi == "助動詞" and mu.conj_type == "特殊・タ"
         if any((for_dousi, for_keiyousi, for_zyosi)) and for_cur:
             return idx + 1, prev + mu.value, None
     if p.yougen_join_te:
         for_dousi = bmu.hinsi == "動詞" and bmu.conj_form in ("連用形", "連用タ接続")
         for_keiyousi = bmu.hinsi == "形容詞" and bmu.conj_form == "連用テ接続"
-        for_zyosi = bmu.conj_type in ("特殊・タイ", "特殊・ナイ") and bmu.conj_form == "連用テ接続"
+        for_zyosi = bmu.hinsi == "助動詞" and bmu.conj_form in ("連用形", "連用テ接続")
         for_cur = mu.comp_hinsi("助詞", "接続助詞") and mu.base_form in ("て", "で")
         if any((for_dousi, for_keiyousi, for_zyosi)) and for_cur:
             return idx + 1, prev + mu.value, None
@@ -193,10 +193,10 @@ def _yougen_join(p: ConvPrefs, punits: list[ParserUnit], bmu: MecabUnit,
             return _yougen_join(p, punits, mu, idx + 1, prev + mu.value)
     if p.dousi_split_teru:
         for_base = bmu.hinsi in ("動詞", "助動詞") and bmu.conj_form in ("連用形", "連用タ接続")
-        for_cur = mu.comp_hinsi("動詞", "非自立") and mu.base_form == ("てる", "でる")
+        for_cur = mu.comp_hinsi("動詞", "非自立") and mu.base_form in ("てる", "でる")
         if for_base and for_cur:
             return idx + 1, prev + mu.value[0], Unit([Segment(mu.value[1:])])
-    return idx + 1, "", None
+    return idx, prev, None
 
 
 def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
