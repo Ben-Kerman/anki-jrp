@@ -1,4 +1,4 @@
-from normalize import has_kana, is_kana, to_hiragana
+from normalize import comp_kana, has_kana, is_kana, to_hiragana
 
 
 class Segment:
@@ -7,7 +7,10 @@ class Segment:
 
     def __init__(self, text: str, reading: str | None = None):
         self.text = text
-        self.reading = reading
+        if reading and not comp_kana(text, reading):
+            self.reading = reading
+        else:
+            self.reading = None
 
     def __repr__(self):
         return f"S[{self.text},{self.reading}]"

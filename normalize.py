@@ -52,5 +52,12 @@ def has_kana(val: str) -> bool:
     return any(c in _kata for c in to_katakana(val))
 
 
+def comp_kana(*args: str) -> bool:
+    if len(args) < 2:
+        raise ValueError
+    first = to_katakana(args[0])
+    return all(to_katakana(a) == first for a in args[1:])
+
+
 def itr_to_kata(itr: Iterable[str]) -> list[str]:
     return _itr_conv(itr, to_katakana)
