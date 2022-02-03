@@ -202,6 +202,10 @@ def _yougen_join(p: ConvPrefs, punits: list[ParserUnit], bmu: MecabUnit,
     return idx, prev, None
 
 
+def _stop_cond(mu: MecabUnit) -> bool:
+    return mu.hinsi_type() in (HinsiType.ZYOSI, HinsiType.SYMBOL)
+
+
 def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
     def find_reading(word: str, base_word: str, base_reading: str):
         if word == base_word:
@@ -219,7 +223,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
 
     mu = cast(MecabUnit, punits[idx])
 
-    m = find_longest_match(dic, idx, punits, p.prefer_accent_lookups, lambda u: u.hinsi_type() == HinsiType.ZYOSI)
+    m = find_longest_match(dic, idx, punits, p.prefer_accent_lookups, _stop_cond)
     if m:
         tail_mu = cast(MecabUnit, punits[m.last_idx])
         res = m.lookup.results[0]
@@ -245,7 +249,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
 
 
 def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit]:
-    m = find_longest_match(dic, idx, punits, p.prefer_accent_lookups, lambda u: u.hinsi_type() == HinsiType.ZYOSI)
+    m = find_longest_match(dic, idx, punits, p.prefer_accent_lookups, _stop_cond)
     if m:
         res = m.lookup.results[0]
         return m.last_idx + 1, Unit([Segment(m.word, res.reading)], res.accents)
