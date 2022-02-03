@@ -197,6 +197,18 @@ def _yougen_join(p: ConvPrefs, punits: list[ParserUnit], bmu: MecabUnit,
 
 
 def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
+    def find_reading(word: str, base_word: str, base_reading: str):
+        if is_kana(word):
+            return word
+
+        i_break = False
+        for i, (wc, bwc) in enumerate(zip(word, base_word)):
+            if wc != bwc:
+                i_break = True
+                break
+
+        return base_reading[:-1] + (word[i:] if i_break else "")
+
     mu = cast(MecabUnit, punits[idx])
 
     m = find_longest_match(dic, idx, punits, p.prefer_accent_lookups, lambda u: u.hinsi_type() == HinsiType.ZYOSI)
@@ -207,8 +219,8 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
             return m.last_idx + 1, Unit([Segment(m.word, res.reading)], res.accents), None
         else:
             new_idx, trailing, split_unit = _yougen_join(p, punits, tail_mu, m.last_idx + 1)
-            # TODO: use actual reading instead of base form reading
-            return new_idx, Unit([Segment(m.word, res.reading)], res.accents, res.reading), split_unit
+            word_reading = find_reading(m.word, m.base_word, res.reading) + trailing
+            return new_idx, Unit([Segment(m.word, word_reading)], res.accents, res.reading), split_unit
     else:
         return idx + 1, Unit([Segment(mu.value, mu.reading)], base_form=_yougen_base_reading(mu)), None
 
