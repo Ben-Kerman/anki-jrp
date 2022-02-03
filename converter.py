@@ -247,7 +247,8 @@ def _yougen_join(p: ConvPrefs, punits: list[ParserUnit], bmu: MecabUnit,
         for_base = bmu.hinsi in ("動詞", "助動詞") and bmu.conj_form in ("連用形", "連用タ接続")
         for_cur = mu.comp_hinsi("動詞", "非自立") and mu.base_form in ("てる", "でる")
         if for_base and for_cur:
-            return idx + 1, prev + mu.value[0], Unit([Segment(mu.value[1:])])
+            split_val = mu.value[1:]
+            return idx + 1, prev + mu.value[0], Unit([Segment(split_val)]) if split_val else None
     return idx, prev, None
 
 
@@ -330,8 +331,8 @@ def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[U
         else:
             unit = Unit([Segment(pu.value)])
             i += 1
+        units.append(unit)
         if split_unit:
             units.append(split_unit)
             split_unit = None
-        units.append(unit)
     return units
