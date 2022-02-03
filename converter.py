@@ -233,7 +233,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
             if has_special_reading(tail_mu):
                 word_reading = to_hiragana(word_reading[:-len(tail_mu.reading)] + tail_mu.reading)
             word_reading += trailing
-            return new_idx, Unit([Segment(m.word, word_reading)], res.accents, res.reading), split_unit
+            return new_idx, Unit([Segment(m.word + trailing, word_reading)], res.accents, res.reading), split_unit
     else:
         return idx + 1, Unit([Segment(mu.value, mu.reading)], base_form=_yougen_base_reading(mu)), None
 
