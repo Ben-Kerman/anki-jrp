@@ -4,6 +4,10 @@ from normalize import is_kana, to_katakana
 from segments import Unit
 
 
+class OutputError(Exception):
+    pass
+
+
 def _add_accent(unit: Unit) -> bool:
     if not unit.accents:
         return False
@@ -84,3 +88,52 @@ def fmt_migaku(units: list[Unit]) -> str:
             return f"{unit.text()}{tag}"
 
     return " ".join(map(fmt_unit, units))
+
+
+def fmt_jrp(units: list[Unit]) -> str:
+    def fmt_unit(unit: Unit) -> str:
+        def accent_strs(unit: Unit) -> Generator[str]:
+            if unit.base_form:
+                moras = len(_split_moras(unit.base_form))
+                for acc in unit.accents:
+                    yield str(acc - moras - 1) if acc != 0 else "0"
+            else:
+                for acc in unit.accents:
+                    yield str(acc)
+
+        def segment_strs(unit: Unit) -> Generator[str]:
+            base = to_katakana(unit.base_form) if unit.base_form else None
+            base_idx = 0
+            for i, s in enumerate(unit.segments):
+                if base:
+                    for k, c in enumerate(to_katakana(s.reading or s.text)):
+                        if base_idx >= len(base):
+                            raise OutputError("end of base reached before end of reading")
+
+                        if c != base[base_idx]:
+                            if i < len(unit.segments) - 1:
+                                raise OutputError("difference between reading and base before last segment")
+                            if s.reading:
+                                raise OutputError("last segment has a reading")
+
+                            common_pref = s.text[:k]
+                            if common_pref:
+                                yield common_pref
+                            yield f"[{s.text[k:]}={unit.base_form[base_idx:]}]"
+                            return
+                        base_idx += 1
+
+                if s.reading:
+                    yield f"[{s.text}|{s.reading}]"
+                else:
+                    yield s.text
+            if base and base_idx < len(base):
+                yield f"[={unit.base_form[base_idx:]}]"
+
+        segment_str = "".join(segment_strs(unit))
+        if _add_accent(unit):
+            return f"{{{segment_str};{','.join(accent_strs(unit))}}}"
+        else:
+            return segment_str
+
+    return "".join(map(fmt_unit, units))
