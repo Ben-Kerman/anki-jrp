@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from dataclasses import dataclass
 from typing import cast
 
@@ -34,9 +34,30 @@ def _dsc(_) -> bool:
     return False
 
 
+_potential_table = str.maketrans("えけげせてねべめれエケゲセテネベメレ",
+                                 "うくぐすつぬぶむるうくぐすつぬぶむる")
+
+
+def base_for_potential(word: str, reading: str | None) -> tuple[str, str] | None:
+    if len(word) < 3 or word[-1] != "る":
+        return None
+    base_end = word[-2].translate(_potential_table)
+    return word[:-2] + base_end, reading and reading[:-2] + base_end
+
+
 def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
                        prefer_accent: bool = False,
                        stop_cond: Callable[[MecabUnit], bool] = _dsc) -> Match | None:
+    def lookup_variants(word: str, reading_guess: str | None,
+                        base_word: str | None = None) -> Generator[tuple[str, str | None, str | None]]:
+        if base_word:
+            yield base_word, reading_guess, base_word
+            pot_base, pot_reading = base_for_potential(base_word, reading_guess)
+            yield pot_base, pot_reading, pot_base
+        yield word, reading_guess, None
+        pot_base, pot_reading = base_for_potential(base_word, reading_guess)
+        yield pot_base, pot_reading, pot_base
+
     acc_match: Match | None = None
     plain_match: Match | None = None
     for i in range(idx, len(punits)):
@@ -54,15 +75,14 @@ def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
         word = part_word + pu.value
         base_word = part_word + pu.base_form if hinsi == HinsiType.YOUGEN else None
 
-        lu = dic.look_up(base_word or word, reading_guess)
-        if not lu:
-            lu = dic.look_up(word, reading_guess)
-        if lu:
-            match = Match(i, word, base_word, lu)
-            if lu.has_accents():
-                acc_match = match
-            else:
-                plain_match = match
+        for var_word, var_guess, var_base in lookup_variants(word, reading_guess, base_word):
+            if lu := dic.look_up(var_word, var_guess):
+                match = Match(i, word, var_base, lu)
+                if lu.has_accents():
+                    acc_match = match
+                else:
+                    plain_match = match
+                break
     if acc_match:
         if prefer_accent:
             return acc_match
