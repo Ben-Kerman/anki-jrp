@@ -1,10 +1,6 @@
 from dataclasses import dataclass
 
-from preferences import ConfigError, check_json_value
-
-
-class OverrideError(Exception):
-    pass
+from util import ConfigError, check_json_value
 
 
 @dataclass
