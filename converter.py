@@ -78,7 +78,7 @@ def _handle_josi(munit: MecabUnit) -> Unit:
     if to_hiragana(munit.value) == to_hiragana(munit.reading):
         return Unit([Segment(munit.value)])
     else:
-        return Unit([Segment(munit.value, to_hiragana(munit.reading))])
+        return Unit(Segment.generate(munit.value, to_hiragana(munit.reading)))
 
 
 def _yougen_join(p: JoinPrefs, punits: list[ParserUnit], bmu: MecabUnit,
