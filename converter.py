@@ -84,15 +84,19 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list
                 else:
                     plain_match = match
                 break
-    if acc_match:
-        if prefs.prefer_accent_lookups:
-            return acc_match
-        elif plain_match and plain_match.last_idx > acc_match.last_idx:
-            return plain_match
+
+    def find_retval(prefs: ConvPrefs, acc: Match, plain: Match) -> Match:
+        if acc:
+            if prefs.prefer_accent_lookups:
+                return acc
+            elif plain and plain.last_idx > acc.last_idx:
+                return plain
+            else:
+                return acc
         else:
-            return acc_match
-    else:
-        return plain_match
+            return plain
+
+    return find_retval(prefs, acc_match, plain_match)
 
 
 def _handle_josi(munit: MecabUnit) -> Unit:
