@@ -1,9 +1,14 @@
+import os.path
 import sys
 from typing import Type, TypeVar
 
 
 def warn(*args):
     print(*args, file=sys.stderr)
+
+
+def get_path(*comps: str) -> str:
+    return os.path.join(os.path.dirname(__file__), *comps)
 
 
 class ConfigError(ValueError):
