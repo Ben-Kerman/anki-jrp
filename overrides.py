@@ -8,6 +8,9 @@ class IgnoreOverride:
     variants: list[str]
     reading: str | None = None
 
+    def match(self, variant: str, reading: str | None) -> bool:
+        return variant in self.variants and (not self.reading or reading == self.reading)
+
     @classmethod
     def from_json(cls, obj: dict) -> "IgnoreOverride":
         variants = check_json_value(obj, "variants", list, str, True)

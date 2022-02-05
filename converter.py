@@ -26,8 +26,11 @@ def _yougen_base_reading(unit: MecabUnit) -> str:
 class Match:
     last_idx: int
     word: str
-    base_word: str | None
-    lookup: Lookup
+    base_word: str | None = None
+    lookup: Lookup = None
+
+    def gen_unit_if_ignored(self) -> Unit | None:
+        return None if self.lookup else Unit([Segment(self.word)])
 
 
 def _dsc(_) -> bool:
@@ -96,7 +99,11 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list
         else:
             return plain
 
-    return find_retval(prefs, acc_match, plain_match)
+    rv = find_retval(prefs, acc_match, plain_match)
+    if any(ior.match(rv.base_word or rv.word, rv.lookup.results[0].reading) for ior in prefs.overrides.ignore):
+        rv.base_word = None
+        rv.lookup = None
+    return rv
 
 
 def _handle_josi(munit: MecabUnit) -> Unit:
@@ -227,9 +234,13 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
     m = find_longest_match(p, dic, idx, punits, _stop_cond)
     if m:
         tail_mu = cast(MecabUnit, punits[m.last_idx])
-        res = m.lookup.results[0]
         if tail_mu.hinsi_type() != HinsiType.YOUGEN:
-            return m.last_idx + 1, Unit(Segment.generate(m.word, res.reading), res.accents), None
+            if iu := m.gen_unit_if_ignored():
+                unit = iu
+            else:
+                res = m.lookup.results[0]
+                unit = Unit(Segment.generate(m.word, res.reading), res.accents)
+            return m.last_idx + 1, unit, None
         else:
             def has_special_reading(munit: MecabUnit) -> bool:
                 match munit.hinsi:
@@ -240,12 +251,18 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
                 return False
 
             new_idx, trailing, split_unit = _yougen_join(p.join, punits, tail_mu, m.last_idx + 1)
-            word_reading = find_reading(m.word, m.base_word, res.reading)
-            if has_special_reading(tail_mu):
-                word_reading = to_hiragana(word_reading[:-len(tail_mu.reading)] + tail_mu.reading)
-            word_reading += trailing
-            segments = Segment.generate(m.word + trailing, word_reading)
-            return new_idx, Unit(segments, res.accents, res.reading), split_unit
+            if iu := m.gen_unit_if_ignored():
+                iu.segments[0].text += trailing
+                unit = iu
+            else:
+                res = m.lookup.results[0]
+                word_reading = find_reading(m.word, m.base_word, res.reading)
+                if has_special_reading(tail_mu):
+                    word_reading = to_hiragana(word_reading[:-len(tail_mu.reading)] + tail_mu.reading)
+                word_reading += trailing
+                segments = Segment.generate(m.word + trailing, word_reading)
+                unit = Unit(segments, res.accents, res.reading)
+            return new_idx, unit, split_unit
     else:
         return idx + 1, Unit(Segment.generate(mu.value, mu.reading), base_form=_yougen_base_reading(mu)), None
 
@@ -253,8 +270,12 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
 def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit]:
     m = find_longest_match(p, dic, idx, punits, _stop_cond)
     if m:
-        res = m.lookup.results[0]
-        return m.last_idx + 1, Unit(Segment.generate(m.word, res.reading), res.accents)
+        if iu := m.gen_unit_if_ignored():
+            unit = iu
+        else:
+            res = m.lookup.results[0]
+            unit = Unit(Segment.generate(m.word, res.reading), res.accents)
+        return m.last_idx + 1, unit
     else:
         mu = cast(MecabUnit, punits[idx])
         return idx + 1, Unit(Segment.generate(mu.value, mu.reading))
