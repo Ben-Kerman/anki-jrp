@@ -2,8 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class ConvPrefs:
-    prefer_accent_lookups: bool = False
+class JoinPrefs:
     yougen_join_nai: bool = True
     yougen_join_u: bool = True
     yougen_join_ta: bool = True
@@ -19,6 +18,12 @@ class ConvPrefs:
     dousi_join_masu: bool = True
     dousi_join_tyau: bool = False
     dousi_split_teru: bool = True
+
+
+@dataclass
+class ConvPrefs:
+    join: JoinPrefs
+    prefer_accent_lookups: bool = False
 
 
 @dataclass

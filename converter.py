@@ -5,7 +5,7 @@ from typing import cast
 from dictionary import Dictionary, Lookup
 from mecab import HinsiType, Mecab, MecabUnit, ParserUnit
 from normalize import is_kana, to_hiragana
-from preferences import ConvPrefs
+from preferences import ConvPrefs, JoinPrefs
 from segments import Segment, Unit
 
 
@@ -81,7 +81,7 @@ def _handle_josi(munit: MecabUnit) -> Unit:
         return Unit([Segment(munit.value, to_hiragana(munit.reading))])
 
 
-def _yougen_join(p: ConvPrefs, punits: list[ParserUnit], bmu: MecabUnit,
+def _yougen_join(p: JoinPrefs, punits: list[ParserUnit], bmu: MecabUnit,
                  idx: int, prev: str = "") -> tuple[int, str, Unit | None]:
     if idx >= len(punits) or not isinstance(punits[idx], MecabUnit):
         return idx, prev, None
@@ -214,7 +214,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
                         return munit.base_form in ("いい", "良い", "好い", "善い", "佳い", "吉い", "宜い")
                 return False
 
-            new_idx, trailing, split_unit = _yougen_join(p, punits, tail_mu, m.last_idx + 1)
+            new_idx, trailing, split_unit = _yougen_join(p.join, punits, tail_mu, m.last_idx + 1)
             word_reading = find_reading(m.word, m.base_word, res.reading)
             if has_special_reading(tail_mu):
                 word_reading = to_hiragana(word_reading[:-len(tail_mu.reading)] + tail_mu.reading)
