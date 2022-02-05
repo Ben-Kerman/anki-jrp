@@ -51,11 +51,13 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list
                         base_word: str | None = None) -> Generator[tuple[str, str | None, str | None]]:
         if base_word:
             yield base_word, reading_guess, base_word
-            pot_base, pot_reading = base_for_potential(base_word, reading_guess)
-            yield pot_base, pot_reading, pot_base
+            if res := base_for_potential(base_word, reading_guess):
+                pot_base, pot_reading = res
+                yield pot_base, pot_reading, pot_base
         yield word, reading_guess, None
-        pot_base, pot_reading = base_for_potential(base_word, reading_guess)
-        yield pot_base, pot_reading, pot_base
+        if res := base_for_potential(word, reading_guess):
+            pot_base, pot_reading = res
+            yield pot_base, pot_reading, pot_base
 
     acc_match: Match | None = None
     plain_match: Match | None = None
