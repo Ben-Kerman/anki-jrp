@@ -25,7 +25,8 @@ class WordOverride:
     old_reading: str | None
     new_variants: list[str] | None
     new_reading: str | None
-    before_lookup: bool = False
+    pre_lookup: bool = False
+    post_lookup: bool = True
 
     def apply(self, variant: str, reading: str | None) -> Generator[tuple[str, str | None]] | None:
         if variant in self.old_variants and (not self.old_reading or not reading or reading == self.old_reading):
@@ -40,10 +41,11 @@ class WordOverride:
         old_reading = check_json_value(obj, "old_reading", str)
         new_variants = check_json_value(obj, "new_variants", list, str)
         new_reading = check_json_value(obj, "new_reading", str)
-        before_lookup = check_json_value(obj, "before_lookup", bool)
+        pre_lookup = check_json_value(obj, "pre_lookup", bool)
+        post_lookup = check_json_value(obj, "post_lookup", bool)
         if not new_variants and not new_reading:
             raise ConfigError("new variant list and new reading can't both be missing")
-        return cls(old_variants, old_reading, new_variants, new_reading, before_lookup)
+        return cls(old_variants, old_reading, new_variants, new_reading, pre_lookup, post_lookup)
 
 
 @dataclass

@@ -55,7 +55,7 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list
                         base_word: str | None = None) -> Generator[tuple[str, str | None, str | None]]:
         def word_overrides(wos: Iterable[WordOverride],
                            word: str, reading: str | None) -> Generator[tuple[str, str | None]] | None:
-            for wo in (wo for wo in wos if wo.before_lookup):
+            for wo in (wo for wo in wos if wo.pre_lookup):
                 if gen := wo.apply(word, reading):
                     return gen
             return None
