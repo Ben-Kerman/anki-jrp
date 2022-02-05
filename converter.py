@@ -45,8 +45,7 @@ def base_for_potential(word: str, reading: str | None) -> tuple[str, str] | None
     return word[:-2] + base_end, reading and reading[:-2] + base_end
 
 
-def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
-                       prefer_accent: bool = False,
+def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list[ParserUnit],
                        stop_cond: Callable[[MecabUnit], bool] = _dsc) -> Match | None:
     def lookup_variants(word: str, reading_guess: str | None,
                         base_word: str | None = None) -> Generator[tuple[str, str | None, str | None]]:
@@ -65,15 +64,15 @@ def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
         if not isinstance(pu, MecabUnit) or stop_cond(pu):
             break
 
-        hinsi = pu.hinsi_type()
+        is_yougen = pu.hinsi_type() == HinsiType.YOUGEN
         if all(isinstance(u, MecabUnit) and u.hinsi != "未知語" for u in punits[idx:i + 1]):
             reading_guess = "".join(map(lambda u: u.reading, punits[idx:i]))
-            reading_guess += pu.reading if hinsi != HinsiType.YOUGEN else _yougen_base_reading(pu)
+            reading_guess += pu.reading if not is_yougen else _yougen_base_reading(pu)
         else:
             reading_guess = None
         part_word = "".join(map(lambda u: u.value, punits[idx:i]))
         word = part_word + pu.value
-        base_word = part_word + pu.base_form if hinsi == HinsiType.YOUGEN else None
+        base_word = part_word + pu.base_form if is_yougen else None
 
         for var_word, var_guess, var_base in lookup_variants(word, reading_guess, base_word):
             if lu := dic.look_up(var_word, var_guess):
@@ -84,7 +83,7 @@ def find_longest_match(dic: Dictionary, idx: int, punits: list[ParserUnit],
                     plain_match = match
                 break
     if acc_match:
-        if prefer_accent:
+        if prefs.prefer_accent_lookups:
             return acc_match
         elif plain_match and plain_match.last_idx > acc_match.last_idx:
             return plain_match
@@ -219,7 +218,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
 
     mu = cast(MecabUnit, punits[idx])
 
-    m = find_longest_match(dic, idx, punits, p.prefer_accent_lookups, _stop_cond)
+    m = find_longest_match(p, dic, idx, punits, _stop_cond)
     if m:
         tail_mu = cast(MecabUnit, punits[m.last_idx])
         res = m.lookup.results[0]
@@ -246,7 +245,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
 
 
 def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit]:
-    m = find_longest_match(dic, idx, punits, p.prefer_accent_lookups, _stop_cond)
+    m = find_longest_match(p, dic, idx, punits, _stop_cond)
     if m:
         res = m.lookup.results[0]
         return m.last_idx + 1, Unit(Segment.generate(m.word, res.reading), res.accents)
