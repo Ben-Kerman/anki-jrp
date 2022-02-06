@@ -138,20 +138,23 @@ class Dictionary:
         return res
 
     def look_up(self, word: str, reading_guess: str | None = None) -> Lookup | None:
-        def filter_for_guess(entries: list[Entry], guess: str) -> list[Entry] | None:
+        def filter_for_guess(entries: list[Entry], guess: str | None) -> list[Entry] | None:
             if not guess:
                 return None
             return [e for e in entries if to_hiragana(e.reading) == to_hiragana(guess)]
 
+        def check_uncertain(entrs: list[AccentEntry]) -> bool:
+            return any(e.reading == entrs[0].reading for e in entrs[1:])
+
         word_direct_aent = self.accent.look_up_variant(word)
         if word_direct_aent:
-            match_guess = filter_for_guess(word_direct_aent, reading_guess)
-            return Lookup(LookupResult.convert_entries(match_guess if match_guess else word_direct_aent))
+            filtered_aent = filter_for_guess(word_direct_aent, reading_guess) or word_direct_aent
+            return Lookup(LookupResult.convert_entries(filtered_aent), check_uncertain(filtered_aent))
 
         word_var_aent = self._variant_lookup(word)
         if word_var_aent:
-            match_guess = filter_for_guess(word_var_aent, reading_guess)
-            return Lookup(LookupResult.convert_entries(match_guess if match_guess else word_var_aent))
+            filtered_aent = filter_for_guess(word_var_aent, reading_guess) or word_var_aent
+            return Lookup(LookupResult.convert_entries(filtered_aent), check_uncertain(filtered_aent))
 
         current_lu: Lookup | None = None
         read_direct_aent = self.accent.look_up_reading(word)
