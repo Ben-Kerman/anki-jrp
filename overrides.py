@@ -54,6 +54,9 @@ class AccentOverride:
     reading: str
     accents: list[int]
 
+    def match(self, variant: str, reading: str) -> bool:
+        return variant in self.variants and reading == self.reading
+
     @classmethod
     def from_json(cls, obj: dict) -> "AccentOverride":
         variants = check_json_value(obj, "variants", list, str, True)

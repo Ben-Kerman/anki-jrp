@@ -5,7 +5,7 @@ from typing import cast
 from dictionary import Dictionary, Lookup
 from mecab import HinsiType, Mecab, MecabUnit, ParserUnit
 from normalize import is_kana, to_hiragana
-from overrides import WordOverride
+from overrides import AccentOverride, WordOverride
 from preferences import ConvPrefs, JoinPrefs
 from segments import Segment, Unit
 
@@ -241,6 +241,13 @@ def _stop_cond(mu: MecabUnit) -> bool:
     return mu.hinsi_type() in (HinsiType.ZYOSI, HinsiType.SYMBOL)
 
 
+def _override_accents(aos: Iterable[AccentOverride], unit: Unit, base_form: str | None = None):
+    for ao in aos:
+        if ao.match(base_form or unit.text(), unit.base_form or unit.reading()):
+            unit.accents = ao.accents
+            break
+
+
 def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
     def find_reading(word: str, base_word: str, base_reading: str):
         if word == base_word:
@@ -267,6 +274,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
             else:
                 res = m.lookup.results[0]
                 unit = Unit(Segment.generate(m.word, res.reading), res.accents)
+                _override_accents(p.overrides.accent, unit)
             return m.last_idx + 1, unit, None
         else:
             def has_special_reading(munit: MecabUnit) -> bool:
@@ -289,6 +297,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
                 word_reading += trailing
                 segments = Segment.generate(m.word + trailing, word_reading)
                 unit = Unit(segments, res.accents, res.reading)
+                _override_accents(p.overrides.accent, unit, m.base_word)
             return new_idx, unit, split_unit
     else:
         return idx + 1, Unit(Segment.generate(mu.value, mu.reading), base_form=_yougen_base_reading(mu)), None
@@ -302,6 +311,7 @@ def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: 
         else:
             res = m.lookup.results[0]
             unit = Unit(Segment.generate(m.word, res.reading), res.accents)
+            _override_accents(p.overrides.accent, unit)
         return m.last_idx + 1, unit
     else:
         mu = cast(MecabUnit, punits[idx])
