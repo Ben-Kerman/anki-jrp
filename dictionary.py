@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Generic, TextIO, Type, TypeVar
 
 from normalize import is_kana, to_hiragana
-from util import warn
+from util import get_path, warn
 
 T = TypeVar("T")
 
@@ -120,13 +120,9 @@ class Dictionary:
     accent: AccentDict
     variant: VariantDict
 
-    @classmethod
-    def default_path(cls) -> str:
-        return os.path.join(os.path.dirname(__file__), "user_data")
-
     def __init__(self, adict: AccentDict | None = None, vdict: VariantDict | None = None):
-        self.accent = adict or BasicDict(AccentEntry, os.path.join(type(self).default_path(), "accents.xz"))
-        self.variant = vdict or BasicDict(VariantEntry, os.path.join(type(self).default_path(), "variants.xz"))
+        self.accent = adict or BasicDict(AccentEntry, get_path("user_files", "data", "accents.xz"))
+        self.variant = vdict or BasicDict(VariantEntry, get_path("user_files", "data", "variants.xz"))
 
     def _variant_lookup(self, word: str, as_reading: bool = False) -> list[AccentEntry] | None:
         lu_fn = self.variant.look_up_reading if as_reading else self.variant.look_up_variant
