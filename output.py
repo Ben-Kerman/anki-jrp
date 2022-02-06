@@ -146,7 +146,7 @@ def fmt_jrp(units: list[Unit]) -> str:
         segment_str = "".join(str_list)
         if _add_accent(unit):
             sp_base = "|" + unit.base_form if special_base else ""
-            return f"{{{segment_str};{','.join(accent_strs(unit))}{sp_base}}}"
+            return f"{{{segment_str};{'!' if unit.uncertain else ''}{','.join(accent_strs(unit))}{sp_base}}}"
         else:
             return segment_str
 

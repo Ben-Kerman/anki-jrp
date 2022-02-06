@@ -245,6 +245,7 @@ def _override_accents(aos: Iterable[AccentOverride], unit: Unit, base_form: str 
     for ao in aos:
         if ao.match(base_form or unit.text(), unit.base_form or unit.reading()):
             unit.accents = ao.accents
+            unit.uncertain = False
             break
 
 
@@ -273,7 +274,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
                 unit = iu
             else:
                 res = m.lookup.results[0]
-                unit = Unit(Segment.generate(m.word, res.reading), res.accents)
+                unit = Unit(Segment.generate(m.word, res.reading), res.accents, uncertain=m.lookup.uncertain)
                 _override_accents(p.overrides.accent, unit)
             return m.last_idx + 1, unit, None
         else:
@@ -296,7 +297,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
                     word_reading = to_hiragana(word_reading[:-len(tail_mu.reading)] + tail_mu.reading)
                 word_reading += trailing
                 segments = Segment.generate(m.word + trailing, word_reading)
-                unit = Unit(segments, res.accents, res.reading)
+                unit = Unit(segments, res.accents, res.reading, m.lookup.uncertain)
                 _override_accents(p.overrides.accent, unit, m.base_word)
             return new_idx, unit, split_unit
     else:
@@ -310,7 +311,7 @@ def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: 
             unit = iu
         else:
             res = m.lookup.results[0]
-            unit = Unit(Segment.generate(m.word, res.reading), res.accents)
+            unit = Unit(Segment.generate(m.word, res.reading), res.accents, uncertain=m.lookup.uncertain)
             _override_accents(p.overrides.accent, unit)
         return m.last_idx + 1, unit
     else:

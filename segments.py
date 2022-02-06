@@ -73,16 +73,19 @@ class Unit:
     segments: list[Segment]
     accents: list[int]
     base_form: str | None
+    uncertain: bool
 
     def __init__(self, segments: list[Segment],
                  accents: list[int] | None = None,
-                 base_form: str | None = None):
+                 base_form: str | None = None,
+                 uncertain: bool = False):
         self.segments = segments
         self.accents = accents or []
         self.base_form = base_form
+        self.uncertain = uncertain
 
     def __repr__(self):
-        return f"U[{self.segments},{self.accents},{self.base_form}]"
+        return f"U[{self.segments},{self.accents},{self.base_form}{';uncertain' if self.uncertain else ''}]"
 
     def reading(self, upper: int | None = None):
         return "".join(map(lambda s: s.reading or s.text, self.segments[:upper]))
