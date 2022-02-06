@@ -18,37 +18,35 @@ class Segment:
     @classmethod
     def generate(cls, word: str, reading: str | None) -> list["Segment"]:
         def segmentalize(reading: str, sections: list[str],
-                         r_idx: int, s_idx: int,
+                         rs_idx: int, re_idx: int, s_idx: int,
                          segments: list[cls]) -> list[cls] | None:
             if s_idx >= len(sections):
-                if r_idx < len(reading):
+                if rs_idx < len(reading):
                     return None
                 else:
                     return segments
 
             sect = sections[s_idx]
             if not is_kana(sect):
-                return segmentalize(reading, sections, r_idx, s_idx + 1, segments)
-
-            m_idx = r_idx
-            while m_idx < len(reading):
-                m_idx = reading.find(to_hiragana(sect), m_idx)
-                if m_idx >= 0:
-                    n_segm = [Segment(sections[s_idx - 1], reading[r_idx:m_idx])] if s_idx > 0 else []
-                    n_segm.append(Segment(sect))
-                    if s_idx == len(sections) - 2:
-                        return n_segm + [Segment(sections[-1], reading[m_idx + len(sect):])]
-                    else:
-                        nxt = segmentalize(reading, sections, m_idx + len(sect), s_idx + 2, segments + n_segm)
-                        if nxt:
-                            return nxt
-                    m_idx += 1
+                new_seg = segments + [Segment(sect, reading[rs_idx:re_idx])]
+            else:
+                if reading[rs_idx:re_idx] == sect:
+                    new_seg = segments + [Segment(sect)]
                 else:
-                    break
+                    return None
+            if re_idx == len(reading):
+                return new_seg
+            for nre in range(re_idx + 1, len(reading) + 1):
+                res = segmentalize(reading, sections, re_idx, nre, s_idx + 1, new_seg)
+                if res:
+                    return res
             return None
 
         if not reading:
             return [Segment(word)]
+
+        if comp_kana(reading, word):
+            return [cls(word)]
 
         reading = to_hiragana(reading)
         if not has_kana(word):
@@ -65,7 +63,11 @@ class Segment:
                 kana = kana_at_i
         sections.append(word[last_start:])
 
-        res = segmentalize(reading, sections, 0, 0, [])
+        res = None
+        for re in range(1, len(reading) + 1):
+            res = segmentalize(reading, sections, 0, re, 0, [])
+            if res:
+                break
         return res if res else [Segment(word, reading)]
 
 
