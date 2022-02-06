@@ -101,12 +101,12 @@ def fmt_jrp(units: list[Unit]) -> str:
                 for acc in unit.accents:
                     yield str(acc)
 
-        def segment_strs(unit: Unit) -> Generator[str]:
+        def segment_strs(unit: Unit, add_accent: bool) -> Generator[str]:
             base = to_katakana(unit.base_form) if unit.base_form else None
             base_idx = 0
             use_special_base = False
             for i, s in enumerate(unit.segments):
-                if not use_special_base and base:
+                if add_accent and not use_special_base and base:
                     for k, c in enumerate(to_katakana(s.reading or s.text)):
                         if base_idx >= len(base):
                             raise OutputError("end of base reached before end of reading")
@@ -131,11 +131,11 @@ def fmt_jrp(units: list[Unit]) -> str:
                     yield s.text
             if use_special_base:
                 return True
-            elif base and base_idx < len(base):
+            elif add_accent and base and base_idx < len(base):
                 yield f"[={unit.base_form[base_idx:]}]"
 
         special_base = False
-        itr = segment_strs(unit)
+        itr = segment_strs(unit, _add_accent(unit))
         str_list = []
         try:
             while True:
