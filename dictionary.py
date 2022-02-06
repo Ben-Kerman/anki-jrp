@@ -39,14 +39,14 @@ class BasicDict(Generic[T]):
 
 
 class AccentEntry:
-    word: str
     reading: str
+    variants: list[str]
     accents: list[int]
     source: str
 
-    def __init__(self, word: str, reading: str, accents: list[int], source: str):
-        self.word = sys.intern(word)
+    def __init__(self, reading: str, variants: list[str], accents: list[int], source: str):
         self.reading = sys.intern(reading)
+        self.variants = [sys.intern(v) for v in variants]
         self.accents = accents
         self.source = sys.intern(source)
 
@@ -56,12 +56,13 @@ class AccentEntry:
         if len(vals) != 4:
             raise ValueError
         accents = [int(acc) for acc in vals[2].split(",")]
-        return cls(vals[0], vals[1], accents, vals[3])
+        return cls(vals[0], vals[1].split(","), accents, vals[3])
 
     @classmethod
     def dict_insert(cls, bdict, entry):
-        bdict.variants.setdefault(entry.word, []).append(entry)
         bdict.readings.setdefault(entry.reading, []).append(entry)
+        for var in entry.variants:
+            bdict.variants.setdefault(var, []).append(entry)
 
 
 class VariantEntry:
