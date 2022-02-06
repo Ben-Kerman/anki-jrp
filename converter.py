@@ -122,6 +122,14 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list
     if any(ior.match(rv.base_word or rv.word, rv.lookup.results[0].reading) for ior in prefs.overrides.ignore):
         rv.base_word = None
         rv.lookup = None
+    else:
+        for wo in (wo for wo in prefs.overrides.word if wo.post_lookup):
+            if gen := wo.apply(rv.word, rv.lookup.results[0].reading):
+                for var, reading in gen:
+                    if lu := dic.look_up(var, reading):
+                        return Match(rv.last_idx, rv.word, rv.base_word, lu)
+                    else:
+                        return None
     return rv
 
 
