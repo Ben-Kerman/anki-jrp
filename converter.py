@@ -279,14 +279,14 @@ def _finalize_yougen(p: ConvPrefs, punits: list[ParserUnit], tail_mu: MecabUnit,
     return new_idx, unit, split_unit
 
 
-def _finalize_other(p: ConvPrefs, m: Match) -> tuple[int, Unit]:
+def _finalize_other(p: ConvPrefs, m: Match) -> tuple[int, Unit, Unit | None]:
     if iu := m.gen_unit_if_ignored():
         unit = iu
     else:
         res = m.lookup.results[0]
         unit = Unit(Segment.generate(m.word, res.reading), res.accents, uncertain=m.lookup.uncertain)
         _override_accents(p, unit)
-    return m.last_idx + 1, unit
+    return m.last_idx + 1, unit, None
 
 
 def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
@@ -296,21 +296,20 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
     if m:
         tail_mu = cast(MecabUnit, punits[m.last_idx])
         if tail_mu.hinsi_type() != HinsiType.YOUGEN:
-            new_idx, unit = _finalize_other(p, m)
-            return new_idx, unit, None
+            return _finalize_other(p, m)
         else:
             return _finalize_yougen(p, punits, tail_mu, m)
     else:
         return idx + 1, Unit(Segment.generate(mu.value, mu.reading), base_form=_yougen_base_reading(mu)), None
 
 
-def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit]:
+def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
     m = find_longest_match(p, dic, idx, punits, _stop_cond)
     if m:
         return _finalize_other(p, m)
     else:
         mu = cast(MecabUnit, punits[idx])
-        return idx + 1, Unit(Segment.generate(mu.value, mu.reading))
+        return idx + 1, Unit(Segment.generate(mu.value, mu.reading)), None
 
 
 def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[Unit]:
@@ -331,7 +330,7 @@ def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[U
                     unit = Unit([Segment(pu.value)])
                     i += 1
                 case _:
-                    i, unit = _handle_other(prefs, dic, punits, i)
+                    i, unit, split_unit = _handle_other(prefs, dic, punits, i)
         else:
             unit = Unit([Segment(pu.value)])
             i += 1
