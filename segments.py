@@ -221,7 +221,7 @@ def parse_migaku(val: str) -> list[Unit]:
 
             text = prefix + suffix
             reading = prefix_reading + suffix if prefix_reading else None
-            accents, has_kifuku = _parse_migaku_accents(accent_str, reading) if accent_str else (None, False)
+            accents, has_kifuku = _parse_migaku_accents(accent_str, reading or text) if accent_str else (None, False)
             if has_kifuku and not base_form:
                 base_form = reading
             return Unit(Segment.generate(text, reading), accents, base_form or None)
