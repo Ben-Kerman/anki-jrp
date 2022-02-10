@@ -16,15 +16,27 @@ class ConfigError(ValueError):
 
 
 T = TypeVar("T")
-E = TypeVar("E")
 
 
-def check_json_value(obj: dict, name: str,
-                     typ: Type[T], elem_type: Type[E] | None = None,
-                     required: bool = False) -> T | list[E]:
-    val = obj.get(name)
-    if required and val is None:
-        raise ConfigError(f"missing value: '{name}'")
-    if val and (type(val) != typ or (elem_type and any(type(e) != elem_type for e in val))):
-        raise ConfigError(f"invalid value: '{name}'")
+def check_json_value(obj: dict, name: str, typ: Type[T],
+                     required: bool = False, default: T | None = None) -> T | None:
+    if name not in obj:
+        if required:
+            raise ConfigError(f"missing value: '{name}'")
+        if default is not None:
+            obj[name] = default
+        else:
+            return None
+    val = obj[name]
+    if type(val) != typ:
+        raise ConfigError(f"invalid type: '{name}': {val}")
+    return val
+
+
+def check_json_list(obj: dict, name: str, typ: Type[T],
+                    required: bool = False, default: list[T] | None = None) -> list[T] | None:
+    val = check_json_value(obj, name, list, required, default and default)
+    if val:
+        if any(type(e) != typ for e in val):
+            raise ConfigError(f"invalid element type: '{name}': {val}")
     return val

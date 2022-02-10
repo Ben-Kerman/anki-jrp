@@ -3,7 +3,7 @@ import json
 from dataclasses import dataclass
 
 from overrides import AccentOverride, IgnoreOverride, WordOverride
-from util import check_json_value, get_path
+from util import check_json_list, check_json_value, get_path
 
 
 @dataclass
@@ -26,8 +26,9 @@ class JoinPrefs:
 
     @classmethod
     def from_json(cls, obj: dict) -> "JoinPrefs":
-        kwargs = {f.name: check_json_value(obj, f.name, bool) for f in dataclasses.fields(cls)}
-        return cls(**kwargs)
+        for f in dataclasses.fields(cls):
+            check_json_value(obj, f.name, bool)
+        return cls(**obj)
 
 
 @dataclass
@@ -38,9 +39,9 @@ class Overrides:
 
     @classmethod
     def from_json(cls, obj: dict):
-        ignore = [IgnoreOverride.from_json(e) for e in check_json_value(obj, "ignore", list, dict, True)]
-        word = [WordOverride.from_json(e) for e in check_json_value(obj, "word", list, dict, True)]
-        accent = [AccentOverride.from_json(e) for e in check_json_value(obj, "accent", list, dict, True)]
+        ignore = [IgnoreOverride.from_json(e) for e in check_json_list(obj, "ignore", dict, True, [])]
+        word = [WordOverride.from_json(e) for e in check_json_list(obj, "word", dict, True, [])]
+        accent = [AccentOverride.from_json(e) for e in check_json_list(obj, "accent", dict, True, [])]
         return cls(ignore, word, accent)
 
 
@@ -52,10 +53,10 @@ class ConvPrefs:
 
     @classmethod
     def from_json(cls, obj: dict) -> "ConvPrefs":
-        join = JoinPrefs.from_json(check_json_value(obj, "join", dict))
-        overrides = Overrides.from_json(check_json_value(obj, "overrides", dict, required=True))
-        pal = check_json_value(obj, "prefer_accent_lookups", bool)
-        return cls(join, overrides, pal)
+        obj["join"] = JoinPrefs.from_json(check_json_value(obj, "join", dict, default={}))
+        obj["overrides"] = Overrides.from_json(check_json_value(obj, "overrides", dict, default={}))
+        check_json_value(obj, "prefer_accent_lookups", bool)
+        return cls(**obj)
 
 
 @dataclass
