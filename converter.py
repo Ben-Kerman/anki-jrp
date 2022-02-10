@@ -1,11 +1,10 @@
-from collections.abc import Callable, Generator, Iterable
+from collections.abc import Callable, Generator
 from dataclasses import dataclass
 from typing import cast
 
 from dictionary import Dictionary, Lookup
 from mecab import HinsiType, Mecab, MecabUnit, ParserUnit
 from normalize import is_kana, to_hiragana
-from overrides import AccentOverride, WordOverride
 from preferences import ConvPrefs, JoinPrefs
 from segments import Segment, Unit
 
@@ -53,27 +52,20 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list
                        stop_cond: Callable[[MecabUnit], bool] = _dsc) -> Match | None:
     def lookup_variants(p: ConvPrefs, word: str, reading_guess: str | None,
                         base_word: str | None = None) -> Generator[tuple[str, str | None, str | None]]:
-        def word_overrides(wos: Iterable[WordOverride],
-                           word: str, reading: str | None) -> Generator[tuple[str, str | None]] | None:
-            for wo in (wo for wo in wos if wo.pre_lookup):
-                if gen := wo.apply(word, reading):
-                    return gen
-            return None
-
         def pot(word: str, reading: str | None) -> tuple[str, str, str] | None:
             if res := base_for_potential(word, reading):
                 pot_base, pot_reading = res
                 return pot_base, pot_reading, pot_base
 
         if base_word:
-            if or_gen := word_overrides(p.overrides.word, base_word, reading_guess):
+            if or_gen := p.apply_word_or(base_word, reading_guess, is_pre=True):
                 for or_var, or_reading in or_gen:
                     yield or_var, or_reading, or_var
             else:
                 yield base_word, reading_guess, base_word
                 if pot_res := pot(base_word, reading_guess):
                     yield pot_res
-        if or_gen := word_overrides(p.overrides.word, word, reading_guess):
+        if or_gen := p.apply_word_or(word, reading_guess, is_pre=True):
             for or_var, or_reading in or_gen:
                 yield or_var, or_reading, None
         else:
@@ -120,17 +112,16 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list
 
     rv = find_retval(prefs, acc_match, plain_match)
     if rv:
-        if any(ior.match(rv.base_word or rv.word, rv.lookup.results[0].reading) for ior in prefs.overrides.ignore):
+        if prefs.match_ignore_or(rv.base_word or rv.word, rv.lookup.results[0].reading):
             rv.base_word = None
             rv.lookup = None
         else:
-            for wo in (wo for wo in prefs.overrides.word if wo.post_lookup):
-                if gen := wo.apply(rv.base_word or rv.word, rv.lookup.results[0].reading):
-                    for var, reading in gen:
-                        if lu := dic.look_up(var, reading):
-                            return Match(rv.last_idx, rv.word, rv.base_word, lu)
-                        else:
-                            return None
+            if gen := prefs.apply_word_or(rv.base_word or rv.word, rv.lookup.results[0].reading):
+                for var, reading in gen:
+                    if lu := dic.look_up(var, reading):
+                        return Match(rv.last_idx, rv.word, rv.base_word, lu)
+                    else:
+                        return None
     return rv
 
 
@@ -242,12 +233,10 @@ def _stop_cond(mu: MecabUnit) -> bool:
     return mu.hinsi_type() in (HinsiType.ZYOSI, HinsiType.SYMBOL)
 
 
-def _override_accents(aos: Iterable[AccentOverride], unit: Unit, base_form: str | None = None):
-    for ao in aos:
-        if ao.match(base_form or unit.text(), unit.base_form or unit.reading()):
-            unit.accents = ao.accents
-            unit.uncertain = False
-            break
+def _override_accents(prefs: ConvPrefs, unit: Unit, base_form: str | None = None):
+    if res := prefs.apply_accent_or(base_form or unit.text(), unit.base_form or unit.reading()):
+        unit.accents = res
+        unit.uncertain = False
 
 
 def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
@@ -276,7 +265,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
             else:
                 res = m.lookup.results[0]
                 unit = Unit(Segment.generate(m.word, res.reading), res.accents, uncertain=m.lookup.uncertain)
-                _override_accents(p.overrides.accent, unit)
+                _override_accents(p, unit)
             return m.last_idx + 1, unit, None
         else:
             def has_special_reading(munit: MecabUnit) -> bool:
@@ -299,7 +288,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
                 word_reading += trailing
                 segments = Segment.generate(m.word + trailing, word_reading)
                 unit = Unit(segments, res.accents, res.reading, m.lookup.uncertain)
-                _override_accents(p.overrides.accent, unit, m.base_word)
+                _override_accents(p, unit, m.base_word)
             return new_idx, unit, split_unit
     else:
         return idx + 1, Unit(Segment.generate(mu.value, mu.reading), base_form=_yougen_base_reading(mu)), None
@@ -313,7 +302,7 @@ def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: 
         else:
             res = m.lookup.results[0]
             unit = Unit(Segment.generate(m.word, res.reading), res.accents, uncertain=m.lookup.uncertain)
-            _override_accents(p.overrides.accent, unit)
+            _override_accents(p, unit)
         return m.last_idx + 1, unit
     else:
         mu = cast(MecabUnit, punits[idx])

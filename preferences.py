@@ -1,8 +1,11 @@
 import dataclasses
 import json
 import os.path
+from collections.abc import Generator
 from dataclasses import dataclass, field
+from itertools import chain
 
+import overrides
 from overrides import AccentOverride, IgnoreOverride, WordOverride
 from util import check_json_list, check_json_value, empty_list, get_path
 
@@ -65,6 +68,26 @@ class ConvPrefs:
     overrides: Overrides = field(default_factory=Overrides)
     disabled_override_ids: DisabledOverrideIds = field(default_factory=DisabledOverrideIds)
     prefer_accent_lookups: bool = False
+
+    def match_ignore_or(self, variant: str, reading: str | None) -> bool:
+        defaults = (do.value for do in overrides.defaults().ignore if do.id not in self.disabled_override_ids.ignore)
+        return any(io.match(variant, reading) for io in chain(self.overrides.ignore, defaults))
+
+    def apply_word_or(self, variant: str, reading: str | None,
+                      is_pre: bool = False) -> Generator[tuple[str, str | None]] | None:
+        defaults = (do.value for do in overrides.defaults().word if do.id not in self.disabled_override_ids.word)
+        for wo in (wo for wo in chain(self.overrides.word, defaults)):
+            if is_pre and wo.pre_lookup or not is_pre and wo.post_lookup:
+                if gen := wo.apply(variant, reading):
+                    return gen
+        return None
+
+    def apply_accent_or(self, variant: str, reading: str) -> list[int] | None:
+        defaults = (ao.value for ao in overrides.defaults().accent if ao.id not in self.disabled_override_ids.accent)
+        for ao in chain(self.overrides.accent, defaults):
+            if ao.match(variant, reading):
+                return ao.accents
+        return None
 
     @classmethod
     def from_json(cls, obj: dict) -> "ConvPrefs":
