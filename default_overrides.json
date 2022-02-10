@@ -19,7 +19,8 @@
 			"id": 0,
 			"old_variants": ["後"],
 			"new_reading": "あと",
-			"pre_lookup": true
+			"pre_lookup": true,
+			"post_lookup": false
 		}
 	],
 	"accent": [
