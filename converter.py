@@ -275,27 +275,17 @@ def _finalize_other(p: ConvPrefs, m: Match) -> tuple[int, Unit, Unit | None]:
     return m.last_idx + 1, unit, None
 
 
-def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
-    mu = cast(MecabUnit, punits[idx])
-
-    m = find_longest_match(p, dic, idx, punits, _stop_cond)
-    if m:
-        tail_mu = cast(MecabUnit, punits[m.last_idx])
-        if tail_mu.hinsi_type() != HinsiType.YOUGEN:
-            return _finalize_other(p, m)
-        else:
-            return _finalize_yougen(p, punits, tail_mu, m)
-    else:
-        return idx + 1, Unit(Segment.generate(mu.value, mu.reading), base_form=mu.base_reading()), None
-
-
 def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
     m = find_longest_match(p, dic, idx, punits, _stop_cond)
     if m:
-        return _finalize_other(p, m)
+        tail_mu = cast(MecabUnit, punits[m.last_idx])
+        if tail_mu.hinsi_type() == HinsiType.YOUGEN:
+            return _finalize_yougen(p, punits, tail_mu, m)
+        else:
+            return _finalize_other(p, m)
     else:
         mu = cast(MecabUnit, punits[idx])
-        return idx + 1, Unit(Segment.generate(mu.value, mu.reading)), None
+        return idx + 1, Unit(Segment.generate(mu.value, mu.reading), base_form=mu.base_reading()), None
 
 
 def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[Unit]:
@@ -310,8 +300,6 @@ def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[U
                 case HinsiType.ZYOSI:
                     unit = _handle_josi(pu)
                     i += 1
-                case HinsiType.YOUGEN:
-                    i, unit, split_unit = _handle_yougen(prefs, dic, punits, i)
                 case HinsiType.SYMBOL:
                     unit = Unit([Segment(pu.value)])
                     i += 1
