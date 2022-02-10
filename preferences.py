@@ -48,16 +48,15 @@ class Overrides:
 
 @dataclass
 class DisabledOverrideIds:
-    ignore: list[int] = field(default_factory=empty_list)
-    word: list[int] = field(default_factory=empty_list)
-    accent: list[int] = field(default_factory=empty_list)
+    ignore: set[int] = field(default_factory=empty_list)
+    word: set[int] = field(default_factory=empty_list)
+    accent: set[int] = field(default_factory=empty_list)
 
     @classmethod
     def from_json(cls, obj: dict):
-        check_json_list(obj, "ignore", int)
-        check_json_list(obj, "word", int)
-        check_json_list(obj, "accent", int)
-        return cls(**obj)
+        names = ("ignore", "word", "accent")
+        kwargs = {name: set(obj[name]) for name in names if check_json_list(obj, name, int, default=[])}
+        return cls(**kwargs)
 
 
 @dataclass
