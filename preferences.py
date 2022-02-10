@@ -46,15 +46,32 @@ class Overrides:
 
 
 @dataclass
+class DisabledOverrideIds:
+    ignore: list[int] = field(default_factory=empty_list)
+    word: list[int] = field(default_factory=empty_list)
+    accent: list[int] = field(default_factory=empty_list)
+
+    @classmethod
+    def from_json(cls, obj: dict):
+        check_json_list(obj, "ignore", int)
+        check_json_list(obj, "word", int)
+        check_json_list(obj, "accent", int)
+        return cls(**obj)
+
+
+@dataclass
 class ConvPrefs:
     join: JoinPrefs = field(default_factory=JoinPrefs)
     overrides: Overrides = field(default_factory=Overrides)
+    disabled_override_ids: DisabledOverrideIds = field(default_factory=DisabledOverrideIds)
     prefer_accent_lookups: bool = False
 
     @classmethod
     def from_json(cls, obj: dict) -> "ConvPrefs":
         obj["join"] = JoinPrefs.from_json(check_json_value(obj, "join", dict, default={}))
         obj["overrides"] = Overrides.from_json(check_json_value(obj, "overrides", dict, default={}))
+        disabled_ors = check_json_value(obj, "disabled_override_ids", dict, default={})
+        obj["disabled_override_ids"] = DisabledOverrideIds.from_json(disabled_ors)
         check_json_value(obj, "prefer_accent_lookups", bool)
         return cls(**obj)
 
