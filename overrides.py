@@ -3,6 +3,7 @@ from collections.abc import Generator
 from dataclasses import dataclass
 from typing import Generic, Type, TypeVar
 
+from normalize import comp_kana
 from util import ConfigError, check_json_list, check_json_value, get_path
 
 
@@ -12,7 +13,7 @@ class IgnoreOverride:
     reading: str | None = None
 
     def match(self, variant: str, reading: str | None) -> bool:
-        return variant in self.variants and (not self.reading or reading == self.reading)
+        return variant in self.variants and (not self.reading or not reading or comp_kana(reading, self.reading))
 
     @classmethod
     def from_json(cls, obj: dict) -> "IgnoreOverride":
@@ -31,7 +32,8 @@ class WordOverride:
     post_lookup: bool = True
 
     def apply(self, variant: str, reading: str | None) -> Generator[tuple[str, str | None]] | None:
-        if variant in self.old_variants and (not self.old_reading or not reading or reading == self.old_reading):
+        if variant in self.old_variants \
+                and (not self.old_reading or not reading or comp_kana(reading, self.old_reading)):
             new_variants = self.new_variants or (variant,)
             return ((nv, self.new_reading or reading) for nv in new_variants)
         else:
@@ -57,7 +59,7 @@ class AccentOverride:
     accents: list[int]
 
     def match(self, variant: str, reading: str) -> bool:
-        return variant in self.variants and reading == self.reading
+        return variant in self.variants and comp_kana(reading, self.reading)
 
     @classmethod
     def from_json(cls, obj: dict) -> "AccentOverride":
