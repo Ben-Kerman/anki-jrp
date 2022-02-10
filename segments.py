@@ -86,11 +86,11 @@ class Unit:
         self.base_form = base_form
         self.uncertain = uncertain
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"U[{self.segments},{self.accents},{self.base_form}{';uncertain' if self.uncertain else ''}]"
 
-    def reading(self, upper: int | None = None):
+    def reading(self, upper: int | None = None) -> str:
         return "".join(map(lambda s: s.reading or s.text, self.segments[:upper]))
 
-    def text(self, upper: int | None = None):
+    def text(self, upper: int | None = None) -> str:
         return "".join(map(lambda s: s.text, self.segments[:upper]))
