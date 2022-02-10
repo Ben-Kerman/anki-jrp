@@ -1,5 +1,6 @@
 import dataclasses
 import json
+import os.path
 from dataclasses import dataclass, field
 
 from overrides import AccentOverride, IgnoreOverride, WordOverride
@@ -82,7 +83,11 @@ class Prefs:
 
     @classmethod
     def load_from_file(cls) -> "Prefs":
-        with open(get_path("user_files", "config.json")) as cfd:
+        path = get_path("user_files", "config.json")
+        if not os.path.exists(path):
+            return cls()
+
+        with open(path) as cfd:
             raw = json.load(cfd)
         convert = ConvPrefs.from_json(check_json_value(raw, "convert", dict, required=True))
         return cls(convert)
