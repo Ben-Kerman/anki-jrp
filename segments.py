@@ -34,7 +34,7 @@ class Segment:
                     new_seg = segments + [Segment(sect)]
                 else:
                     return None
-            if re_idx == len(reading):
+            if s_idx == len(sections) - 1 and re_idx == len(reading):
                 return new_seg
             for nre in range(re_idx + 1, len(reading) + 1):
                 res = segmentalize(reading, sections, re_idx, nre, s_idx + 1, new_seg)
