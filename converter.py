@@ -228,6 +228,10 @@ def _override_accents(prefs: ConvPrefs, unit: Unit, base_form: str | None = None
 def _finalize_yougen(p: ConvPrefs, punits: list[ParserUnit], tail_mu: MecabUnit,
                      m: Match) -> tuple[int, Unit, Unit | None]:
     def find_reading(word: str, base_word: str, base_reading: str) -> str:
+        def is_sahen(word: str, base: str) -> bool:
+            return base.endswith("する") and word.endswith(("さ", "し", "す", "せ", "そ")) \
+                   or base.endswith("ずる") and word.endswith(("じ", "ぜ"))
+
         if word == base_word:
             return base_reading
         if is_kana(word):
@@ -239,7 +243,9 @@ def _finalize_yougen(p: ConvPrefs, punits: list[ParserUnit], tail_mu: MecabUnit,
                 i_break = True
                 break
 
-        return base_reading[:-1] + (word[i:] if i_break else "")
+        head = base_reading[:-2 if is_sahen(word, base_word) else -1]
+        tail = word[i:] if i_break else ""
+        return head + tail
 
     def has_special_reading(munit: MecabUnit) -> bool:
         match munit.hinsi:
