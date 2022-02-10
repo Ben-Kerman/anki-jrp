@@ -94,3 +94,13 @@ class DefaultOverrides:
         word = [DefaultOverride.from_json(WordOverride, e) for e in check_json_list(obj, "word", dict, True)]
         accent = [DefaultOverride.from_json(AccentOverride, e) for e in check_json_list(obj, "accent", dict, True)]
         return cls(ignore, word, accent)
+
+
+_def_or_inst = None
+
+
+def defaults() -> DefaultOverrides:
+    global _def_or_inst
+    if not _def_or_inst:
+        _def_or_inst = DefaultOverrides.load()
+    return _def_or_inst
