@@ -239,8 +239,9 @@ def _override_accents(prefs: ConvPrefs, unit: Unit, base_form: str | None = None
         unit.uncertain = False
 
 
-def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
-    def find_reading(word: str, base_word: str, base_reading: str):
+def _finalize_yougen(p: ConvPrefs, punits: list[ParserUnit], tail_mu: MecabUnit,
+                     m: Match) -> tuple[int, Unit, Unit | None]:
+    def find_reading(word: str, base_word: str, base_reading: str) -> str:
         if word == base_word:
             return base_reading
         if is_kana(word):
@@ -254,42 +255,51 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
 
         return base_reading[:-1] + (word[i:] if i_break else "")
 
+    def has_special_reading(munit: MecabUnit) -> bool:
+        match munit.hinsi:
+            case "動詞":
+                return munit.base_form in ("くる", "来る", "來る")
+            case "形容詞":
+                return munit.base_form in ("いい", "良い", "好い", "善い", "佳い", "吉い", "宜い")
+        return False
+
+    new_idx, trailing, split_unit = _yougen_join(p.join, punits, tail_mu, m.last_idx + 1)
+    if iu := m.gen_unit_if_ignored():
+        iu.segments[0].text += trailing
+        unit = iu
+    else:
+        res = m.lookup.results[0]
+        word_reading = find_reading(m.word, m.base_word, res.reading)
+        if has_special_reading(tail_mu):
+            word_reading = to_hiragana(word_reading[:-len(tail_mu.reading)] + tail_mu.reading)
+        word_reading += trailing
+        segments = Segment.generate(m.word + trailing, word_reading)
+        unit = Unit(segments, res.accents, res.reading, m.lookup.uncertain)
+        _override_accents(p, unit, m.base_word)
+    return new_idx, unit, split_unit
+
+
+def _finalize_other(p: ConvPrefs, m: Match) -> tuple[int, Unit]:
+    if iu := m.gen_unit_if_ignored():
+        unit = iu
+    else:
+        res = m.lookup.results[0]
+        unit = Unit(Segment.generate(m.word, res.reading), res.accents, uncertain=m.lookup.uncertain)
+        _override_accents(p, unit)
+    return m.last_idx + 1, unit
+
+
+def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
     mu = cast(MecabUnit, punits[idx])
 
     m = find_longest_match(p, dic, idx, punits, _stop_cond)
     if m:
         tail_mu = cast(MecabUnit, punits[m.last_idx])
         if tail_mu.hinsi_type() != HinsiType.YOUGEN:
-            if iu := m.gen_unit_if_ignored():
-                unit = iu
-            else:
-                res = m.lookup.results[0]
-                unit = Unit(Segment.generate(m.word, res.reading), res.accents, uncertain=m.lookup.uncertain)
-                _override_accents(p, unit)
-            return m.last_idx + 1, unit, None
+            new_idx, unit = _finalize_other(p, m)
+            return new_idx, unit, None
         else:
-            def has_special_reading(munit: MecabUnit) -> bool:
-                match munit.hinsi:
-                    case "動詞":
-                        return munit.base_form in ("くる", "来る", "來る")
-                    case "形容詞":
-                        return munit.base_form in ("いい", "良い", "好い", "善い", "佳い", "吉い", "宜い")
-                return False
-
-            new_idx, trailing, split_unit = _yougen_join(p.join, punits, tail_mu, m.last_idx + 1)
-            if iu := m.gen_unit_if_ignored():
-                iu.segments[0].text += trailing
-                unit = iu
-            else:
-                res = m.lookup.results[0]
-                word_reading = find_reading(m.word, m.base_word, res.reading)
-                if has_special_reading(tail_mu):
-                    word_reading = to_hiragana(word_reading[:-len(tail_mu.reading)] + tail_mu.reading)
-                word_reading += trailing
-                segments = Segment.generate(m.word + trailing, word_reading)
-                unit = Unit(segments, res.accents, res.reading, m.lookup.uncertain)
-                _override_accents(p, unit, m.base_word)
-            return new_idx, unit, split_unit
+            return _finalize_yougen(p, punits, tail_mu, m)
     else:
         return idx + 1, Unit(Segment.generate(mu.value, mu.reading), base_form=_yougen_base_reading(mu)), None
 
@@ -297,13 +307,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
 def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit]:
     m = find_longest_match(p, dic, idx, punits, _stop_cond)
     if m:
-        if iu := m.gen_unit_if_ignored():
-            unit = iu
-        else:
-            res = m.lookup.results[0]
-            unit = Unit(Segment.generate(m.word, res.reading), res.accents, uncertain=m.lookup.uncertain)
-            _override_accents(p, unit)
-        return m.last_idx + 1, unit
+        return _finalize_other(p, m)
     else:
         mu = cast(MecabUnit, punits[idx])
         return idx + 1, Unit(Segment.generate(mu.value, mu.reading))
