@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 
 from normalize import comp_kana, has_kana, is_kana, to_hiragana
-from util import split_moras
+from util import split_moras, warn
 
 
 class Segment:
@@ -113,26 +113,25 @@ def _multi_find(val: str, idx: int, stop: tuple[str, ...]) -> tuple[int, str | N
 
 def _parse_migaku_accents(val: str, reading: str) -> tuple[list[int], bool]:
     def convert(tag: str, moras: int, has_kifuku: bool) -> int:
-        if has_kifuku:
-            match tag[0]:
-                case "h":
-                    return 0
-                case "k":
-                    return int(tag[1:])
-                case _:
-                    raise ParsingError
-        else:
-            match tag[0]:
-                case "h":
-                    return 0
-                case "a":
-                    return 1
-                case "n":
-                    return int(tag[1:])
-                case "o":
-                    return moras
-                case _:
-                    raise ParsingError
+        match tag[0]:
+            case "h":
+                return 0
+            case "a":
+                return 1
+            case "k":
+                if not has_kifuku:
+                    warn("kifuku in non-kifuku accent list")
+                return int(tag[1:])
+            case "n":
+                if has_kifuku:
+                    warn("nakadaka in kifuku accent list")
+                return int(tag[1:])
+            case "o":
+                if has_kifuku:
+                    warn("odaka in kifuku accent list")
+                return moras
+            case _:
+                raise ParsingError
 
     moras = len(split_moras(reading))
     tags = val.split(",")
