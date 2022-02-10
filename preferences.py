@@ -1,9 +1,9 @@
 import dataclasses
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from overrides import AccentOverride, IgnoreOverride, WordOverride
-from util import check_json_list, check_json_value, get_path
+from util import check_json_list, check_json_value, empty_list, get_path
 
 
 @dataclass
@@ -33,9 +33,9 @@ class JoinPrefs:
 
 @dataclass
 class Overrides:
-    ignore: list[IgnoreOverride]
-    word: list[WordOverride]
-    accent: list[AccentOverride]
+    ignore: list[IgnoreOverride] = field(default_factory=empty_list)
+    word: list[WordOverride] = field(default_factory=empty_list)
+    accent: list[AccentOverride] = field(default_factory=empty_list)
 
     @classmethod
     def from_json(cls, obj: dict):
@@ -47,8 +47,8 @@ class Overrides:
 
 @dataclass
 class ConvPrefs:
-    join: JoinPrefs
-    overrides: Overrides
+    join: JoinPrefs = field(default_factory=JoinPrefs)
+    overrides: Overrides = field(default_factory=Overrides)
     prefer_accent_lookups: bool = False
 
     @classmethod
@@ -61,7 +61,7 @@ class ConvPrefs:
 
 @dataclass
 class Prefs:
-    conv: ConvPrefs
+    conv: ConvPrefs = field(default_factory=ConvPrefs)
 
     @classmethod
     def load_from_file(cls) -> "Prefs":
