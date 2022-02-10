@@ -1,7 +1,9 @@
+import json
 from collections.abc import Generator
 from dataclasses import dataclass
+from typing import Generic, Type, TypeVar
 
-from util import ConfigError, check_json_value
+from util import ConfigError, check_json_value, get_path
 
 
 @dataclass
@@ -63,3 +65,32 @@ class AccentOverride:
         reading = check_json_value(obj, "reading", str, required=True)
         accents = check_json_value(obj, "accents", list, int, True)
         return cls(variants, reading, accents)
+
+
+T = TypeVar("T", IgnoreOverride, WordOverride, AccentOverride)
+
+
+@dataclass
+class DefaultOverride(Generic[T]):
+    id: int
+    value: T
+
+    @classmethod
+    def from_json(cls, typ: Type[T], obj: dict) -> "DefaultOverride":
+        return cls(obj["id"], typ.from_json(obj))
+
+
+@dataclass
+class DefaultOverrides:
+    ignore: list[DefaultOverride[IgnoreOverride]]
+    word: list[DefaultOverride[WordOverride]]
+    accent: list[DefaultOverride[AccentOverride]]
+
+    @classmethod
+    def load(cls):
+        with open(get_path("default_overrides.json")) as fd:
+            obj = json.load(fd)
+        ignore = [DefaultOverride.from_json(IgnoreOverride, e) for e in check_json_value(obj, "ignore", list, dict, True)]
+        word = [DefaultOverride.from_json(WordOverride, e) for e in check_json_value(obj, "word", list, dict, True)]
+        accent = [DefaultOverride.from_json(AccentOverride, e) for e in check_json_value(obj, "accent", list, dict, True)]
+        return cls(ignore, word, accent)
