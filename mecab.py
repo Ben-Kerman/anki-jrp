@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from subprocess import PIPE, Popen
 
-from normalize import to_hiragana
+from normalize import is_kana, to_hiragana
 
 
 class MecabException(Exception):
@@ -70,6 +70,21 @@ class MecabUnit(ParserUnit):
         if len(args) > 3 and self.hinsi_class_3 != args[3]:
             return False
         return True
+
+    def base_reading(self) -> str | None:
+        if self.hinsi_type() != HinsiType.YOUGEN:
+            return None
+
+        if is_kana(self.base_form):
+            return self.base_form
+
+        itr = enumerate(zip(reversed(self.value), reversed(self.reading)))
+        for i, (co, cr) in itr:
+            if co != cr:
+                break
+
+        # TODO: handle undefined i
+        return self.reading[0:len(self.reading) - i] + self.base_form[len(self.value) - i:]
 
     @classmethod
     def from_line(cls, line: str) -> tuple["MecabUnit", int, int]:

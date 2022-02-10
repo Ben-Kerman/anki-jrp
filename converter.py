@@ -9,19 +9,6 @@ from preferences import ConvPrefs, JoinPrefs
 from segments import Segment, Unit
 
 
-def _yougen_base_reading(unit: MecabUnit) -> str:
-    if is_kana(unit.base_form):
-        return unit.base_form
-
-    itr = enumerate(zip(reversed(unit.value), reversed(unit.reading)))
-    for i, (co, cr) in itr:
-        if co != cr:
-            break
-
-    # TODO: handle undefined i
-    return unit.reading[0:len(unit.reading) - i] + unit.base_form[len(unit.value) - i:]
-
-
 @dataclass
 class Match:
     last_idx: int
@@ -80,15 +67,14 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list
         if not isinstance(pu, MecabUnit) or stop_cond(pu):
             break
 
-        is_yougen = pu.hinsi_type() == HinsiType.YOUGEN
         if all(isinstance(u, MecabUnit) and u.hinsi != "未知語" for u in punits[idx:i + 1]):
             reading_guess = "".join(map(lambda u: u.reading, punits[idx:i]))
-            reading_guess += pu.reading if not is_yougen else _yougen_base_reading(pu)
+            reading_guess += pu.base_reading() or pu.reading
         else:
             reading_guess = None
         part_word = "".join(map(lambda u: u.value, punits[idx:i]))
         word = part_word + pu.value
-        base_word = part_word + pu.base_form if is_yougen else None
+        base_word = part_word + pu.base_form if pu.hinsi_type() == HinsiType.YOUGEN else None
 
         for var_word, var_guess, var_base in lookup_variants(prefs, word, reading_guess, base_word):
             if lu := dic.look_up(var_word, var_guess):
@@ -300,7 +286,7 @@ def _handle_yougen(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx:
         else:
             return _finalize_yougen(p, punits, tail_mu, m)
     else:
-        return idx + 1, Unit(Segment.generate(mu.value, mu.reading), base_form=_yougen_base_reading(mu)), None
+        return idx + 1, Unit(Segment.generate(mu.value, mu.reading), base_form=mu.base_reading()), None
 
 
 def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
