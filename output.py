@@ -17,7 +17,7 @@ def _add_accent(p: OutputPrefs, unit: Unit) -> bool:
     if len(unit.segments) == 1:
         txt = unit.segments[0].text
         if (is_hiragana(txt) or p.katakana_min_accent and is_kana(txt)) \
-                and len(split_moras(txt)) < p.min_accent_mora and not unit.base_form:
+                and len(split_moras(txt)) < p.min_accent_moras and not unit.base_form:
             return False
     return True
 

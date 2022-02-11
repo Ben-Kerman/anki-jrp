@@ -101,8 +101,14 @@ class ConvPrefs:
 
 @dataclass
 class OutputPrefs:
-    min_accent_mora: int = 3
+    min_accent_moras: int = 3
     katakana_min_accent: bool = False
+
+    @classmethod
+    def from_json(cls, obj: dict) -> "OutputPrefs":
+        check_json_value(obj, "min_accent_moras", int)
+        check_json_value(obj, "katakana_min_accent", bool)
+        return cls(**obj)
 
 
 @dataclass
@@ -119,5 +125,5 @@ class Prefs:
         with open(path) as cfd:
             raw = json.load(cfd)
         convert = ConvPrefs.from_json(check_json_value(raw, "convert", dict, required=True))
-        output = ConvPrefs.from_json(check_json_value(raw, "output", dict, required=True))
+        output = OutputPrefs.from_json(check_json_value(raw, "output", dict, required=True))
         return cls(convert, output)
