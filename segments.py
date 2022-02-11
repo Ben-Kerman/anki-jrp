@@ -399,4 +399,9 @@ def parse_jrp(val: str) -> list[ParsedUnit]:
                 cur_text.append(c)
                 idx += 1
 
+    if cur_text:
+        insert_segment()
+    if segments:
+        units.append(ParsedUnit(segments))
+
     return units
