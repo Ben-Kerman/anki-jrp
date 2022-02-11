@@ -131,7 +131,7 @@ def _parse_migaku_accents(val: str, reading: str) -> tuple[list[int], bool]:
                     warn("odaka in kifuku accent list")
                 return moras
             case _:
-                raise ParsingError
+                raise ParsingError(f"invalid Migaku accent pattern: {tag}")
 
     moras = len(split_moras(reading))
     tags = val.split(",")
@@ -174,8 +174,6 @@ def parse_migaku(val: str) -> list[Unit]:
                     return Unit(segments)
                 case "[":
                     prefix = self.advance(prfx_end)
-                case _:
-                    raise ParsingError
 
             rdng_end, rdng_c = _multi_find(self.val, self.pos, (",", ";", "]"))
             match rdng_c:
@@ -186,7 +184,7 @@ def parse_migaku(val: str) -> list[Unit]:
                 case "]":
                     state = State.SUFFIX
                 case _:
-                    raise ParsingError
+                    raise ParsingError(f"unclosed Migaku tag: {self.val}")
             prefix_reading = self.advance(rdng_end)
 
             if state == State.BASE_FORM:
@@ -197,7 +195,7 @@ def parse_migaku(val: str) -> list[Unit]:
                     case "]":
                         state = State.SUFFIX
                     case _:
-                        raise ParsingError
+                        raise ParsingError(f"unclosed Migaku tag: {self.val}")
                 base_form = self.advance(bsfm_end)
 
             if state == State.ACCENTS:
@@ -206,16 +204,11 @@ def parse_migaku(val: str) -> list[Unit]:
                     case "]":
                         state = State.SUFFIX
                     case _:
-                        raise ParsingError
+                        raise ParsingError(f"closing ] missing: {self.val}")
                 accent_str = self.advance(acct_end)
 
             if state == State.SUFFIX:
-                sufx_end, sufx_c = _multi_find(self.val, self.pos, (" ",))
-                match sufx_c:
-                    case " " | None:
-                        pass
-                    case _:
-                        raise ParsingError
+                sufx_end, _ = _multi_find(self.val, self.pos, (" ",))
                 suffix = self.advance(sufx_end)
 
             text = prefix + suffix
