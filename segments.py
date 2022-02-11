@@ -1,8 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 
 from normalize import comp_kana, has_kana, is_kana, to_hiragana
-from util import split_moras, warn
+from util import empty_list, split_moras, warn
 
 
 class Segment:
@@ -225,3 +225,126 @@ def parse_migaku(val: str) -> list[Unit]:
             return units
 
     return Parser(val, 0).execute()
+
+
+@dataclass
+class BaseSegment:
+    text: str
+    reading: str
+
+
+@dataclass
+class ParsedUnit:
+    segments: list[Segment | BaseSegment]
+    accents: list[int] = field(default_factory=empty_list)
+    special_base: str | None = None
+    uncertain: bool = False
+
+
+def parse_jrp(val: str) -> list[ParsedUnit]:
+    def parse_segment(val: str, idx: int) -> tuple[int, Segment | BaseSegment]:
+        def parse_reading(val: str, idx: int) -> tuple[int, str]:
+            pos, _ = _multi_find(val, idx, ("]",))
+            if pos >= 0:
+                return pos, val[idx:pos]
+
+        sep_idx, sep_c = _multi_find(val, idx, ("|", "="))
+        match sep_c:
+            case "|":
+                end_idx, reading = parse_reading(val, sep_idx + 1)
+                return end_idx + 1, Segment(val[idx:sep_idx], reading)
+            case "=":
+                end_idx, reading = parse_reading(val, sep_idx + 1)
+                return end_idx + 1, BaseSegment(val[idx:sep_idx], reading)
+            case _:
+                raise ParsingError(f"segment without separator: {val}")
+
+    def parse_unit(val: str, idx: int) -> tuple[int, ParsedUnit]:
+        segments: list[Segment | BaseSegment] = []
+        cur_text = []
+
+        def insert_segment():
+            nonlocal segments, cur_text
+            if cur_text:
+                segments.append(Segment("".join(cur_text)))
+            cur_text = []
+
+        ended = False
+        has_accents = False
+        while idx < len(val):
+            match val[idx]:
+                case "[":
+                    insert_segment()
+                    idx, s = parse_segment(val, idx + 1)
+                    segments.append(s)
+                case ";":
+                    insert_segment()
+                    idx += 1
+                    has_accents = True
+                    break
+                case "}":
+                    ended = True
+                    break
+                case c:
+                    cur_text.append(c)
+                    idx += 1
+
+        if not has_accents and not ended:
+            raise ParsingError(f"unclosed unit: {val}")
+
+        accents = []
+        special_base = None
+        uncertain = False
+        if has_accents:
+            end_idx, c = _multi_find(val, idx, ("|", "}"))
+            if c:
+                if val[idx] == "!":
+                    uncertain = True
+                    idx += 1
+                try:
+                    accents = [int(acc) for acc in val[idx:end_idx].split(",")]
+                except ValueError:
+                    raise ParsingError(f"invalid accent: {val}")
+            if c == "|":
+                unit_end_idx, ec = _multi_find(val, end_idx + 1, ("}",))
+                if ec:
+                    special_base = val[end_idx + 1:unit_end_idx]
+                    idx = unit_end_idx
+                else:
+                    raise ParsingError(f"unclosed unit: {val}")
+            else:
+                idx = end_idx
+
+        return idx + 1, ParsedUnit(segments, accents or None, special_base, uncertain)
+
+    units: list[ParsedUnit] = []
+    segments: list[Segment] = []
+    cur_text = []
+
+    def insert_segment():
+        nonlocal segments, cur_text
+        if cur_text:
+            segments.append(Segment("".join(cur_text)))
+        cur_text = []
+
+    idx = 0
+    while idx < len(val):
+        match val[idx]:
+            case "{":
+                insert_segment()
+                if segments:
+                    units.append(ParsedUnit(segments))
+                segments = []
+                idx, u = parse_unit(val, idx + 1)
+                units.append(u)
+            case "[":
+                insert_segment()
+                idx, s = parse_segment(val, idx + 1)
+                if type(s) != Segment:
+                    raise ParsingError(f"base form segment outside of unit: {val}")
+                segments.append(s)
+            case c:
+                cur_text.append(c)
+                idx += 1
+
+    return units
