@@ -1,6 +1,7 @@
 from collections.abc import Generator
 
-from normalize import is_kana, to_katakana
+from normalize import is_hiragana, is_kana, to_katakana
+from preferences import OutputPrefs
 from segments import Unit
 from util import split_moras
 
@@ -9,18 +10,19 @@ class OutputError(Exception):
     pass
 
 
-def _add_accent(unit: Unit) -> bool:
+def _add_accent(p: OutputPrefs, unit: Unit) -> bool:
     if not unit.accents:
         return False
 
     if len(unit.segments) == 1:
         txt = unit.segments[0].text
-        if is_kana(txt) and len(txt) < 3 and not unit.base_form:
+        if (is_hiragana(txt) or p.katakana_min_accent and is_kana(txt)) \
+                and len(split_moras(txt)) < p.min_accent_mora and not unit.base_form:
             return False
     return True
 
 
-def fmt_migaku(units: list[Unit]) -> str:
+def fmt_migaku(units: list[Unit], p: OutputPrefs) -> str:
     def migaku_accents(unit: Unit) -> Generator[str]:
         moras = split_moras(unit.reading())
         for acc in unit.accents:
@@ -35,12 +37,12 @@ def fmt_migaku(units: list[Unit]) -> str:
             else:
                 yield f"n{acc}"
 
-    def fmt_unit(unit: Unit) -> str:
+    def fmt_unit(unit: Unit, p: OutputPrefs) -> str:
         if len(unit.segments) == 1 and all(c == " " for c in unit.segments[0].text):
             return chr(0x2002)  # en space
 
         tag_content = ""
-        if _add_accent(unit):
+        if _add_accent(p, unit):
             if unit.base_form:
                 tag_content += "," + unit.base_form
             tag_content += ";" + ",".join(migaku_accents(unit))
@@ -58,11 +60,13 @@ def fmt_migaku(units: list[Unit]) -> str:
             tag = f"[{tag_content}]" if tag_content else ""
             return f"{unit.text()}{tag}"
 
-    return " ".join(map(fmt_unit, units))
+    if not p:
+        p = OutputPrefs()
+    return " ".join([fmt_unit(u, p) for u in units])
 
 
-def fmt_jrp(units: list[Unit]) -> str:
-    def fmt_unit(unit: Unit) -> str:
+def fmt_jrp(units: list[Unit], p: OutputPrefs | None = None) -> str:
+    def fmt_unit(unit: Unit, p: OutputPrefs) -> str:
         def accent_strs(unit: Unit) -> Generator[str]:
             if unit.base_form:
                 moras = len(split_moras(unit.base_form))
@@ -106,7 +110,7 @@ def fmt_jrp(units: list[Unit]) -> str:
                 yield f"[={unit.base_form[base_idx:]}]"
 
         special_base = False
-        itr = segment_strs(unit, _add_accent(unit))
+        itr = segment_strs(unit, _add_accent(p, unit))
         str_list = []
         try:
             while True:
@@ -115,10 +119,12 @@ def fmt_jrp(units: list[Unit]) -> str:
             if si.value:
                 special_base = True
         segment_str = "".join(str_list)
-        if _add_accent(unit):
+        if _add_accent(p, unit):
             sp_base = "|" + unit.base_form if special_base else ""
             return f"{{{segment_str};{'!' if unit.uncertain else ''}{','.join(accent_strs(unit))}{sp_base}}}"
         else:
             return segment_str
 
-    return "".join(map(fmt_unit, units))
+    if not p:
+        p = OutputPrefs()
+    return "".join([fmt_unit(u, p) for u in units])
