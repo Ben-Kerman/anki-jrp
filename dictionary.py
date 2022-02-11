@@ -1,5 +1,4 @@
 import lzma
-import os
 import sys
 from collections.abc import Iterable
 from dataclasses import dataclass

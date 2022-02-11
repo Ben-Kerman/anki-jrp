@@ -22,7 +22,7 @@ def _add_accent(p: OutputPrefs, unit: Unit) -> bool:
     return True
 
 
-def fmt_migaku(units: list[Unit], p: OutputPrefs) -> str:
+def fmt_migaku(units: list[Unit], prefs: OutputPrefs) -> str:
     def migaku_accents(unit: Unit) -> Generator[str]:
         moras = split_moras(unit.reading())
         for acc in unit.accents:
@@ -60,34 +60,34 @@ def fmt_migaku(units: list[Unit], p: OutputPrefs) -> str:
             tag = f"[{tag_content}]" if tag_content else ""
             return f"{unit.text()}{tag}"
 
-    if not p:
-        p = OutputPrefs()
-    return " ".join([fmt_unit(u, p) for u in units])
+    if not prefs:
+        prefs = OutputPrefs()
+    return " ".join([fmt_unit(u, prefs) for u in units])
 
 
-def fmt_jrp(units: list[Unit], p: OutputPrefs | None = None) -> str:
+def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
     def fmt_unit(unit: Unit, p: OutputPrefs) -> str:
-        def accent_strs(unit: Unit) -> Generator[str]:
-            if unit.base_form:
-                moras = len(split_moras(unit.base_form))
-                for acc in unit.accents:
+        def accent_strs(u: Unit) -> Generator[str]:
+            if u.base_form:
+                moras = len(split_moras(u.base_form))
+                for acc in u.accents:
                     yield str(acc - moras - 1) if acc != 0 else "0"
             else:
-                for acc in unit.accents:
+                for acc in u.accents:
                     yield str(acc)
 
-        def segment_strs(unit: Unit, add_accent: bool) -> Generator[str]:
-            base = to_katakana(unit.base_form) if unit.base_form else None
+        def segment_strs(u: Unit, add_accent: bool) -> Generator[str]:
+            base = to_katakana(u.base_form) if u.base_form else None
             base_idx = 0
             use_special_base = False
-            for i, s in enumerate(unit.segments):
+            for i, s in enumerate(u.segments):
                 if add_accent and not use_special_base and base:
                     for k, c in enumerate(to_katakana(s.reading or s.text)):
                         if base_idx >= len(base):
                             raise OutputError("end of base reached before end of reading")
 
                         if c != base[base_idx]:
-                            if i < len(unit.segments) - 1:
+                            if i < len(u.segments) - 1:
                                 use_special_base = True
                             elif s.reading:
                                 raise OutputError("last segment has a reading")
@@ -96,7 +96,7 @@ def fmt_jrp(units: list[Unit], p: OutputPrefs | None = None) -> str:
                                 common_pref = s.text[:k]
                                 if common_pref:
                                     yield common_pref
-                                yield f"[{s.text[k:]}={unit.base_form[base_idx:]}]"
+                                yield f"[{s.text[k:]}={u.base_form[base_idx:]}]"
                                 return
                         base_idx += 1
 
@@ -107,7 +107,7 @@ def fmt_jrp(units: list[Unit], p: OutputPrefs | None = None) -> str:
             if use_special_base:
                 return True
             elif add_accent and base and base_idx < len(base):
-                yield f"[={unit.base_form[base_idx:]}]"
+                yield f"[={u.base_form[base_idx:]}]"
 
         special_base = False
         itr = segment_strs(unit, _add_accent(p, unit))
@@ -125,6 +125,6 @@ def fmt_jrp(units: list[Unit], p: OutputPrefs | None = None) -> str:
         else:
             return segment_str
 
-    if not p:
-        p = OutputPrefs()
-    return "".join([fmt_unit(u, p) for u in units])
+    if not prefs:
+        prefs = OutputPrefs()
+    return "".join([fmt_unit(u, prefs) for u in units])
