@@ -240,6 +240,58 @@ class ParsedUnit:
     special_base: str | None = None
     uncertain: bool = False
 
+    def reading(self) -> str:
+        def process_segment(s: Segment | BaseSegment) -> str:
+            match type(s):
+                case Segment(ss):
+                    return ss.reading or ss.text
+                case BaseSegment(bs):
+                    return bs.text
+                case _:
+                    raise ValueError("invalid segment type")
+
+        return "".join(map(process_segment, self.segments))
+
+    def text(self) -> str:
+        return "".join(map(lambda s: s.text, self.segments))
+
+    def base_form(self) -> str | None:
+        if self.special_base:
+            return self.special_base
+
+        if any(type(s) == BaseSegment for s in self.segments):
+            def process_segment(s: Segment | BaseSegment) -> str:
+                match type(s):
+                    case Segment(ss):
+                        return ss.reading or ss.text
+                    case BaseSegment(bs):
+                        return bs.reading
+                    case _:
+                        raise ValueError("invalid segment type")
+
+            return "".join([process_segment(s) for s in self.segments])
+        elif any(a < 0 for a in self.accents):
+            return self.reading()
+        else:
+            return None
+
+    def to_unit(self) -> Unit:
+        def convert_segment(s: Segment | BaseSegment) -> Segment:
+            match type(s):
+                case Segment(ss):
+                    return ss
+                case BaseSegment(bs):
+                    return Segment(bs.text)
+                case _:
+                    raise ValueError("invalid segment type")
+
+        base_form = self.base_form()
+        accents = self.accents
+        if base_form:
+            moras = len(split_moras(base_form))
+            accents = [acc + moras + 1 if acc < 0 else acc for acc in accents]
+        return Unit([convert_segment(s) for s in self.segments], accents, base_form, self.uncertain)
+
 
 def parse_jrp(val: str) -> list[ParsedUnit]:
     def parse_segment(val: str, idx: int) -> tuple[int, Segment | BaseSegment]:
