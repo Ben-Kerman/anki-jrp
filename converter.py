@@ -231,14 +231,13 @@ def _finalize_yougen(p: ConvPrefs, punits: list[ParserUnit], tail_mu: MecabUnit,
         if is_kana(word):
             return word
 
-        i_break = False
+        head = base_reading[:-2 if is_sahen(word, base_word) else -1]
         for i, (wc, bwc) in enumerate(zip(word, base_word)):
             if wc != bwc:
-                i_break = True
+                tail = word[i:]
                 break
-
-        head = base_reading[:-2 if is_sahen(word, base_word) else -1]
-        tail = word[i:] if i_break else ""
+        else:
+            tail = ""
         return head + tail
 
     def has_special_reading(munit: MecabUnit) -> bool:
