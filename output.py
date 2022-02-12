@@ -40,7 +40,7 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs) -> str:
     def fmt_unit(unit: Unit, p: OutputPrefs) -> str:
         segments = unit.non_base_segments()
         if len(segments) == 1 and all(c == " " for c in segments[0].text):
-            return chr(0x2002)  # en space
+            return chr(0x2002) * len(segments[0].text)  # en space
 
         tag_content = ""
         if _add_accent(p, unit):
@@ -63,7 +63,7 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs) -> str:
 
     if not prefs:
         prefs = OutputPrefs()
-    return " ".join([fmt_unit(u, prefs) for u in units])
+    return " ".join([fmt_unit(u, prefs).replace(" ", chr(0x2002)) for u in units])
 
 
 def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
