@@ -28,7 +28,7 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs) -> str:
         for acc in unit.accents:
             if acc == 0:
                 yield "h"
-            elif unit.base_form:
+            elif unit.is_yougen:
                 yield f"k{acc}"
             elif acc == 1:
                 yield "a"
@@ -38,22 +38,23 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs) -> str:
                 yield f"n{acc}"
 
     def fmt_unit(unit: Unit, p: OutputPrefs) -> str:
-        if len(unit.segments) == 1 and all(c == " " for c in unit.segments[0].text):
+        segments = unit.non_base_segments()
+        if len(segments) == 1 and all(c == " " for c in segments[0].text):
             return chr(0x2002)  # en space
 
         tag_content = ""
         if _add_accent(p, unit):
-            if unit.base_form:
-                tag_content += "," + unit.base_form
+            if unit.is_yougen:
+                tag_content += "," + unit.base_form()
             tag_content += ";" + ",".join(migaku_accents(unit))
 
-        if len(unit.segments) == 1 and (is_kana(unit.segments[0].text) or not unit.segments[0].reading):
+        if len(segments) == 1 and (is_kana(segments[0].text) or not segments[0].reading):
             tag = f"[{tag_content}]" if tag_content else ""
-            return f"{unit.segments[0].text}{tag}"
-        elif len(unit.segments) > 1 and is_kana(unit.segments[-1].text):
+            return f"{segments[0].text}{tag}"
+        elif len(segments) > 1 and is_kana(segments[-1].text):
             tag_content = unit.reading(-1) + tag_content
             tag = f"[{tag_content}]" if tag_content else ""
-            tail = unit.segments[-1].text
+            tail = segments[-1].text
             return f"{unit.text(-1)}{tag}{tail}"
         else:
             tag_content = unit.reading() + tag_content
@@ -68,8 +69,8 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs) -> str:
 def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
     def fmt_unit(unit: Unit, p: OutputPrefs) -> str:
         def accent_strs(u: Unit) -> Generator[str]:
-            if u.base_form:
-                moras = len(split_moras(u.base_form))
+            if u.is_yougen:
+                moras = len(split_moras(u.base_form()))
                 for acc in u.accents:
                     yield str(acc - moras - 1) if acc != 0 else "0"
             else:
@@ -77,7 +78,7 @@ def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
                     yield str(acc)
 
         def segment_strs(u: Unit, add_accent: bool) -> Generator[str]:
-            base = to_katakana(u.base_form) if u.base_form else None
+            base = to_katakana(u.base_form()) if u.is_yougen else None
             base_idx = 0
             use_special_base = False
             for i, s in enumerate(u.segments):
@@ -96,7 +97,7 @@ def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
                                 common_pref = s.text[:k]
                                 if common_pref:
                                     yield common_pref
-                                yield f"[{s.text[k:]}={u.base_form[base_idx:]}]"
+                                yield f"[{s.text[k:]}={u.base_form()[base_idx:]}]"
                                 return
                         base_idx += 1
 
@@ -107,7 +108,7 @@ def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
             if use_special_base:
                 return True
             elif add_accent and base and base_idx < len(base):
-                yield f"[={u.base_form[base_idx:]}]"
+                yield f"[={u.base_form()[base_idx:]}]"
 
         special_base = False
         itr = segment_strs(unit, _add_accent(p, unit))
@@ -120,7 +121,7 @@ def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
                 special_base = True
         segment_str = "".join(str_list)
         if _add_accent(p, unit):
-            sp_base = "|" + unit.base_form if special_base else ""
+            sp_base = "|" + unit.base_form() if special_base else ""
             return f"{{{segment_str};{'!' if unit.uncertain else ''}{','.join(accent_strs(unit))}{sp_base}}}"
         else:
             return segment_str

@@ -115,7 +115,7 @@ def _handle_josi(munit: MecabUnit) -> Unit:
     if to_hiragana(munit.value) == to_hiragana(munit.reading):
         return Unit([Segment(munit.value)])
     else:
-        return Unit(Segment.generate(munit.value, to_hiragana(munit.reading)))
+        return Unit.from_text(munit.value, to_hiragana(munit.reading))
 
 
 def _yougen_join(p: JoinPrefs, punits: list[ParserUnit], bmu: MecabUnit,
@@ -220,7 +220,7 @@ def _stop_cond(mu: MecabUnit) -> bool:
 
 
 def _override_accents(prefs: ConvPrefs, unit: Unit, base_form: str | None = None):
-    if res := prefs.apply_accent_or(base_form or unit.text(), unit.base_form or unit.reading()):
+    if res := prefs.apply_accent_or(base_form or unit.text(), unit.base_form() or unit.reading()):
         unit.accents = res
         unit.uncertain = False
 
@@ -265,8 +265,7 @@ def _finalize_yougen(p: ConvPrefs, punits: list[ParserUnit], tail_mu: MecabUnit,
         if has_special_reading(tail_mu):
             word_reading = to_hiragana(word_reading[:-len(tail_mu.reading)] + tail_mu.reading)
         word_reading += trailing
-        segments = Segment.generate(m.word + trailing, word_reading)
-        unit = Unit(segments, res.accents, res.reading, m.lookup.uncertain)
+        unit = Unit.from_text(m.word + trailing, word_reading, res.reading, res.accents, True, m.lookup.uncertain)
         _override_accents(p, unit, m.base_word)
     return new_idx, unit, split_unit
 
@@ -276,7 +275,7 @@ def _finalize_other(p: ConvPrefs, m: Match) -> tuple[int, Unit, Unit | None]:
         unit = iu
     else:
         res = m.lookup.results[0]
-        unit = Unit(Segment.generate(m.word, res.reading), res.accents, uncertain=m.lookup.uncertain)
+        unit = Unit.from_text(m.word, res.reading, accents=res.accents, uncertain=m.lookup.uncertain)
         _override_accents(p, unit)
     return m.last_idx + 1, unit, None
 
@@ -291,7 +290,9 @@ def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: 
             return _finalize_other(p, m)
     else:
         mu = cast(MecabUnit, punits[idx])
-        return idx + 1, Unit(Segment.generate(mu.value, mu.reading), base_form=mu.base_reading()), None
+        is_yougen = mu.hinsi_type() == HinsiType.YOUGEN
+        base = mu.base_reading() if is_yougen else None
+        return idx + 1, Unit.from_text(mu.value, mu.reading, base, is_yougen=is_yougen), None
 
 
 def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[Unit]:
