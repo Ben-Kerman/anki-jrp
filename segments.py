@@ -281,15 +281,11 @@ def parse_jrp(val: str) -> list[Unit]:
                 return pos, val[idx:pos]
 
         sep_idx, sep_c = _multi_find(val, idx, ("|", "="))
-        match sep_c:
-            case "|":
-                end_idx, reading = parse_reading(val, sep_idx + 1)
-                return end_idx + 1, Segment(val[idx:sep_idx], reading)
-            case "=":
-                end_idx, reading = parse_reading(val, sep_idx + 1)
-                return end_idx + 1, BaseSegment(val[idx:sep_idx], reading)
-            case _:
-                raise ParsingError(f"segment without separator: {val}")
+        if sep_c:
+            cls = BaseSegment if sep_c == "=" else Segment
+            end_idx, reading = parse_reading(val, sep_idx + 1)
+            return end_idx + 1, cls(val[idx:sep_idx], reading)
+        raise ParsingError(f"invalid segment: {val}")
 
     def parse_unit(val: str, idx: int) -> tuple[int, Unit]:
         segments: list[Segment | BaseSegment] = []
