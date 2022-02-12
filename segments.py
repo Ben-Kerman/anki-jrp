@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
-from normalize import comp_kana, has_kana, is_kana, to_hiragana
+from normalize import comp_kana, has_kana, is_kana, to_hiragana, to_katakana
 from util import empty_list, split_moras, warn
 
 
@@ -148,9 +148,41 @@ class Unit:
     @classmethod
     def from_text(cls, text: str, reading: str | None = None, base: str | None = None,
                   accents: list[int] | None = None, is_yougen: bool = False, uncertain: bool = False) -> "Unit":
+        def base_segments(segments: list[Segment], base: str) -> list[Segment | BaseSegment] | str | None:
+            new_segments = []
+
+            k_base = to_katakana(base)
+            base_idx = 0
+            for i, s in enumerate(segments):
+                for k, c in enumerate(to_katakana(s.reading or s.text)):
+                    if base_idx > len(k_base):
+                        return base
+
+                    if c != k_base[base_idx]:
+                        if i < len(segments) - 1 or s.reading:
+                            return base
+
+                        if k > 0:
+                            new_segments.append(Segment(s.text[:k]))
+                        new_segments.append(BaseSegment(s.text[k:], base[base_idx:]))
+                        return new_segments
+                    base_idx += 1
+                new_segments.append(s)
+            if base_idx < len(base):
+                new_segments.append(BaseSegment(None, base[base_idx:]))
+                return new_segments
+            return None
+
         segments = Segment.generate(text, reading)
-        # TODO
-        return cls(segments, accents or [], is_yougen, uncertain, base)
+        special_base = None
+        if is_yougen:
+            match base_segments(segments, base):
+                case list(new_segments):
+                    segments = new_segments
+                case str(special):
+                    special_base = special
+
+        return cls(segments, accents or [], is_yougen, uncertain, special_base)
 
 
 class ParsingError(ValueError):

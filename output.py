@@ -1,6 +1,6 @@
 from collections.abc import Generator
 
-from normalize import is_hiragana, is_kana, to_katakana
+from normalize import is_hiragana, is_kana
 from preferences import OutputPrefs
 from segments import Unit
 from util import split_moras
@@ -77,52 +77,12 @@ def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
                 for acc in u.accents:
                     yield str(acc)
 
-        def segment_strs(u: Unit, add_accent: bool) -> Generator[str]:
-            base = to_katakana(u.base_form()) if u.is_yougen else None
-            base_idx = 0
-            use_special_base = False
-            for i, s in enumerate(u.segments):
-                if add_accent and not use_special_base and base:
-                    for k, c in enumerate(to_katakana(s.reading or s.text)):
-                        if base_idx >= len(base):
-                            raise OutputError("end of base reached before end of reading")
-
-                        if c != base[base_idx]:
-                            if i < len(u.segments) - 1:
-                                use_special_base = True
-                            elif s.reading:
-                                raise OutputError("last segment has a reading")
-
-                            if not use_special_base:
-                                common_pref = s.text[:k]
-                                if common_pref:
-                                    yield common_pref
-                                yield f"[{s.text[k:]}={u.base_form()[base_idx:]}]"
-                                return
-                        base_idx += 1
-
-                if s.reading:
-                    yield f"[{s.text}|{s.reading}]"
-                else:
-                    yield s.text
-            if use_special_base:
-                return True
-            elif add_accent and base and base_idx < len(base):
-                yield f"[={u.base_form()[base_idx:]}]"
-
-        special_base = False
-        itr = segment_strs(unit, _add_accent(p, unit))
-        str_list = []
-        try:
-            while True:
-                str_list.append(next(itr))
-        except StopIteration as si:
-            if si.value:
-                special_base = True
-        segment_str = "".join(str_list)
+        segment_str = "".join([s.fmt() for s in unit.segments])
         if _add_accent(p, unit):
-            sp_base = "|" + unit.base_form() if special_base else ""
-            return f"{{{segment_str};{'!' if unit.uncertain else ''}{','.join(accent_strs(unit))}{sp_base}}}"
+            uncert = "!" if unit.uncertain else ""
+            yougen = "Y" if unit.is_yougen else ""
+            sp_base = f"|{unit.special_base}" if unit.special_base else ""
+            return f"{{{segment_str};{uncert}{yougen}{','.join(accent_strs(unit))}{sp_base}}}"
         else:
             return segment_str
 
