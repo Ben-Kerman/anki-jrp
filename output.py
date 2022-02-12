@@ -68,21 +68,12 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs) -> str:
 
 def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
     def fmt_unit(unit: Unit, p: OutputPrefs) -> str:
-        def accent_strs(u: Unit) -> Generator[str]:
-            if u.is_yougen:
-                moras = len(split_moras(u.base_form()))
-                for acc in u.accents:
-                    yield str(acc - moras - 1) if acc != 0 else "0"
-            else:
-                for acc in u.accents:
-                    yield str(acc)
-
         segment_str = "".join([s.fmt() for s in unit.segments])
         if _add_accent(p, unit):
             uncert = "!" if unit.uncertain else ""
             yougen = "Y" if unit.is_yougen else ""
             sp_base = f"|{unit.special_base}" if unit.special_base else ""
-            return f"{{{segment_str};{uncert}{yougen}{','.join(accent_strs(unit))}{sp_base}}}"
+            return f"{{{segment_str};{uncert}{yougen}{','.join(map(str, unit.accents))}{sp_base}}}"
         else:
             return segment_str
 
