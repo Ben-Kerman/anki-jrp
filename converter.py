@@ -219,12 +219,6 @@ def _stop_cond(mu: MecabUnit) -> bool:
     return mu.hinsi_type() in (HinsiType.ZYOSI, HinsiType.SYMBOL)
 
 
-def _override_accents(prefs: ConvPrefs, unit: Unit, base_form: str | None = None):
-    if res := prefs.apply_accent_or(base_form or unit.text(), unit.base_form() or unit.reading()):
-        unit.accents = res
-        unit.uncertain = False
-
-
 def _finalize_yougen(p: ConvPrefs, punits: list[ParserUnit], tail_mu: MecabUnit,
                      m: Match) -> tuple[int, Unit, Unit | None]:
     def find_reading(word: str, base_word: str, base_reading: str) -> str:
@@ -261,12 +255,16 @@ def _finalize_yougen(p: ConvPrefs, punits: list[ParserUnit], tail_mu: MecabUnit,
         unit = iu
     else:
         res = m.lookup.results[0]
+
         word_reading = find_reading(m.word, m.base_word, res.reading)
         if has_special_reading(tail_mu):
             word_reading = to_hiragana(word_reading[:-len(tail_mu.reading)] + tail_mu.reading)
         word_reading += trailing
-        unit = Unit.from_text(m.word + trailing, word_reading, res.reading, res.accents, True, m.lookup.uncertain)
-        _override_accents(p, unit, m.base_word)
+        word = m.word + trailing
+
+        or_accents = p.apply_accent_or(m.base_word, res.reading)
+        uncertain = not or_accents and m.lookup.uncertain
+        unit = Unit.from_text(word, word_reading, res.reading, or_accents or res.accents, True, uncertain)
     return new_idx, unit, split_unit
 
 
@@ -275,8 +273,10 @@ def _finalize_other(p: ConvPrefs, m: Match) -> tuple[int, Unit, Unit | None]:
         unit = iu
     else:
         res = m.lookup.results[0]
-        unit = Unit.from_text(m.word, res.reading, accents=res.accents, uncertain=m.lookup.uncertain)
-        _override_accents(p, unit)
+
+        or_accents = p.apply_accent_or(m.word, res.reading)
+        uncertain = not or_accents and m.lookup.uncertain
+        unit = Unit.from_text(m.word, res.reading, accents=or_accents or res.accents, uncertain=uncertain)
     return m.last_idx + 1, unit, None
 
 
