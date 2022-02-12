@@ -17,8 +17,11 @@ class Segment:
         else:
             self.reading = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"S[{self.text}|{self.reading}]"
+
+    def fmt(self) -> str:
+        return f"[{self.text}|{self.reading}]" if self.reading else self.text
 
     @classmethod
     def generate(cls, word: str, reading: str | None) -> list["Segment"]:
@@ -81,8 +84,11 @@ class BaseSegment:
     text: str | None
     base: str
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"BS[{self.text}={self.base}]"
+
+    def fmt(self) -> str:
+        return f"[{self.text or ''}={self.base}]"
 
 
 @dataclass
