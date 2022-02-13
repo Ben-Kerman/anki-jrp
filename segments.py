@@ -190,7 +190,7 @@ class ParsingError(ValueError):
     pass
 
 
-def _multi_find(val: str, idx: int, stop: tuple[str, ...]) -> tuple[int, str | None, str]:
+def _read_until(val: str, idx: int, stop: tuple[str, ...]) -> tuple[int, str | None, str]:
     chars = []
     itr = enumerate(val[idx:])
     for i, c in itr:
@@ -257,7 +257,7 @@ def parse_migaku(val: str) -> list[Unit]:
         def parse_unit(self) -> Unit:
             state: State = State.PREFIX
 
-            prfx_end, prfx_c, prefix = _multi_find(self.val, self.pos, ("[", " "))
+            prfx_end, prfx_c, prefix = _read_until(self.val, self.pos, ("[", " "))
             match prfx_c:
                 case " " | None:
                     segments = [Segment(prefix)]
@@ -266,7 +266,7 @@ def parse_migaku(val: str) -> list[Unit]:
                 case "[":
                     self.pos = prfx_end + 1
 
-            rdng_end, rdng_c, prefix_reading = _multi_find(self.val, self.pos, (",", ";", "]"))
+            rdng_end, rdng_c, prefix_reading = _read_until(self.val, self.pos, (",", ";", "]"))
             match rdng_c:
                 case ",":
                     state = State.BASE_FORM
@@ -280,7 +280,7 @@ def parse_migaku(val: str) -> list[Unit]:
 
             base_form: str = ""
             if state == State.BASE_FORM:
-                bsfm_end, bsfm_c, base_form = _multi_find(self.val, self.pos, (";", "]"))
+                bsfm_end, bsfm_c, base_form = _read_until(self.val, self.pos, (";", "]"))
                 match bsfm_c:
                     case ";":
                         state = State.ACCENTS
@@ -292,7 +292,7 @@ def parse_migaku(val: str) -> list[Unit]:
 
             accent_str: str = ""
             if state == State.ACCENTS:
-                acct_end, acct_c, accent_str = _multi_find(self.val, self.pos, ("]",))
+                acct_end, acct_c, accent_str = _read_until(self.val, self.pos, ("]",))
                 match acct_c:
                     case "]":
                         state = State.SUFFIX
@@ -302,7 +302,7 @@ def parse_migaku(val: str) -> list[Unit]:
 
             suffix: str = ""
             if state == State.SUFFIX:
-                sufx_end, _, suffix = _multi_find(self.val, self.pos, (" ",))
+                sufx_end, _, suffix = _read_until(self.val, self.pos, (" ",))
                 self.pos = sufx_end + 1
 
             text = prefix + suffix
@@ -322,13 +322,13 @@ def parse_migaku(val: str) -> list[Unit]:
 def parse_jrp(val: str) -> list[Unit]:
     def parse_segment(val: str, idx: int) -> tuple[int, Segment | BaseSegment]:
         def parse_reading(val: str, idx: int) -> tuple[int, str]:
-            end_pos, end_c, reading = _multi_find(val, idx, ("]",))
+            end_pos, end_c, reading = _read_until(val, idx, ("]",))
             if end_c:
                 return end_pos, reading
             else:
                 raise ParsingError(f"segment is missing closing bracket: {val}")
 
-        sep_idx, sep_c, seg_text = _multi_find(val, idx, ("|", "="))
+        sep_idx, sep_c, seg_text = _read_until(val, idx, ("|", "="))
         if sep_c:
             cls = BaseSegment if sep_c == "=" else Segment
             end_idx, seg_reading = parse_reading(val, sep_idx + 1)
@@ -339,7 +339,7 @@ def parse_jrp(val: str) -> list[Unit]:
         segments: list[Segment | BaseSegment] = []
 
         while idx < len(val):
-            idx, c, text = _multi_find(val, idx, ("[", ";", "}"))
+            idx, c, text = _read_until(val, idx, ("[", ";", "}"))
             if text:
                 segments.append(Segment(text))
 
@@ -365,7 +365,7 @@ def parse_jrp(val: str) -> list[Unit]:
                 is_yougen = True
                 idx += 1
 
-            end_idx, c, accent_str = _multi_find(val, idx, ("|", "}"))
+            end_idx, c, accent_str = _read_until(val, idx, ("|", "}"))
             if c:
                 try:
                     accents = [int(acc) for acc in accent_str.split(",")]
@@ -375,7 +375,7 @@ def parse_jrp(val: str) -> list[Unit]:
                 raise ParsingError(f"unclosed unit: {val}")
 
             if c == "|":
-                unit_end_idx, ec, special_base = _multi_find(val, end_idx + 1, ("}",))
+                unit_end_idx, ec, special_base = _read_until(val, end_idx + 1, ("}",))
                 if ec:
                     idx = unit_end_idx
                 else:
@@ -390,7 +390,7 @@ def parse_jrp(val: str) -> list[Unit]:
 
     idx = 0
     while idx < len(val):
-        idx, c, text = _multi_find(val, idx, ("[", "{"))
+        idx, c, text = _read_until(val, idx, ("[", "{"))
         if text:
             segments.append(Segment(text))
 
