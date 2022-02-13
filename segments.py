@@ -321,18 +321,13 @@ def parse_migaku(val: str) -> list[Unit]:
 
 def parse_jrp(val: str) -> list[Unit]:
     def parse_segment(val: str, idx: int) -> tuple[int, Segment | BaseSegment]:
-        def parse_reading(val: str, idx: int) -> tuple[int, str]:
-            end_pos, end_c, reading = _read_until(val, idx, ("]",))
-            if end_c:
-                return end_pos, reading
-            else:
-                raise ParsingError(f"segment is missing closing bracket: {val}")
-
         sep_idx, sep_c, seg_text = _read_until(val, idx, ("|", "="))
         if sep_c:
             cls = BaseSegment if sep_c == "=" else Segment
-            end_idx, seg_reading = parse_reading(val, sep_idx + 1)
-            return end_idx + 1, cls(seg_text, seg_reading)
+            end_idx, end_c, reading = _read_until(val, sep_idx + 1, ("]",))
+            if not end_c:
+                raise ParsingError(f"segment is missing closing bracket: {val}")
+            return end_idx + 1, cls(seg_text, reading)
         raise ParsingError(f"invalid segment: {val}")
 
     def parse_unit(val: str, idx: int) -> tuple[int, Unit]:
