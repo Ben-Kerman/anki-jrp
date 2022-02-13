@@ -112,10 +112,11 @@ class Unit:
                 case Segment():
                     segments.append(s)
                 case BaseSegment():
-                    if segments and not segments[-1].reading:
-                        segments[-1] = Segment(segments[-1].text + s.text)
-                    else:
-                        segments.append(Segment(s.text))
+                    if s.text:
+                        if segments and not segments[-1].reading:
+                            segments[-1] = Segment(segments[-1].text + s.text)
+                        else:
+                            segments.append(Segment(s.text))
                 case _:
                     raise ValueError(f"invalid segment type")
         return segments
@@ -135,7 +136,7 @@ class Unit:
                     case Segment():
                         return s.reading or s.text
                     case BaseSegment():
-                        return s.reading
+                        return s.base
                     case _:
                         raise ValueError("invalid segment type")
 
