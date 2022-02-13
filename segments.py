@@ -190,11 +190,21 @@ class ParsingError(ValueError):
     pass
 
 
-def _multi_find(val: str, idx: int, stop: tuple[str, ...]) -> tuple[int, str | None]:
-    for i in range(idx, len(val)):
-        if val[i] in stop:
-            return i, val[i]
-    return len(val), None
+def _multi_find(val: str, idx: int, stop: tuple[str, ...]) -> tuple[int, str | None, str]:
+    chars = []
+    itr = enumerate(val[idx:])
+    for i, c in itr:
+        if c in stop:
+            return idx + i, c, "".join(chars)
+        elif c == "\\":
+            match next(itr, None):
+                case [_, esc_c]:
+                    chars.append(esc_c)
+                case None:
+                    raise ParsingError("backslash at end of input")
+        else:
+            chars.append(c)
+    return len(val), None, "".join(chars)
 
 
 def _parse_migaku_accents(val: str, reading: str, has_base: bool) -> list[int]:
@@ -247,22 +257,16 @@ def parse_migaku(val: str) -> list[Unit]:
         def parse_unit(self) -> Unit:
             state: State = State.PREFIX
 
-            prefix: str = ""
-            prefix_reading: str = ""
-            base_form: str = ""
-            accent_str: str = ""
-            suffix: str = ""
-
-            prfx_end, prfx_c = _multi_find(self.val, self.pos, ("[", " "))
+            prfx_end, prfx_c, prefix = _multi_find(self.val, self.pos, ("[", " "))
             match prfx_c:
                 case " " | None:
-                    segments = [Segment(self.val[self.pos:prfx_end])]
+                    segments = [Segment(prefix)]
                     self.pos = prfx_end + 1
                     return Unit(segments)
                 case "[":
-                    prefix = self.advance(prfx_end)
+                    self.pos = prfx_end + 1
 
-            rdng_end, rdng_c = _multi_find(self.val, self.pos, (",", ";", "]"))
+            rdng_end, rdng_c, prefix_reading = _multi_find(self.val, self.pos, (",", ";", "]"))
             match rdng_c:
                 case ",":
                     state = State.BASE_FORM
@@ -272,10 +276,11 @@ def parse_migaku(val: str) -> list[Unit]:
                     state = State.SUFFIX
                 case _:
                     raise ParsingError(f"unclosed Migaku tag: {self.val}")
-            prefix_reading = self.advance(rdng_end)
+            self.pos = rdng_end + 1
 
+            base_form: str = ""
             if state == State.BASE_FORM:
-                bsfm_end, bsfm_c = _multi_find(self.val, self.pos, (";", "]"))
+                bsfm_end, bsfm_c, base_form = _multi_find(self.val, self.pos, (";", "]"))
                 match bsfm_c:
                     case ";":
                         state = State.ACCENTS
@@ -283,20 +288,22 @@ def parse_migaku(val: str) -> list[Unit]:
                         state = State.SUFFIX
                     case _:
                         raise ParsingError(f"unclosed Migaku tag: {self.val}")
-                base_form = self.advance(bsfm_end)
+                self.pos = bsfm_end + 1
 
+            accent_str: str = ""
             if state == State.ACCENTS:
-                acct_end, acct_c = _multi_find(self.val, self.pos, ("]",))
+                acct_end, acct_c, accent_str = _multi_find(self.val, self.pos, ("]",))
                 match acct_c:
                     case "]":
                         state = State.SUFFIX
                     case _:
                         raise ParsingError(f"closing ] missing: {self.val}")
-                accent_str = self.advance(acct_end)
+                self.pos = acct_end + 1
 
+            suffix: str = ""
             if state == State.SUFFIX:
-                sufx_end, _ = _multi_find(self.val, self.pos, (" ",))
-                suffix = self.advance(sufx_end)
+                sufx_end, _, suffix = _multi_find(self.val, self.pos, (" ",))
+                self.pos = sufx_end + 1
 
             text = prefix + suffix
             reading = prefix_reading + suffix if prefix_reading else None
@@ -315,15 +322,15 @@ def parse_migaku(val: str) -> list[Unit]:
 def parse_jrp(val: str) -> list[Unit]:
     def parse_segment(val: str, idx: int) -> tuple[int, Segment | BaseSegment]:
         def parse_reading(val: str, idx: int) -> tuple[int, str]:
-            pos, _ = _multi_find(val, idx, ("]",))
+            pos, _, reading = _multi_find(val, idx, ("]",))
             if pos >= 0:
-                return pos, val[idx:pos]
+                return pos, reading
 
-        sep_idx, sep_c = _multi_find(val, idx, ("|", "="))
+        sep_idx, sep_c, seg_text = _multi_find(val, idx, ("|", "="))
         if sep_c:
             cls = BaseSegment if sep_c == "=" else Segment
             end_idx, reading = parse_reading(val, sep_idx + 1)
-            return end_idx + 1, cls(val[idx:sep_idx], reading)
+            return end_idx + 1, cls(seg_text, reading)
         raise ParsingError(f"invalid segment: {val}")
 
     def parse_unit(val: str, idx: int) -> tuple[int, Unit]:
@@ -364,23 +371,22 @@ def parse_jrp(val: str) -> list[Unit]:
         uncertain = False
         is_yougen = False
         if has_accents:
-            end_idx, c = _multi_find(val, idx, ("|", "}"))
-            if c:
-                if val[idx] == "!":
-                    uncertain = True
-                    idx += 1
-                if val[idx] == "Y":
-                    is_yougen = True
-                    idx += 1
+            if val[idx] == "!":
+                uncertain = True
+                idx += 1
+            if val[idx] == "Y":
+                is_yougen = True
+                idx += 1
 
+            end_idx, c, accent_str = _multi_find(val, idx, ("|", "}"))
+            if c:
                 try:
-                    accents = [int(acc) for acc in val[idx:end_idx].split(",")]
+                    accents = [int(acc) for acc in accent_str.split(",")]
                 except ValueError:
                     raise ParsingError(f"invalid accent: {val}")
             if c == "|":
-                unit_end_idx, ec = _multi_find(val, end_idx + 1, ("}",))
+                unit_end_idx, ec, special_base = _multi_find(val, end_idx + 1, ("}",))
                 if ec:
-                    special_base = val[end_idx + 1:unit_end_idx]
                     idx = unit_end_idx
                 else:
                     raise ParsingError(f"unclosed unit: {val}")
