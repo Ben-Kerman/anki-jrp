@@ -322,15 +322,17 @@ def parse_migaku(val: str) -> list[Unit]:
 def parse_jrp(val: str) -> list[Unit]:
     def parse_segment(val: str, idx: int) -> tuple[int, Segment | BaseSegment]:
         def parse_reading(val: str, idx: int) -> tuple[int, str]:
-            pos, _, reading = _multi_find(val, idx, ("]",))
-            if pos >= 0:
-                return pos, reading
+            end_pos, end_c, reading = _multi_find(val, idx, ("]",))
+            if end_c:
+                return end_pos, reading
+            else:
+                raise ParsingError(f"segment is missing closing bracket: {val}")
 
         sep_idx, sep_c, seg_text = _multi_find(val, idx, ("|", "="))
         if sep_c:
             cls = BaseSegment if sep_c == "=" else Segment
-            end_idx, reading = parse_reading(val, sep_idx + 1)
-            return end_idx + 1, cls(seg_text, reading)
+            end_idx, seg_reading = parse_reading(val, sep_idx + 1)
+            return end_idx + 1, cls(seg_text, seg_reading)
         raise ParsingError(f"invalid segment: {val}")
 
     def parse_unit(val: str, idx: int) -> tuple[int, Unit]:
@@ -343,34 +345,27 @@ def parse_jrp(val: str) -> list[Unit]:
                 segments.append(Segment("".join(cur_text)))
             cur_text = []
 
-        ended = False
-        has_accents = False
         while idx < len(val):
             match val[idx]:
                 case "[":
                     insert_segment()
                     idx, s = parse_segment(val, idx + 1)
                     segments.append(s)
-                case ";":
+                case ";" | "}":
                     insert_segment()
-                    idx += 1
-                    has_accents = True
                     break
-                case "}":
-                    ended = True
-                    break
-                case c:
-                    cur_text.append(c)
+                case other:
+                    cur_text.append(other)
                     idx += 1
-
-        if not has_accents and not ended:
+        else:
             raise ParsingError(f"unclosed unit: {val}")
 
         accents = None
         special_base = None
         uncertain = False
         is_yougen = False
-        if has_accents:
+        if val[idx] == ";":
+            idx += 1
             if val[idx] == "!":
                 uncertain = True
                 idx += 1
@@ -384,6 +379,9 @@ def parse_jrp(val: str) -> list[Unit]:
                     accents = [int(acc) for acc in accent_str.split(",")]
                 except ValueError:
                     raise ParsingError(f"invalid accent: {val}")
+            else:
+                raise ParsingError(f"unclosed unit: {val}")
+
             if c == "|":
                 unit_end_idx, ec, special_base = _multi_find(val, end_idx + 1, ("}",))
                 if ec:
