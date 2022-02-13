@@ -337,26 +337,18 @@ def parse_jrp(val: str) -> list[Unit]:
 
     def parse_unit(val: str, idx: int) -> tuple[int, Unit]:
         segments: list[Segment | BaseSegment] = []
-        cur_text = []
-
-        def insert_segment():
-            nonlocal segments, cur_text
-            if cur_text:
-                segments.append(Segment("".join(cur_text)))
-            cur_text = []
 
         while idx < len(val):
-            match val[idx]:
+            idx, c, text = _multi_find(val, idx, ("[", ";", "}"))
+            if text:
+                segments.append(Segment(text))
+
+            match c:
                 case "[":
-                    insert_segment()
                     idx, s = parse_segment(val, idx + 1)
                     segments.append(s)
                 case ";" | "}":
-                    insert_segment()
                     break
-                case other:
-                    cur_text.append(other)
-                    idx += 1
         else:
             raise ParsingError(f"unclosed unit: {val}")
 
@@ -395,36 +387,26 @@ def parse_jrp(val: str) -> list[Unit]:
 
     units: list[Unit] = []
     segments: list[Segment] = []
-    cur_text = []
-
-    def insert_segment():
-        nonlocal segments, cur_text
-        if cur_text:
-            segments.append(Segment("".join(cur_text)))
-        cur_text = []
 
     idx = 0
     while idx < len(val):
-        match val[idx]:
+        idx, c, text = _multi_find(val, idx, ("[", "{"))
+        if text:
+            segments.append(Segment(text))
+
+        match c:
             case "{":
-                insert_segment()
                 if segments:
                     units.append(Unit(segments))
                 segments = []
                 idx, u = parse_unit(val, idx + 1)
                 units.append(u)
             case "[":
-                insert_segment()
                 idx, s = parse_segment(val, idx + 1)
-                if type(s) != Segment:
+                if type(s) != Segment:  # TODO maybe allow
                     raise ParsingError(f"base form segment outside of unit: {val}")
                 segments.append(s)
-            case c:
-                cur_text.append(c)
-                idx += 1
 
-    if cur_text:
-        insert_segment()
     if segments:
         units.append(Unit(segments))
 
