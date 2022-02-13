@@ -82,8 +82,9 @@ class MecabUnit(ParserUnit):
         for i, (co, cr) in itr:
             if co != cr:
                 break
+        else:
+            return None
 
-        # TODO: handle undefined i
         return self.reading[0:len(self.reading) - i] + self.base_form[len(self.value) - i:]
 
     @classmethod
