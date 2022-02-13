@@ -22,7 +22,7 @@ def _add_accent(p: OutputPrefs, unit: Unit) -> bool:
     return True
 
 
-def fmt_migaku(units: list[Unit], prefs: OutputPrefs) -> str:
+def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
     def migaku_accents(unit: Unit) -> Generator[str]:
         moras = split_moras(unit.reading())
         for acc in unit.accents:
@@ -45,8 +45,8 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs) -> str:
         tag_content = ""
         if _add_accent(p, unit):
             if unit.is_yougen:
-                tag_content += "," + unit.base_form()
-            tag_content += ";" + ",".join(migaku_accents(unit))
+                tag_content += f",{unit.base_form()}"
+            tag_content += f";{','.join(migaku_accents(unit))}"
 
         if len(segments) == 1 and (is_kana(segments[0].text) or not segments[0].reading):
             tag = f"[{tag_content}]" if tag_content else ""
@@ -54,8 +54,7 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs) -> str:
         elif len(segments) > 1 and is_kana(segments[-1].text):
             tag_content = unit.reading(-1) + tag_content
             tag = f"[{tag_content}]" if tag_content else ""
-            tail = segments[-1].text
-            return f"{unit.text(-1)}{tag}{tail}"
+            return f"{unit.text(-1)}{tag}{segments[-1].text}"
         else:
             tag_content = unit.reading() + tag_content
             tag = f"[{tag_content}]" if tag_content else ""
