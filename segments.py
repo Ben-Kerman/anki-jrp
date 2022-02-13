@@ -127,7 +127,7 @@ class Unit:
     def text(self, upper: int | None = None) -> str:
         return "".join(map(lambda s: s.text, self.non_base_segments()[:upper]))
 
-    def base_form(self) -> str | None:
+    def base_reading(self) -> str | None:
         if self.special_base:
             return self.special_base
         elif any(type(s) == BaseSegment for s in self.segments):
