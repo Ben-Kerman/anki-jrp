@@ -191,7 +191,7 @@ class ParsingError(ValueError):
 
 
 def _read_until(val: str, idx: int, stop: tuple[str, ...]) -> tuple[int, str | None, str]:
-    chars = []
+    chars: list[str] = []
     itr = enumerate(val[idx:])
     for i, c in itr:
         if c in stop:
@@ -246,6 +246,10 @@ def parse_migaku(val: str) -> list[Unit]:
     class Parser:
         val: str
         pos: int
+
+        def __init__(self, val: str):
+            self.val = val
+            self.pos = 0
 
         def skip_space(self):
             while self.pos < len(self.val) and self.val[self.pos] == " ":
@@ -315,7 +319,7 @@ def parse_migaku(val: str) -> list[Unit]:
                 units.append(self.parse_unit())
             return units
 
-    return Parser(val, 0).execute()
+    return Parser(val).execute()
 
 
 def parse_jrp(value: str) -> list[Unit]:
@@ -347,8 +351,8 @@ def parse_jrp(value: str) -> list[Unit]:
         else:
             raise ParsingError(f"unclosed unit: {val}")
 
-        accents = None
-        special_base = None
+        accents: list[int] = []
+        special_base: str | None = None
         uncertain = False
         is_yougen = False
         if val[pos] == ";":
