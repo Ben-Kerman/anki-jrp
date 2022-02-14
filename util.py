@@ -2,7 +2,7 @@ import os.path
 import sys
 from typing import Type, TypeVar
 
-from normalize import to_katakana
+from normalize import to_hiragana, to_katakana
 
 
 def warn(*args):
@@ -52,7 +52,8 @@ _i_dan = ("キ", "ギ", "シ", "ジ", "チ", "ヂ", "ニ", "ヒ", "ビ", "ピ", 
 _e_comp = ("イ", "ウ", "キ", "ギ", "ク", "グ", "シ", "ジ", "チ", "ツ", "ニ", "ヒ", "ビ", "ピ", "フ", "ミ", "リ", "ヴ")
 
 
-def split_moras(reading: str) -> list[str]:
+def split_moras(reading: str, as_hira: bool = False) -> list[str]:
+    conv_fn = to_hiragana if as_hira else to_katakana
     kana = to_katakana(reading)
     moras = []
     i = 0
@@ -70,9 +71,9 @@ def split_moras(reading: str) -> list[str]:
                     or nk == "ャ" and ck in ("フ", "ヴ") \
                     or nk == "ュ" and ck in ("テ", "デ", "フ", "ウ", "ヴ") \
                     or nk == "ョ" and ck in ("フ", "ヴ"):
-                moras.append(ck + nk)
+                moras.append(conv_fn(ck + nk))
                 i += 2
                 continue
-        moras.append(ck)
+        moras.append(conv_fn(ck))
         i += 1
     return moras
