@@ -6,8 +6,8 @@ _kata = "ァアィイゥウェエォオカガキギクグケゲコゴサザシ�
 _to_hira_tbl = str.maketrans(_kata, _hira)
 _to_kata_tbl = str.maketrans(_hira, _kata)
 _non_script_chrs = "ー・"
-_is_hira_str = _hira + _non_script_chrs
-_is_kata_str = _kata + _non_script_chrs
+_is_hira_set = set(_hira + _non_script_chrs)
+_is_kata_set = set(_kata + _non_script_chrs)
 
 
 def _itr_conv(itr: Iterable[str], fn: Callable[[str], str]) -> list[str]:
@@ -17,11 +17,11 @@ def _itr_conv(itr: Iterable[str], fn: Callable[[str], str]) -> list[str]:
 
 
 def is_hiragana(val: str) -> bool:
-    return all(c in _is_hira_str for c in val)
+    return all(c in _is_hira_set for c in val)
 
 
 def has_hiragana(val: str) -> bool:
-    return any(c in _is_hira_str for c in val)
+    return any(c in _is_hira_set for c in val)
 
 
 def to_hiragana(val: str) -> str:
@@ -33,11 +33,11 @@ def itr_to_hira(itr: Iterable[str]) -> list[str]:
 
 
 def is_katakana(val: str) -> bool:
-    return all(c in _is_kata_str for c in val)
+    return all(c in _is_kata_set for c in val)
 
 
 def has_katakana(val: str) -> bool:
-    return any(c in _is_kata_str for c in val)
+    return any(c in _is_kata_set for c in val)
 
 
 def to_katakana(val: str) -> str:
