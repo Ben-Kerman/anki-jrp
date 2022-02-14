@@ -128,6 +128,12 @@ class JrpUnit {
 		this.uncertain = uncertain;
 		this.base_reading = base_reading;
 	}
+
+	reading(): string {
+		if(this.base_reading === null) {
+			return this.segments.map((s) => s.get_reading()).join("");
+		} else return this.base_reading;
+	}
 }
 
 class JrpParsingError extends Error {
