@@ -97,11 +97,7 @@ const _jrp_kana = function() {
 }();
 
 class JrpSegment {
-	text: string;
-	reading: string | null;
-
-	constructor(text: string, reading: string | null = null) {
-		this.text = text;
+	constructor(public text: string, public reading: string | null = null) {
 		this.reading = reading !== null && !_jrp_kana.comp(text, reading) ? reading : null;
 	}
 
@@ -111,22 +107,12 @@ class JrpSegment {
 }
 
 class JrpUnit {
-	segments: JrpSegment[];
-	accents: number[];
-	is_yougen: boolean;
-	uncertain: boolean;
-	base_reading: string | null;
-
-	constructor(segments: JrpSegment[],
-				accents: number[] = [],
-				is_yougen: boolean = false,
-				uncertain: boolean = false,
-				base_reading: string | null = null) {
-		this.segments = segments;
-		this.accents = accents;
-		this.is_yougen = is_yougen;
-		this.uncertain = uncertain;
-		this.base_reading = base_reading;
+	constructor(
+		public segments: JrpSegment[],
+		public accents: number[] = [],
+		public is_yougen: boolean = false,
+		public uncertain: boolean = false,
+		public base_reading: string | null = null) {
 	}
 
 	reading(): string {
@@ -190,11 +176,9 @@ const _jrp_parse = function() {
 		}
 
 		class Parser {
-			val: string;
-			pos: number;
+			private pos: number;
 
-			constructor(val: string) {
-				this.val = val;
+			constructor(private readonly val: string) {
 				this.pos = 0;
 			}
 
