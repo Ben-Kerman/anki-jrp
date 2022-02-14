@@ -24,7 +24,7 @@ const _jrp_util = function() {
 		for(const c of val) {
 			chars.push(tr(c));
 		}
-		return chars.join();
+		return chars.join("");
 	}
 
 	return {every, some, maketrans, translate};
@@ -143,14 +143,14 @@ const _jrp_parse = function() {
 		for(let i = idx; i < val.length; ++i) {
 			const c = val[i];
 			if(stop.includes(c)) {
-				return [idx + i, c, chars.join()];
+				return [idx + i, c, chars.join("")];
 			} else if(c === "\\") {
 				if(++i < val.length) {
 					chars.push(val[i]);
 				} else throw new JrpParsingError("backslash at end of input");
 			} else chars.push(c);
 		}
-		return [val.length, null, chars.join()];
+		return [val.length, null, chars.join("")];
 	}
 
 	function parse_migaku_accents(val: string, reading: string): number[] {
@@ -381,7 +381,7 @@ const _jrp_parse = function() {
 			}
 
 			// different from Python
-			const base_reading = is_yougen ? (special_base !== null ? special_base : base_reading_parts.join()) : null;
+			const base_reading = is_yougen ? (special_base !== null ? special_base : base_reading_parts.join("")) : null;
 			return [pos + 1, new JrpUnit(segments, accents, is_yougen, uncertain, base_reading)];
 		}
 
