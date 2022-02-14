@@ -1,3 +1,101 @@
+const _jrp_util = function() {
+	function every<T>(itr: Iterable<T>, pre: (T) => boolean): boolean {
+		for(const e of itr) if(!pre(e)) return false;
+		return true;
+	}
+
+	function some<T>(itr: Iterable<T>, pre: (T) => boolean): boolean {
+		for(const e of itr) if(pre(e)) return true;
+		return false;
+	}
+
+	function maketrans(src: string, tgt: string): (c: string) => string {
+		// TODO improve efficiency
+		return function(chr: string) {
+			const pos = src.indexOf(chr);
+			if(pos < 0) {
+				return chr;
+			} else return tgt[pos];
+		};
+	}
+
+	function translate(val: string, tr: (c: string) => string) {
+		const chars: string[] = [];
+		for(const c of val) {
+			chars.push(tr(c));
+		}
+		return chars.join();
+	}
+
+	return {every, some, maketrans, translate};
+}();
+
+const _jrp_kana = function() {
+	const {maketrans, translate, every} = _jrp_util;
+
+	const hira = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖゝゞ";
+	const kata = "ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヽヾ";
+	const to_hira_tbl = maketrans(kata, hira);
+	const to_kata_tbl = maketrans(hira, kata);
+	const non_script_chrs = "ー・";
+	const is_hira_set = new Set(hira + non_script_chrs);
+	const is_kata_set = new Set(kata + non_script_chrs);
+
+	function is_hira(kana: string): boolean {
+		return every(kana, (c) => is_hira_set.has(c));
+	}
+
+	function to_hira(kana: string): string {
+		return translate(kana, to_hira_tbl);
+	}
+
+	function is_kata(kana: string): boolean {
+		return every(kana, (c) => is_kata_set.has(c));
+	}
+
+	function to_kata(kana: string): string {
+		return translate(kana, to_kata_tbl);
+	}
+
+	function comp(kana: string, ...args: string[]): boolean {
+		const first = to_kata(kana);
+		return every(args, (kstr) => to_kata(kstr) === first);
+	}
+
+	const i_dan = ["キ", "ギ", "シ", "ジ", "チ", "ヂ", "ニ", "ヒ", "ビ", "ピ", "ミ", "リ"];
+	const e_comp = ["イ", "ウ", "キ", "ギ", "ク", "グ", "シ", "ジ", "チ", "ツ", "ニ", "ヒ", "ビ", "ピ", "フ", "ミ", "リ", "ヴ"];
+
+	function split_moras(reading: string, as_hira: boolean = false): string[] {
+		const conv_fn = as_hira ? to_hira : to_kata;
+		const kana = to_kata(reading);
+		const moras: string[] = [];
+		for(let i = 0; i < kana.length; ++i) {
+			const ck = kana[i];
+			const nk = i + 1 < kana.length ? kana[i + 1] : null;
+			if(nk !== null) {
+				if(i_dan.includes(ck) && ["ャ", "ュ", "ョ"].includes(nk)
+					|| nk === "ヮ" && ["ク", "グ"].includes(ck)
+					|| nk === "ァ" && ["ツ", "フ", "ヴ"].includes(ck)
+					|| nk === "ィ" && ["ク", "グ", "ス", "ズ", "テ", "ツ", "デ", "フ", "イ", "ウ", "ヴ"].includes(ck)
+					|| nk === "ゥ" && ["ト", "ド", "ホ", "ウ"].includes(ck)
+					|| nk === "ェ" && e_comp.includes(ck)
+					|| nk === "ォ" && ["ク", "グ", "ツ", "フ", "ウ", "ヴ"].includes(ck)
+					|| nk === "ャ" && ["フ", "ヴ"].includes(ck)
+					|| nk === "ュ" && ["テ", "デ", "フ", "ウ", "ヴ"].includes(ck)
+					|| nk === "ョ" && ["フ", "ヴ"].includes(ck)) {
+					moras.push(conv_fn(ck + nk));
+					i += 2;
+					continue;
+				}
+				moras.push(conv_fn(ck));
+			}
+		}
+		return moras;
+	}
+
+	return {is_hira, to_hira, is_kata, to_kata, comp, split_moras};
+}();
+
 class JrpSegment {
 	text: string;
 	reading: string | null;
@@ -37,18 +135,6 @@ class JrpParsingError extends Error {
 		super(msg);
 	}
 }
-
-const _jrp_kana = function() {
-	function comp(...args: string[]): boolean {
-		return true;
-	}
-
-	function split_moras(kana: string): string[] {
-		return [];
-	}
-
-	return {comp, split_moras};
-}();
 
 const _jrp_parse = function() {
 	function read_until(val: string, idx: number, stop: string[]): [number, string | null, string] {
