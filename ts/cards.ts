@@ -143,7 +143,7 @@ const _jrp_parse = function() {
 		for(let i = idx; i < val.length; ++i) {
 			const c = val[i];
 			if(stop.includes(c)) {
-				return [idx + i, c, chars.join("")];
+				return [i, c, chars.join("")];
 			} else if(c === "\\") {
 				if(++i < val.length) {
 					chars.push(val[i]);
