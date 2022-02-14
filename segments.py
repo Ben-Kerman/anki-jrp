@@ -249,6 +249,10 @@ def parse_migaku(val: str) -> list[Unit]:
         val: str
         pos: int
 
+        def skip_space(self) -> int:
+            while self.pos < len(self.val) and self.val[self.pos] == " ":
+                self.pos += 1
+
         def parse_unit(self) -> Unit:
             state: State
             prefix: str
@@ -310,6 +314,7 @@ def parse_migaku(val: str) -> list[Unit]:
         def execute(self) -> list[Unit]:
             units = []
             while self.pos < len(self.val):
+                self.skip_space()
                 units.append(self.parse_unit())
             return units
 
