@@ -238,7 +238,7 @@ def _parse_migaku_accents(val: str, reading: str, has_base: bool) -> list[int]:
 
 def parse_migaku(val: str) -> list[Unit]:
     class State(Enum):
-        BASE_FORM = auto()
+        BASE_READING = auto()
         ACCENTS = auto()
         SUFFIX = auto()
 
@@ -267,7 +267,7 @@ def parse_migaku(val: str) -> list[Unit]:
             rdng_end, rdng_c, prefix_reading = _read_until(self.val, self.pos, (",", ";", "]"))
             match rdng_c:
                 case ",":
-                    state = State.BASE_FORM
+                    state = State.BASE_READING
                 case ";":
                     state = State.ACCENTS
                 case "]":
@@ -276,9 +276,9 @@ def parse_migaku(val: str) -> list[Unit]:
                     raise ParsingError(f"unclosed Migaku tag: {self.val}")
             self.pos = rdng_end + 1
 
-            base_form: str = ""
-            if state == State.BASE_FORM:
-                bsfm_end, bsfm_c, base_form = _read_until(self.val, self.pos, (";", "]"))
+            base_reading: str = ""
+            if state == State.BASE_READING:
+                bsfm_end, bsfm_c, base_reading = _read_until(self.val, self.pos, (";", "]"))
                 match bsfm_c:
                     case ";":
                         state = State.ACCENTS
@@ -305,8 +305,8 @@ def parse_migaku(val: str) -> list[Unit]:
 
             text = prefix + suffix
             reading = prefix_reading + suffix if prefix_reading else None
-            accents = _parse_migaku_accents(accent_str, reading or text, bool(base_form)) if accent_str else None
-            return Unit.from_text(text, reading, base_form or None, accents, bool(base_form))
+            accents = _parse_migaku_accents(accent_str, reading or text, bool(base_reading)) if accent_str else None
+            return Unit.from_text(text, reading, base_reading or None, accents, bool(base_reading))
 
         def execute(self) -> list[Unit]:
             units = []
