@@ -249,11 +249,6 @@ def parse_migaku(val: str) -> list[Unit]:
         val: str
         pos: int
 
-        def advance(self, new_pos: int) -> str:
-            rv = self.val[self.pos:new_pos]
-            self.pos = new_pos + 1
-            return rv
-
         def parse_unit(self) -> Unit:
             state: State
             prefix: str
