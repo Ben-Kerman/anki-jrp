@@ -238,8 +238,6 @@ def _parse_migaku_accents(val: str, reading: str, has_base: bool) -> list[int]:
 
 def parse_migaku(val: str) -> list[Unit]:
     class State(Enum):
-        PREFIX = auto()
-        READING = auto()
         BASE_FORM = auto()
         ACCENTS = auto()
         SUFFIX = auto()
@@ -249,7 +247,7 @@ def parse_migaku(val: str) -> list[Unit]:
         val: str
         pos: int
 
-        def skip_space(self) -> int:
+        def skip_space(self):
             while self.pos < len(self.val) and self.val[self.pos] == " ":
                 self.pos += 1
 
@@ -261,9 +259,8 @@ def parse_migaku(val: str) -> list[Unit]:
             prfx_end, prfx_c, prefix = _read_until(self.val, self.pos, ("[", " "))
             match prfx_c:
                 case " " | None:
-                    segments = [Segment(prefix)]
                     self.pos = prfx_end + 1
-                    return Unit(segments)
+                    return Unit([Segment(prefix)])
                 case "[":
                     self.pos = prfx_end + 1
 
