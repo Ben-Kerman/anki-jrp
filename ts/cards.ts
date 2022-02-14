@@ -176,7 +176,7 @@ const _jrp_parse = function() {
 	}
 
 
-	function parse_migaku(val: string): JrpUnit[] {
+	function migaku(val: string): JrpUnit[] {
 		enum State {
 			BASE_READING,
 			ACCENTS,
@@ -294,7 +294,7 @@ const _jrp_parse = function() {
 	}
 
 
-	function parse_jrp(value: string): JrpUnit[] {
+	function jrp(value: string): JrpUnit[] {
 		function parse_segment(val: string, start_idx: number): [number, JrpSegment | [string, string]] {
 			const [sep_idx, sep_c, seg_text] = read_until(val, start_idx + 1, ["|", "="]);
 			if(sep_c !== null) {
@@ -424,5 +424,5 @@ const _jrp_parse = function() {
 		return units;
 	}
 
-	return {parse_migaku, parse_jrp};
+	return {migaku, jrp};
 }();
