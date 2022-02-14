@@ -319,6 +319,7 @@ const _jrp_parse = function() {
 				[pos, last_c, txt] = read_until(val, pos, ["[", ";", "}"]);
 				if(txt.length > 0) {
 					segments.push(new JrpSegment(txt));
+					base_reading_parts.push(txt);
 				}
 
 				if(last_c === "[") {
@@ -381,7 +382,10 @@ const _jrp_parse = function() {
 			}
 
 			// different from Python
-			const base_reading = is_yougen ? (special_base !== null ? special_base : base_reading_parts.join("")) : null;
+			let base_reading: string | null = base_reading_parts.join("");
+			if(special_base !== null) {
+				base_reading = special_base;
+			}
 			return [pos + 1, new JrpUnit(segments, accents, is_yougen, uncertain, base_reading)];
 		}
 
