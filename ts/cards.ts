@@ -27,7 +27,13 @@ const _jrp_util = function() {
 		return chars.join("");
 	}
 
-	return {every, some, maketrans, translate};
+	function parseHtml(text: string): Node[] {
+		const parent = document.createElement("div");
+		parent.innerHTML = text;
+		return Array.from(parent.childNodes);
+	}
+
+	return {every, some, maketrans, translate, parseHtml};
 }();
 
 const _jrp_kana = function() {
@@ -93,7 +99,58 @@ const _jrp_kana = function() {
 		return moras;
 	}
 
-	return {is_hira, to_hira, is_kata, to_kata, comp, split_moras};
+	function generate_accent_nodes(reading: string, accents: number[], is_yougen: boolean): [string, Node] {
+		function acc_span(text: string, flat: boolean = false): Node {
+			const span = document.createElement("span");
+			span.classList.add(flat ? "jrp-graph-bar-unaccented" : "jrp-graph-bar-accented");
+			span.append(text);
+			return span;
+		}
+
+		function pattern_class(acc: number, mora_count: number, is_yougen: boolean): string {
+			if(acc == 0) {
+				return "jrp-heiban";
+			} else if(is_yougen) {
+				return "jrp-kifuku";
+			} else if(acc == 1) {
+				return "jrp-atamadaka";
+			} else if(acc == mora_count) {
+				return "jrp-odaka";
+			} else {
+				return "jrp-nakadaka";
+			}
+		}
+
+		const moras = split_moras(reading);
+		const graph_div = document.createElement("div");
+		graph_div.classList.add("jrp-graph");
+
+		function mora_slice(start: number, end?: number): string {
+			return moras.slice(start, end).join("");
+		}
+
+		let first_pat: string | null = null;
+		for(const acc of accents) {
+			const pat_class = pattern_class(acc, moras.length, is_yougen);
+			if(first_pat === null) {
+				first_pat = pat_class;
+			}
+
+			const acc_div = document.createElement("div");
+			acc_div.classList.add(pat_class);
+			if(acc === 1) {
+				acc_div.append(acc_span(moras[0]), mora_slice(1));
+			} else if(acc === 0) {
+				acc_div.append(moras[0], acc_span(mora_slice(1), true));
+			} else {
+				acc_div.append(moras[0], acc_span(mora_slice(1, acc)), mora_slice(acc));
+			}
+			graph_div.appendChild(acc_div);
+		}
+		return [first_pat!, graph_div];
+	}
+
+	return {is_hira, to_hira, is_kata, to_kata, comp, split_moras, generate_accent_nodes};
 }();
 
 class JrpSegment {
@@ -119,6 +176,38 @@ class JrpUnit {
 		if(this.base_reading === null) {
 			return this.segments.map((s) => s.get_reading()).join("");
 		} else return this.base_reading;
+	}
+
+	generate_dom(): Node[] {
+		const {parseHtml} = _jrp_util;
+
+		const segment_nodes: Node[] = this.segments.flatMap(s => {
+			if(s.reading === null) {
+				return parseHtml(s.text);
+			} else {
+				const rt = document.createElement("rt");
+				rt.append(...parseHtml(s.reading));
+
+				const ruby = document.createElement("ruby");
+				ruby.append(...parseHtml(s.text));
+				ruby.appendChild(rt);
+				return [ruby];
+			}
+		});
+
+		if(this.accents.length > 0) {
+			const [pat_class, graph_div] = _jrp_kana.generate_accent_nodes(this.reading(), this.accents, this.is_yougen);
+
+			const unit_span = document.createElement("span");
+			unit_span.classList.add("jrp-unit", pat_class);
+			unit_span.append(...segment_nodes);
+
+			const wrap_span = document.createElement("span");
+			wrap_span.classList.add("jrp-unit-wrapper");
+			wrap_span.append(unit_span, graph_div);
+
+			return [wrap_span];
+		} else return segment_nodes;
 	}
 }
 
