@@ -84,11 +84,11 @@ const _jrp_kana = function() {
 					|| nk === "ュ" && ["テ", "デ", "フ", "ウ", "ヴ"].includes(ck)
 					|| nk === "ョ" && ["フ", "ヴ"].includes(ck)) {
 					moras.push(conv_fn(ck + nk));
-					i += 2;
+					++i;
 					continue;
 				}
-				moras.push(conv_fn(ck));
 			}
+			moras.push(conv_fn(ck));
 		}
 		return moras;
 	}
