@@ -185,7 +185,7 @@ class JrpUnit {
 		} else return this.base_reading;
 	}
 
-	generate_dom(): Node[] {
+	generate_dom_node(): Node {
 		const {parseHtml} = _jrp_util;
 		const {generate_accent_nodes} = _jrp_kana;
 
@@ -203,19 +203,23 @@ class JrpUnit {
 			}
 		});
 
+		const unit_span = document.createElement("span");
+		unit_span.classList.add("jrp-unit");
+		unit_span.append(...segment_nodes);
+
+		const wrap_span = document.createElement("span");
+		wrap_span.classList.add("jrp-unit-wrapper");
+		wrap_span.append(unit_span);
+
 		if(this.accents.length > 0) {
 			const [pat_class, graph, indicators] = generate_accent_nodes(this.reading(), this.accents, this.is_yougen);
 
-			const unit_span = document.createElement("span");
-			unit_span.classList.add("jrp-unit", pat_class);
-			unit_span.append(...segment_nodes, indicators);
+			unit_span.classList.add(pat_class);
+			unit_span.append(indicators);
 
-			const wrap_span = document.createElement("span");
-			wrap_span.classList.add("jrp-unit-wrapper");
-			wrap_span.append(unit_span, graph);
-
-			return [wrap_span];
-		} else return segment_nodes;
+			wrap_span.append(graph);
+		}
+		return wrap_span;
 	}
 }
 
