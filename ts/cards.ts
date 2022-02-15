@@ -99,7 +99,7 @@ const _jrp_kana = function() {
 		return moras;
 	}
 
-	function generate_accent_nodes(reading: string, accents: number[], is_yougen: boolean): [string, Node] {
+	function generate_accent_nodes(reading: string, accents: number[], is_yougen: boolean): [string, Node, Node] {
 		function acc_span(text: string, flat: boolean = false): Node {
 			const span = document.createElement("span");
 			span.classList.add(flat ? "jrp-graph-bar-unaccented" : "jrp-graph-bar-accented");
@@ -125,6 +125,9 @@ const _jrp_kana = function() {
 		const graph_div = document.createElement("div");
 		graph_div.classList.add("jrp-graph");
 
+		const indicator_div = document.createElement("div");
+		indicator_div.classList.add("jrp-indicator-container");
+
 		function mora_slice(start: number, end?: number): string {
 			return moras.slice(start, end).join("");
 		}
@@ -146,8 +149,12 @@ const _jrp_kana = function() {
 				acc_div.append(moras[0], acc_span(mora_slice(1, acc)), mora_slice(acc));
 			}
 			graph_div.appendChild(acc_div);
+
+			const acc_indicator = document.createElement("div");
+			acc_indicator.classList.add("jrp-indicator", pat_class);
+			indicator_div.append(acc_indicator);
 		}
-		return [first_pat!, graph_div];
+		return [first_pat!, graph_div, indicator_div];
 	}
 
 	return {is_hira, to_hira, is_kata, to_kata, comp, split_moras, generate_accent_nodes};
@@ -180,6 +187,7 @@ class JrpUnit {
 
 	generate_dom(): Node[] {
 		const {parseHtml} = _jrp_util;
+		const {generate_accent_nodes} = _jrp_kana;
 
 		const segment_nodes: Node[] = this.segments.flatMap(s => {
 			if(s.reading === null) {
@@ -196,15 +204,15 @@ class JrpUnit {
 		});
 
 		if(this.accents.length > 0) {
-			const [pat_class, graph_div] = _jrp_kana.generate_accent_nodes(this.reading(), this.accents, this.is_yougen);
+			const [pat_class, graph, indicators] = generate_accent_nodes(this.reading(), this.accents, this.is_yougen);
 
 			const unit_span = document.createElement("span");
 			unit_span.classList.add("jrp-unit", pat_class);
-			unit_span.append(...segment_nodes);
+			unit_span.append(...segment_nodes, indicators);
 
 			const wrap_span = document.createElement("span");
 			wrap_span.classList.add("jrp-unit-wrapper");
-			wrap_span.append(unit_span, graph_div);
+			wrap_span.append(unit_span, graph);
 
 			return [wrap_span];
 		} else return segment_nodes;
