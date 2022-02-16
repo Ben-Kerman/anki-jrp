@@ -162,7 +162,9 @@ const _jrp_kana = function() {
 
 class JrpSegment {
 	constructor(public text: string, public reading: string | null = null) {
-		this.reading = reading !== null && !_jrp_kana.comp(text, reading) ? reading : null;
+		if(reading !== null && reading.length > 0 && !_jrp_kana.comp(text, reading)) {
+			this.reading = reading;
+		} else this.reading = null;
 	}
 
 	get_reading(): string {
@@ -358,10 +360,10 @@ const _jrp_parse = function() {
 				const is_yougen = base_reading.length > 0;
 				let accents: number[];
 				if(accent_str.length > 0) {
-					const reading = base_reading.length > 0 ? base_reading : (prefix_reading + (suffix.length > 0 ? suffix : ""));
+					const reading = is_yougen ? base_reading : (prefix_reading + (suffix.length > 0 ? suffix : ""));
 					accents = parse_migaku_accents(accent_str, reading);
 				} else accents = [];
-				return new JrpUnit(segments, accents, is_yougen, false, base_reading);
+				return new JrpUnit(segments, accents, is_yougen, false, is_yougen ? base_reading : null);
 			}
 
 			execute(): JrpUnit[] {
@@ -465,7 +467,7 @@ const _jrp_parse = function() {
 			}
 
 			// different from Python
-			let base_reading: string | null = base_reading_parts.join("");
+			let base_reading: string = base_reading_parts.join("");
 			if(special_base !== null) {
 				base_reading = special_base;
 			}
