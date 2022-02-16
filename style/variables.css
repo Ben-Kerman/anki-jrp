@@ -15,5 +15,8 @@
 	--jrp-indicator-bar-width: 3px;
 	--jrp-indicator-bar-radius: var(--jrp-indicator-bar-width);
 	--jrp-indicator-bar-gap: 2px;
+	--jrp-indicator-bar-margin: 0.3em;
+	--jrp-indicator-bar-offset: 0.1em;
+	--jrp-indicator-bar-offset-vert: 0.3em;
 	--jrp-indicator-diamond-size: 1em;
 }

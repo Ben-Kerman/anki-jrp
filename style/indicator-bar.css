@@ -12,7 +12,7 @@
 	align-items: center;
 	row-gap: var(--jrp-indicator-bar-gap);
 
-	transform: translate(0, -0.1em);
+	transform: translate(0, calc(var(--jrp-indicator-bar-offset) * -1));
 
 	user-select: none;
 }
@@ -21,11 +21,11 @@
 	width: auto;
 	height: 100%;
 
-	transform: translate(0.3em, 0);
+	transform: translate(var(--jrp-indicator-bar-offset-vert), 0);
 }
 
 .jrp-indicator {
-	width: calc(100% - 0.8em);
+	width: calc(100% - var(--jrp-indicator-bar-margin) * 2);
 	height: var(--jrp-indicator-bar-width);
 
 	border-radius: var(--jrp-indicator-bar-radius);
@@ -33,22 +33,22 @@
 
 .jrp-vertical .jrp-indicator {
 	width: var(--jrp-indicator-bar-width);
-	height: calc(100% - 0.8em);
+	height: calc(100% - var(--jrp-indicator-bar-margin) * 2);
 }
 
 .jrp-unit {
-	margin-bottom: calc(var(--jrp-indicator-margin) - 0.1em);
+	margin-bottom: calc(var(--jrp-indicator-margin) - var(--jrp-indicator-bar-offset));
 }
 
 .jrp-vertical .jrp-unit {
-	margin-left: calc(var(--jrp-indicator-margin) - 0.3em);
+	margin-left: calc(var(--jrp-indicator-margin) - var(--jrp-indicator-bar-offset-vert));
 	margin-bottom: 0;
 }
 
 .jrp-graph {
-	transform: translate(0, calc(0.1em - var(--jrp-indicator-margin)));
+	transform: translate(0, calc(var(--jrp-indicator-bar-offset) - var(--jrp-indicator-margin)));
 }
 
 .jrp-vertical .jrp-graph {
-	transform: translate(calc(var(--jrp-indicator-margin) - 0.3em), 0);
+	transform: translate(calc(var(--jrp-indicator-margin) - var(--jrp-indicator-bar-offset-vert)), 0);
 }
