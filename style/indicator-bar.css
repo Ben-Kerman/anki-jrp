@@ -42,3 +42,11 @@
 	margin-left: calc(var(--jrp-indicator-margin) - 0.3em);
 	margin-bottom: 0;
 }
+
+.jrp-graph {
+	transform: translate(0, calc(0.1em - var(--jrp-indicator-margin)));
+}
+
+.jrp-vertical .jrp-graph {
+	transform: translate(calc(var(--jrp-indicator-margin) - 0.3em), 0);
+}

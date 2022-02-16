@@ -2,7 +2,6 @@
 	position: absolute;
 	z-index: 8192;
 	visibility: hidden;
-	transform: translate(0, -0.2em);
 
 	padding: 0.3em 0.3em 0.2em 0.3em;
 	background-color: var(--jrp-graph-bg-light);
@@ -21,7 +20,6 @@
 }
 
 .jrp-vertical .jrp-graph {
-	transform: translate(0.4em, 0);
 	padding: 0.3em 0.3em 0.3em 0;
 }
 
