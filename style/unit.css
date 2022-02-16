@@ -1,5 +1,6 @@
 .jrp-unit-wrapper {
 	display: inline-block;
+	position: relative;
 }
 
 .jrp-unit {
