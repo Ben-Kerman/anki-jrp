@@ -268,7 +268,6 @@ const _jrp_parse = function() {
 		return tags.map((t) => convert(t, moras));
 	}
 
-
 	function migaku(val: string): JrpUnit[] {
 		enum State {
 			BASE_READING,
@@ -383,7 +382,6 @@ const _jrp_parse = function() {
 
 		return new Parser(val).execute();
 	}
-
 
 	function jrp(value: string): JrpUnit[] {
 		function parse_segment(val: string, start_idx: number): [number, JrpSegment | [string, string]] {
@@ -519,5 +517,54 @@ const _jrp_parse = function() {
 		return units;
 	}
 
-	return {migaku, jrp};
+	function generator_settings(attr_val: string): object {
+		const res = {};
+
+		let idx = 0;
+		while(idx < attr_val.length) {
+			let stop_c: string | null, text: string;
+			[idx, stop_c, text] = read_until(attr_val, idx, [";"]);
+			const split = text.split(":");
+			switch(split.length) {
+				case 1:
+					res[split[0]] = true;
+					break;
+				case 2:
+					res[split[0]] = split[1];
+					break;
+				default:
+					throw new JrpParsingError(`invalid config attribute: ${attr_val}`);
+			}
+		}
+		return res;
+	}
+
+	return {migaku, jrp, generator_settings};
 }();
+
+function _jrp_generate() {
+	const {migaku, jrp, generator_settings} = _jrp_parse;
+
+	const root_elements: [Element, object][] = [];
+	for(const e of document.querySelectorAll("[data-jrp-generate]")) {
+		const settings = generator_settings(e.getAttribute("data-jrp-generate")!);
+		if(e.parentElement!.closest("[data-jrp-generate]") === null) {
+			let deepest_parent = e;
+			while(deepest_parent.childNodes.length == 1 && deepest_parent.firstElementChild !== null) {
+				deepest_parent = deepest_parent.firstElementChild;
+			}
+			root_elements.push([deepest_parent, settings]);
+		}
+	}
+
+	for(const [root, settings] of root_elements) {
+		const innerHtml = root.innerHTML;
+		while(root.firstChild !== null) {
+			root.firstChild.remove();
+		}
+		const new_children = "migaku" in settings ? migaku(innerHtml) : jrp(innerHtml);
+		root.append(...new_children.map(u => u.generate_dom_node()));
+	}
+}
+
+_jrp_generate();
