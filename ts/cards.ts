@@ -207,19 +207,13 @@ class JrpUnit {
 		unit_span.classList.add("jrp-unit");
 		unit_span.append(...segment_nodes);
 
-		const wrap_span = document.createElement("span");
-		wrap_span.classList.add("jrp-unit-wrapper");
-		wrap_span.append(unit_span);
-
 		if(this.accents.length > 0) {
 			const [pat_class, graph, indicators] = generate_accent_nodes(this.reading(), this.accents, this.is_yougen);
 
 			unit_span.classList.add(pat_class);
-			unit_span.append(indicators);
-
-			wrap_span.append(graph);
+			unit_span.append(indicators, graph);
 		}
-		return wrap_span;
+		return unit_span;
 	}
 }
 

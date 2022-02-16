@@ -34,11 +34,11 @@
 	height: calc(100% - 0.8em);
 }
 
-.jrp-unit-wrapper {
+.jrp-unit {
 	margin-bottom: calc(var(--jrp-indicator-margin) - 0.1em);
 }
 
-.jrp-vertical .jrp-unit-wrapper {
+.jrp-vertical .jrp-unit {
 	margin-left: calc(var(--jrp-indicator-margin) - 0.3em);
 	margin-bottom: 0;
 }
