@@ -27,6 +27,8 @@
 .jrp-indicator {
 	width: calc(100% - 0.8em);
 	height: var(--jrp-indicator-bar-width);
+
+	border-radius: var(--jrp-indicator-bar-radius);
 }
 
 .jrp-vertical .jrp-indicator {
