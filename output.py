@@ -1,9 +1,8 @@
 from collections.abc import Generator
 
-from normalize import is_hiragana, is_kana
+from normalize import is_hiragana, is_kana, split_moras
 from preferences import OutputPrefs
 from segments import Unit
-from util import split_moras
 
 
 class OutputError(Exception):

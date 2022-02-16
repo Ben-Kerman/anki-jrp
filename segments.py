@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
-from normalize import comp_kana, has_kana, is_kana, to_hiragana, to_katakana
-from util import empty_list, split_moras, warn
+from normalize import comp_kana, has_kana, is_kana, split_moras, to_hiragana, to_katakana
+from util import empty_list, warn
 
 
 @dataclass

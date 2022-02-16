@@ -59,3 +59,34 @@ def comp_kana(val: str, *args: str) -> bool:
 
 def itr_to_kata(itr: Iterable[str]) -> list[str]:
     return _itr_conv(itr, to_katakana)
+
+
+_i_dan = ("キ", "ギ", "シ", "ジ", "チ", "ヂ", "ニ", "ヒ", "ビ", "ピ", "ミ", "リ")
+_e_comp = ("イ", "ウ", "キ", "ギ", "ク", "グ", "シ", "ジ", "チ", "ツ", "ニ", "ヒ", "ビ", "ピ", "フ", "ミ", "リ", "ヴ")
+
+
+def split_moras(reading: str, as_hira: bool = False) -> list[str]:
+    conv_fn = to_hiragana if as_hira else to_katakana
+    kana = to_katakana(reading)
+    moras = []
+    i = 0
+    while i < len(kana):
+        ck = kana[i]
+        nk = kana[i + 1] if i + 1 < len(kana) else None
+        if nk:
+            if ck in _i_dan and nk in ("ャ", "ュ", "ョ") \
+                    or nk == "ヮ" and ck in ("ク", "グ") \
+                    or nk == "ァ" and ck in ("ツ", "フ", "ヴ") \
+                    or nk == "ィ" and ck in ("ク", "グ", "ス", "ズ", "テ", "ツ", "デ", "フ", "イ", "ウ", "ヴ") \
+                    or nk == "ゥ" and ck in ("ト", "ド", "ホ", "ウ") \
+                    or nk == "ェ" and ck in _e_comp \
+                    or nk == "ォ" and ck in ("ク", "グ", "ツ", "フ", "ウ", "ヴ") \
+                    or nk == "ャ" and ck in ("フ", "ヴ") \
+                    or nk == "ュ" and ck in ("テ", "デ", "フ", "ウ", "ヴ") \
+                    or nk == "ョ" and ck in ("フ", "ヴ"):
+                moras.append(conv_fn(ck + nk))
+                i += 2
+                continue
+        moras.append(conv_fn(ck))
+        i += 1
+    return moras
