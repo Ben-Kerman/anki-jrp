@@ -6,7 +6,7 @@ from itertools import chain
 
 import overrides
 from overrides import AccentOverride, IgnoreOverride, WordOverride
-from util import empty_list, from_json, get_path
+from util import empty_list, from_json, get_path, to_json
 
 
 @dataclass
@@ -40,6 +40,12 @@ class DisabledOverrideIds:
     ignore: set[int] = field(default_factory=empty_list)
     word: set[int] = field(default_factory=empty_list)
     accent: set[int] = field(default_factory=empty_list)
+
+    def to_json(self, default: "DisabledOverrideIds") -> dict:
+        val: dict = to_json(self, default, False)
+        for field_name in ("ignore", "word", "accent"):
+            val[field_name].sort()
+        return val
 
 
 @dataclass

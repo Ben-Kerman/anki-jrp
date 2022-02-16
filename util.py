@@ -92,3 +92,35 @@ def from_json(json_val: Any, typ: Type[T], try_cls_method: bool = True) -> T | C
                 if err:
                     return ConfigError(f"{field.name}: {err.msg}")
         return typ(**init)
+
+
+class ConvIgnore:
+    pass
+
+
+def to_json(value: T, default: T | None = None, try_cls_method: bool = True) -> Any:
+    typ = type(value)
+
+    if value == default or value is None:
+        return ConvIgnore
+
+    elif typ in (str, bool, int, float):
+        return value
+    elif typ in (list, set):
+        return [to_json(e) for e in value]
+    else:
+        if try_cls_method:
+            try:
+                return value.to_json(default)
+            except AttributeError:
+                pass
+
+        dic = {}
+        for field in dataclasses.fields(typ):
+            if default is None:
+                res = to_json(getattr(value, field.name))
+            else:
+                res = to_json(getattr(value, field.name), getattr(default, field.name))
+            if res is not ConvIgnore:
+                dic[field.name] = res
+        return dic
