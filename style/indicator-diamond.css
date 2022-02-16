@@ -1,0 +1,15 @@
+.jrp-indicator-container {
+	display: inline-block;
+	user-select: none;
+}
+
+.jrp-indicator-container .jrp-indicator:first-child {
+	display: none;
+}
+
+.jrp-indicator {
+	display: inline-block;
+	width: var(--jrp-indicator-diamond-size);
+	height: var(--jrp-indicator-diamond-size);
+	clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
