@@ -1,0 +1,77 @@
+.jrp-graph {
+	position: absolute;
+	z-index: 8192;
+	visibility: hidden;
+	transform: translate(0, -0.2em);
+
+	padding: 0.3em 0.3em 0.2em 0.3em;
+	background-color: var(--jrp-graph-bg-light);
+	border: var(--jrp-graph-border-width) solid var(--jrp-graph-border-light);
+	border-radius: var(--jrp-graph-border-radius);
+
+	font-size: var(--jrp-graph-font-size);
+
+	user-select: none;
+}
+
+.night-mode .jrp-graph {
+	background-color: var(--jrp-graph-bg-dark);
+	border-color: var(--jrp-graph-border-dark);
+}
+
+.jrp-vertical .jrp-graph {
+	transform: translate(0.4em, 0);
+	padding: 0.3em 0.3em 0.3em 0;
+}
+
+.jrp-unit-wrapper:hover .jrp-graph {
+	visibility: visible;
+}
+
+.jrp-graph > div {
+	text-overflow: clip;
+}
+
+.jrp-graph-bar-unaccented {
+	border-top: 0.1em solid black;
+}
+
+.night-mode .jrp-graph-bar-unaccented {
+	border-color: white;
+}
+
+.jrp-vertical .jrp-graph-bar-unaccented {
+	border-top: none;
+	border-right: 0.1em solid black;
+}
+
+.night-mode .jrp-graph-bar-unaccented {
+	border-color: white;
+}
+
+.jrp-graph-bar-accented {
+	border-image-source: url("./jrp-downstep-light.svg");
+	border-image-slice: 10%;
+	border-image-width: 0.1em;
+	border-top-style: solid;
+	border-right-style: solid;
+
+	margin-right: -0.1em;
+}
+
+.night-mode .jrp-graph-bar-accented {
+	border-image-source: url("./jrp-downstep-dark.svg");
+}
+
+.jrp-vertical .jrp-graph-bar-accented {
+	border-image-source: url("./jrp-downstep-light-vert.svg");
+	border-top-style: none;
+	border-bottom-style: solid;
+
+	margin-right: 0;
+	margin-bottom: -0.1em;
+}
+
+.night-mode .jrp-vertical .jrp-graph-bar-accented {
+	border-image-source: url("./jrp-downstep-dark-vert.svg");
+}

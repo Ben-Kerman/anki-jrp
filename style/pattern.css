@@ -1,0 +1,39 @@
+.jrp-heiban {
+	color: var(--jrp-heiban);
+}
+
+.jrp-kifuku {
+	color: var(--jrp-kifuku);
+}
+
+.jrp-atamadaka {
+	color: var(--jrp-atamadaka);
+}
+
+.jrp-odaka {
+	color: var(--jrp-odaka);
+}
+
+.jrp-nakadaka {
+	color: var(--jrp-nakadaka);
+}
+
+.jrp-indicator.jrp-heiban {
+	background-color: var(--jrp-heiban);
+}
+
+.jrp-indicator.jrp-kifuku {
+	background-color: var(--jrp-kifuku);
+}
+
+.jrp-indicator.jrp-atamadaka {
+	background-color: var(--jrp-atamadaka);
+}
+
+.jrp-indicator.jrp-odaka {
+	background-color: var(--jrp-odaka);
+}
+
+.jrp-indicator.jrp-nakadaka {
+	background-color: var(--jrp-nakadaka);
+}

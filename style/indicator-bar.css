@@ -1,0 +1,44 @@
+:root {
+	--jrp-indicator-margin: calc(var(--jrp-indicator-bar-width) * 4 + var(--jrp-indicator-bar-gap) * 3);
+}
+
+.jrp-indicator-container {
+	position: absolute;
+
+	width: 100%;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	row-gap: var(--jrp-indicator-bar-gap);
+
+	transform: translate(0, -0.1em);
+
+	user-select: none;
+}
+
+.jrp-vertical .jrp-indicator-container {
+	width: auto;
+	height: 100%;
+
+	transform: translate(0.3em, 0);
+}
+
+.jrp-indicator {
+	width: calc(100% - 0.8em);
+	height: var(--jrp-indicator-bar-width);
+}
+
+.jrp-vertical .jrp-indicator {
+	width: var(--jrp-indicator-bar-width);
+	height: calc(100% - 0.8em);
+}
+
+.jrp-unit-wrapper {
+	margin-bottom: calc(var(--jrp-indicator-margin) - 0.1em);
+}
+
+.jrp-vertical .jrp-unit-wrapper {
+	margin-left: calc(var(--jrp-indicator-margin) - 0.3em);
+	margin-bottom: 0;
+}

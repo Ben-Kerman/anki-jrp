@@ -1,0 +1,18 @@
+.jrp-unit-wrapper {
+	display: inline-block;
+}
+
+.jrp-unit {
+	display: inline-block;
+	position: relative;
+}
+
+.jrp-unit rt {
+	text-align: center;
+	font-size: var(--jrp-ruby-font-size);
+	user-select: none;
+}
+
+.jrp-unit rt:hover {
+	user-select: text;
+}
