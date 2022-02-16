@@ -1,4 +1,3 @@
-import dataclasses
 import json
 import os.path
 from collections.abc import Generator
@@ -7,7 +6,7 @@ from itertools import chain
 
 import overrides
 from overrides import AccentOverride, IgnoreOverride, WordOverride
-from util import check_json_list, check_json_value, empty_list, get_path
+from util import empty_list, from_json, get_path
 
 
 @dataclass
@@ -28,12 +27,6 @@ class JoinPrefs:
     dousi_join_tyau: bool = False
     dousi_split_teru: bool = True
 
-    @classmethod
-    def from_json(cls, obj: dict) -> "JoinPrefs":
-        for f in dataclasses.fields(cls):
-            check_json_value(obj, f.name, bool)
-        return cls(**obj)
-
 
 @dataclass
 class Overrides:
@@ -41,25 +34,12 @@ class Overrides:
     word: list[WordOverride] = field(default_factory=empty_list)
     accent: list[AccentOverride] = field(default_factory=empty_list)
 
-    @classmethod
-    def from_json(cls, obj: dict):
-        ignore = [IgnoreOverride.from_json(e) for e in check_json_list(obj, "ignore", dict, True, [])]
-        word = [WordOverride.from_json(e) for e in check_json_list(obj, "word", dict, True, [])]
-        accent = [AccentOverride.from_json(e) for e in check_json_list(obj, "accent", dict, True, [])]
-        return cls(ignore, word, accent)
-
 
 @dataclass
 class DisabledOverrideIds:
     ignore: set[int] = field(default_factory=empty_list)
     word: set[int] = field(default_factory=empty_list)
     accent: set[int] = field(default_factory=empty_list)
-
-    @classmethod
-    def from_json(cls, obj: dict):
-        names = ("ignore", "word", "accent")
-        kwargs = {name: set(obj[name]) for name in names if check_json_list(obj, name, int, default=[])}
-        return cls(**kwargs)
 
 
 @dataclass
@@ -89,31 +69,16 @@ class ConvPrefs:
                 return ao.accents
         return None
 
-    @classmethod
-    def from_json(cls, obj: dict) -> "ConvPrefs":
-        obj["join"] = JoinPrefs.from_json(check_json_value(obj, "join", dict, default={}))
-        obj["overrides"] = Overrides.from_json(check_json_value(obj, "overrides", dict, default={}))
-        disabled_ors = check_json_value(obj, "disabled_override_ids", dict, default={})
-        obj["disabled_override_ids"] = DisabledOverrideIds.from_json(disabled_ors)
-        check_json_value(obj, "prefer_accent_lookups", bool)
-        return cls(**obj)
-
 
 @dataclass
 class OutputPrefs:
     min_accent_moras: int = 3
     katakana_min_accent: bool = False
 
-    @classmethod
-    def from_json(cls, obj: dict) -> "OutputPrefs":
-        check_json_value(obj, "min_accent_moras", int)
-        check_json_value(obj, "katakana_min_accent", bool)
-        return cls(**obj)
-
 
 @dataclass
 class Prefs:
-    conv: ConvPrefs = field(default_factory=ConvPrefs)
+    convert: ConvPrefs = field(default_factory=ConvPrefs)
     output: OutputPrefs = field(default_factory=OutputPrefs)
 
     @classmethod
@@ -124,6 +89,4 @@ class Prefs:
 
         with open(path) as cfd:
             raw = json.load(cfd)
-        convert = ConvPrefs.from_json(check_json_value(raw, "convert", dict, required=True))
-        output = OutputPrefs.from_json(check_json_value(raw, "output", dict, required=True))
-        return cls(convert, output)
+        return from_json(raw, cls)
