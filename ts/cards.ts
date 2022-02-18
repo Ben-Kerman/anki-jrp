@@ -1,4 +1,3 @@
-const _jrp_util = function() {
 	function every<T>(itr: Iterable<T>, pre: (e: T) => boolean): boolean {
 		for(const e of itr) if(!pre(e)) return false;
 		return true;
@@ -33,12 +32,6 @@ const _jrp_util = function() {
 		return Array.from(parent.childNodes);
 	}
 
-	return {every, some, maketrans, translate, parseHtml};
-}();
-
-const _jrp_kana = function() {
-	const {maketrans, translate, every} = _jrp_util;
-
 	const hira = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖゝゞ";
 	const kata = "ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヽヾ";
 	const to_hira_tbl = maketrans(kata, hira);
@@ -63,7 +56,7 @@ const _jrp_kana = function() {
 		return translate(kana, to_kata_tbl);
 	}
 
-	function comp(kana: string, ...args: string[]): boolean {
+	function comp_kana(kana: string, ...args: string[]): boolean {
 		const first = to_kata(kana);
 		return every(args, kstr => to_kata(kstr) === first);
 	}
@@ -157,12 +150,9 @@ const _jrp_kana = function() {
 		return [first_pat!, graph_div, indicator_div];
 	}
 
-	return {is_hira, to_hira, is_kata, to_kata, comp, split_moras, generate_accent_nodes};
-}();
-
 class JrpSegment {
 	constructor(public text: string, public reading: string | null = null) {
-		if(reading !== null && reading.length > 0 && !_jrp_kana.comp(text, reading)) {
+		if(reading !== null && reading.length > 0 && !comp_kana(text, reading)) {
 			this.reading = reading;
 		} else this.reading = null;
 	}
@@ -188,9 +178,6 @@ class JrpUnit {
 	}
 
 	generate_dom_node(): Node {
-		const {parseHtml} = _jrp_util;
-		const {generate_accent_nodes} = _jrp_kana;
-
 		const segment_nodes: Node[] = this.segments.flatMap(s => {
 			if(s.reading === null) {
 				return parseHtml(s.text);
@@ -225,7 +212,6 @@ class JrpParsingError extends Error {
 	}
 }
 
-const _jrp_parse = function() {
 	function read_until(val: string, idx: number, stop: string[]): [number, string | null, string] {
 		// implementation differs from Python
 		const chars: string[] = [];
@@ -259,12 +245,12 @@ const _jrp_parse = function() {
 			}
 		}
 
-		const moras = _jrp_kana.split_moras(reading).length;
+		const moras = split_moras(reading).length;
 		const tags = val.split(",");
 		return tags.map(t => convert(t, moras));
 	}
 
-	function migaku(val: string): JrpUnit[] {
+	function parse_migaku(val: string): JrpUnit[] {
 		enum State {
 			BASE_READING,
 			ACCENTS,
@@ -379,7 +365,7 @@ const _jrp_parse = function() {
 		return new Parser(val).execute();
 	}
 
-	function jrp(value: string): JrpUnit[] {
+	function parse_jrp(value: string): JrpUnit[] {
 		function parse_segment(val: string, start_idx: number): [number, JrpSegment | [string, string]] {
 			const [sep_idx, sep_c, seg_text] = read_until(val, start_idx + 1, ["|", "="]);
 			if(sep_c !== null) {
@@ -535,12 +521,7 @@ const _jrp_parse = function() {
 		return res;
 	}
 
-	return {migaku, jrp, generator_settings};
-}();
-
-function _jrp_generate() {
-	const {migaku, jrp, generator_settings} = _jrp_parse;
-
+function jrp_generate() {
 	const root_elements: [Element, object][] = [];
 	for(const e of document.querySelectorAll("[data-jrp-generate]")) {
 		const settings = generator_settings(e.getAttribute("data-jrp-generate")!);
@@ -558,9 +539,9 @@ function _jrp_generate() {
 		while(root.firstChild !== null) {
 			root.firstChild.remove();
 		}
-		const new_children = "migaku" in settings ? migaku(innerHtml) : jrp(innerHtml);
+		const new_children = "migaku" in settings ? parse_migaku(innerHtml) : parse_jrp(innerHtml);
 		root.append(...new_children.map(u => u.generate_dom_node()));
 	}
 }
 
-_jrp_generate();
+jrp_generate();
