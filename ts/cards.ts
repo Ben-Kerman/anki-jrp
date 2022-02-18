@@ -1,17 +1,17 @@
 const _jrp_util = function() {
-	function every<T>(itr: Iterable<T>, pre: (T) => boolean): boolean {
+	function every<T>(itr: Iterable<T>, pre: (e: T) => boolean): boolean {
 		for(const e of itr) if(!pre(e)) return false;
 		return true;
 	}
 
-	function some<T>(itr: Iterable<T>, pre: (T) => boolean): boolean {
+	function some<T>(itr: Iterable<T>, pre: (e: T) => boolean): boolean {
 		for(const e of itr) if(pre(e)) return true;
 		return false;
 	}
 
 	function maketrans(src: string, tgt: string): (c: string) => string {
 		// TODO improve efficiency
-		return function(chr: string) {
+		return (chr: string) => {
 			const pos = src.indexOf(chr);
 			if(pos < 0) {
 				return chr;
@@ -48,7 +48,7 @@ const _jrp_kana = function() {
 	const is_kata_set = new Set(kata + non_script_chrs);
 
 	function is_hira(kana: string): boolean {
-		return every(kana, (c) => is_hira_set.has(c));
+		return every(kana, c => is_hira_set.has(c));
 	}
 
 	function to_hira(kana: string): string {
@@ -65,7 +65,7 @@ const _jrp_kana = function() {
 
 	function comp(kana: string, ...args: string[]): boolean {
 		const first = to_kata(kana);
-		return every(args, (kstr) => to_kata(kstr) === first);
+		return every(args, kstr => to_kata(kstr) === first);
 	}
 
 	const i_dan = ["キ", "ギ", "シ", "ジ", "チ", "ヂ", "ニ", "ヒ", "ビ", "ピ", "ミ", "リ"];
@@ -183,7 +183,7 @@ class JrpUnit {
 
 	reading(): string {
 		if(this.base_reading === null) {
-			return this.segments.map((s) => s.get_reading()).join("");
+			return this.segments.map(s => s.get_reading()).join("");
 		} else return this.base_reading;
 	}
 
@@ -261,7 +261,7 @@ const _jrp_parse = function() {
 
 		const moras = _jrp_kana.split_moras(reading).length;
 		const tags = val.split(",");
-		return tags.map((t) => convert(t, moras));
+		return tags.map(t => convert(t, moras));
 	}
 
 	function migaku(val: string): JrpUnit[] {
@@ -447,7 +447,7 @@ const _jrp_parse = function() {
 				const [end_idx, end_c, accent_str] = read_until(val, pos, ["|", "}"]);
 				if(end_c !== null) {
 					// implementation differs from Python
-					accents = accent_str.split(",").map((acc) => {
+					accents = accent_str.split(",").map(acc => {
 						const val = parseInt(acc);
 						if(isNaN(val)) {
 							throw new JrpParsingError(`invalid accent: ${val}`);
