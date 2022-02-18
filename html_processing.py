@@ -38,8 +38,10 @@ class JrpHTMLParser(HTMLParser):
         self.lines = []
         self.cur_line = []
 
-    def _insert_line(self):
-        self.lines.append("".join(self.cur_line))
+    def _insert_line(self, is_break: bool = False):
+        line: str = "".join(self.cur_line).strip()
+        if line or is_break:
+            self.lines.append(line)
         self.cur_line = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
@@ -52,7 +54,7 @@ class JrpHTMLParser(HTMLParser):
 
         omitted_tag = handle_omission(self.tag_stack, tag)
         if omitted_tag and omitted_tag in _block_tags or tag in _block_tags or tag in _break_tags:
-            self._insert_line()
+            self._insert_line(is_break=tag == "br")
         if tag not in _void_tags:
             self.tag_stack.append(tag)
 
@@ -78,8 +80,4 @@ class JrpHTMLParser(HTMLParser):
     def close(self) -> list[str]:
         super().close()
         self._insert_line()
-        lines: list[str] = []
-        for line in self.lines:
-            if stripped := line.strip():
-                lines.append(stripped)
-        return lines
+        return self.lines
