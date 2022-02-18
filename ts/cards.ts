@@ -522,30 +522,36 @@ function generator_settings(attr_val: string): object {
 }
 
 function generate() {
-	const root_elements: [Element, object][] = [];
+	const root_elements: Element[] = [];
 	for(const e of document.querySelectorAll("[data-jrp-generate]")) {
-		const settings = generator_settings(e.getAttribute("data-jrp-generate")!);
 		if(e.parentElement!.closest("[data-jrp-generate]") === null) {
 			let deepest_parent = e;
 			while(deepest_parent.childNodes.length == 1 && deepest_parent.firstElementChild !== null) {
 				deepest_parent = deepest_parent.firstElementChild;
 			}
-			root_elements.push([deepest_parent, settings]);
+			root_elements.push(deepest_parent);
 		}
 	}
 
 	const br_re = /<br[\t\n\f\r ]*>/;
-	for(const [root, settings] of root_elements) {
+	for(const root of root_elements) {
 		const lines = root.innerHTML.split(br_re);
 		while(root.firstChild !== null) {
 			root.firstChild.remove();
 		}
-		root.append(...lines.flatMap((line, index) => {
-			const parser = "migaku" in settings ? parse_migaku : parse_jrp;
-			const unit_nodes = parser(line).map(u => u.generate_dom_node());
-			return index > 0 ? unit_nodes : [document.createElement("br"), ...unit_nodes];
-		}));
-		root.normalize();
+
+		try {
+			const settings = generator_settings(root.getAttribute("data-jrp-generate")!);
+
+			root.append(...lines.flatMap((line, index) => {
+				const parser = "migaku" in settings ? parse_migaku : parse_jrp;
+				const unit_nodes = parser(line).map(u => u.generate_dom_node());
+				return index > 0 ? unit_nodes : [document.createElement("br"), ...unit_nodes];
+			}));
+			root.normalize();
+		} catch(e) {
+			root.append(`⚠ Error during parsing: ${(<Error>e).message}`);
+		}
 	}
 }
 
