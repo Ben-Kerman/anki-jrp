@@ -546,7 +546,7 @@ function generate() {
 			root.append(...lines.flatMap((line, index) => {
 				const parser = "migaku" in settings ? parse_migaku : parse_jrp;
 				const unit_nodes = parser(line).map(u => u.generate_dom_node());
-				return index > 0 ? unit_nodes : [document.createElement("br"), ...unit_nodes];
+				return index > 0 ? [document.createElement("br"), ...unit_nodes] : unit_nodes;
 			}));
 			root.normalize();
 		} catch(e) {
