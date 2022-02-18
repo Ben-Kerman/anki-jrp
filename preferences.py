@@ -10,6 +10,43 @@ from util import empty_list, from_json, get_path, to_json
 
 
 @dataclass
+class StylePrefs:
+    ruby_font_size: str = "40%"
+    graph_font_size: str = "70%"
+    heiban: str = "#7070ff"
+    kifuku: str = "#ffff00"
+    atamadaka: str = "#00a000"
+    odaka: str = "#ff77ff"
+    nakadaka: str = "#c75000"
+    graph_border_width: str = "0.08em"
+    graph_border_radius: str = "0.25em"
+    graph_bg_light: str = "#f0f0f0"
+    graph_border_light: str = "black"
+    graph_bg_dark: str = "black"
+    graph_border_dark: str = "white"
+    indicator_bar_width: str = "3px"
+    indicator_bar_radius: str = "var(--jrp-indicator-bar-width)"
+    indicator_bar_gap: str = "2px"
+    indicator_bar_margin: str = "0.3em"
+    indicator_bar_offset: str = "0.1em"
+    indicator_bar_offset_vert: str = "0.3em"
+    indicator_diamond_size: str = "1em"
+
+
+@dataclass
+class NoteTypePrefs:
+    manage_script: bool = True
+    manage_style: bool = True
+    use_diamond_indicators: bool = False
+    style: StylePrefs = field(default_factory=StylePrefs)
+
+
+@dataclass
+class AddonPrefs:
+    note_types: list[NoteTypePrefs] = field(default_factory=empty_list)
+
+
+@dataclass
 class JoinPrefs:
     yougen_join_nai: bool = True
     yougen_join_u: bool = True
@@ -86,6 +123,7 @@ class OutputPrefs:
 class Prefs:
     convert: ConvPrefs = field(default_factory=ConvPrefs)
     output: OutputPrefs = field(default_factory=OutputPrefs)
+    addon: AddonPrefs = field(default_factory=AddonPrefs)
 
     @classmethod
     def load_from_file(cls) -> "Prefs":
