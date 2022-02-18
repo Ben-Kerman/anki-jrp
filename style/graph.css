@@ -8,8 +8,6 @@
 	border: var(--jrp-graph-border-width) solid var(--jrp-graph-border-light);
 	border-radius: var(--jrp-graph-border-radius);
 
-	font-size: var(--jrp-graph-font-size);
-
 	white-space: nowrap;
 	user-select: none;
 }
@@ -29,6 +27,7 @@
 
 .jrp-graph > div {
 	text-overflow: clip;
+	font-size: var(--jrp-graph-font-size);
 }
 
 .jrp-graph-bar-unaccented {

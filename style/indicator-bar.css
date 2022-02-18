@@ -46,9 +46,9 @@
 }
 
 .jrp-graph {
-	transform: translate(0, calc(var(--jrp-indicator-bar-offset) - var(--jrp-indicator-margin)));
+	transform: translate(0, calc(var(--jrp-indicator-bar-offset) * -1));
 }
 
 .jrp-vertical .jrp-graph {
-	transform: translate(calc(var(--jrp-indicator-margin) - var(--jrp-indicator-bar-offset-vert)), 0);
+	transform: translate(var(--jrp-indicator-bar-offset-vert), 0);
 }
