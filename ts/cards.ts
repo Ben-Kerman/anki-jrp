@@ -150,7 +150,7 @@ function generate_accent_nodes(reading: string, accents: number[], is_yougen: bo
 	return [first_pat!, graph_div, indicator_div];
 }
 
-class JrpSegment {
+class Segment {
 	constructor(public text: string, public reading: string | null = null) {
 		if(reading !== null && reading.length > 0 && !comp_kana(text, reading)) {
 			this.reading = reading;
@@ -162,9 +162,9 @@ class JrpSegment {
 	}
 }
 
-class JrpUnit {
+class Unit {
 	constructor(
-		public segments: JrpSegment[],
+		public segments: Segment[],
 		public accents: number[] = [],
 		public is_yougen: boolean = false,
 		public uncertain: boolean = false,
@@ -206,7 +206,7 @@ class JrpUnit {
 	}
 }
 
-class JrpParsingError extends Error {
+class ParsingError extends Error {
 	constructor(msg: string) {
 		super(msg);
 	}
@@ -222,7 +222,7 @@ function read_until(val: string, idx: number, stop: string[]): [number, string |
 		} else if(c === "\\") {
 			if(++i < val.length) {
 				chars.push(val[i]);
-			} else throw new JrpParsingError("backslash at end of input");
+			} else throw new ParsingError("backslash at end of input");
 		} else chars.push(c);
 	}
 	return [val.length, null, chars.join("")];
@@ -241,7 +241,7 @@ function parse_migaku_accents(val: string, reading: string): number[] {
 			case "o":
 				return moras;
 			default:
-				throw new JrpParsingError(`invalid Migaku accent pattern: ${tag}`);
+				throw new ParsingError(`invalid Migaku accent pattern: ${tag}`);
 		}
 	}
 
@@ -250,7 +250,7 @@ function parse_migaku_accents(val: string, reading: string): number[] {
 	return tags.map(t => convert(t, moras));
 }
 
-function parse_migaku(val: string): JrpUnit[] {
+function parse_migaku(val: string): Unit[] {
 	enum State {
 		BASE_READING,
 		ACCENTS,
@@ -270,7 +270,7 @@ function parse_migaku(val: string): JrpUnit[] {
 			}
 		}
 
-		parse_unit(): JrpUnit {
+		parse_unit(): Unit {
 			let state: State;
 
 			const [prfx_end, prfx_c, prefix] = read_until(this.val, this.pos, ["[", " "]);
@@ -278,7 +278,7 @@ function parse_migaku(val: string): JrpUnit[] {
 				case " ":
 				case null:
 					this.pos = prfx_end + 1;
-					return new JrpUnit([new JrpSegment(prefix)]);
+					return new Unit([new Segment(prefix)]);
 				case "[":
 					this.pos = prfx_end + 1;
 					break;
@@ -296,7 +296,7 @@ function parse_migaku(val: string): JrpUnit[] {
 					state = State.SUFFIX;
 					break;
 				default:
-					throw new JrpParsingError(`unclosed Migaku tag: ${this.val}`);
+					throw new ParsingError(`unclosed Migaku tag: ${this.val}`);
 			}
 			this.pos = rdng_end + 1;
 
@@ -312,7 +312,7 @@ function parse_migaku(val: string): JrpUnit[] {
 						state = State.SUFFIX;
 						break;
 					default:
-						throw new JrpParsingError(`unclosed Migaku tag: ${this.val}`);
+						throw new ParsingError(`unclosed Migaku tag: ${this.val}`);
 				}
 				this.pos = bsfm_end + 1;
 			}
@@ -326,7 +326,7 @@ function parse_migaku(val: string): JrpUnit[] {
 						state = State.SUFFIX;
 						break;
 					default:
-						throw new JrpParsingError(`closing ] missing: ${this.val}`);
+						throw new ParsingError(`closing ] missing: ${this.val}`);
 				}
 				this.pos = acct_end + 1;
 			}
@@ -339,9 +339,9 @@ function parse_migaku(val: string): JrpUnit[] {
 			}
 
 			// different from Python
-			const segments = [new JrpSegment(prefix, prefix_reading)];
+			const segments = [new Segment(prefix, prefix_reading)];
 			if(suffix.length > 0) {
-				segments.push(new JrpSegment(suffix));
+				segments.push(new Segment(suffix));
 			}
 			const is_yougen = base_reading.length > 0;
 			let accents: number[];
@@ -349,11 +349,11 @@ function parse_migaku(val: string): JrpUnit[] {
 				const reading = is_yougen ? base_reading : (prefix_reading + (suffix.length > 0 ? suffix : ""));
 				accents = parse_migaku_accents(accent_str, reading);
 			} else accents = [];
-			return new JrpUnit(segments, accents, is_yougen, false, is_yougen ? base_reading : null);
+			return new Unit(segments, accents, is_yougen, false, is_yougen ? base_reading : null);
 		}
 
-		execute(): JrpUnit[] {
-			const units: JrpUnit[] = [];
+		execute(): Unit[] {
+			const units: Unit[] = [];
 			while(this.pos < this.val.length) {
 				this.skip_space();
 				units.push(this.parse_unit());
@@ -365,22 +365,22 @@ function parse_migaku(val: string): JrpUnit[] {
 	return new Parser(val).execute();
 }
 
-function parse_jrp(value: string): JrpUnit[] {
-	function parse_segment(val: string, start_idx: number): [number, JrpSegment | [string, string]] {
+function parse_jrp(value: string): Unit[] {
+	function parse_segment(val: string, start_idx: number): [number, Segment | [string, string]] {
 		const [sep_idx, sep_c, seg_text] = read_until(val, start_idx + 1, ["|", "="]);
 		if(sep_c !== null) {
 			const [end_idx, end_c, reading] = read_until(val, sep_idx + 1, ["]"]);
 			// different from Python
 			if(end_c === null) {
-				throw new JrpParsingError(`segment is missing closing bracket: ${val}`);
+				throw new ParsingError(`segment is missing closing bracket: ${val}`);
 			}
-			return [end_idx + 1, sep_c === "=" ? [seg_text, reading] : new JrpSegment(seg_text, reading)];
+			return [end_idx + 1, sep_c === "=" ? [seg_text, reading] : new Segment(seg_text, reading)];
 		}
-		throw new JrpParsingError(`invalid segment: ${val}`);
+		throw new ParsingError(`invalid segment: ${val}`);
 	}
 
-	function parse_unit(val: string, start_idx: number): [number, JrpUnit] {
-		const segments: JrpSegment[] = [];
+	function parse_unit(val: string, start_idx: number): [number, Unit] {
+		const segments: Segment[] = [];
 		const base_reading_parts: string[] = [];
 
 		let pos = start_idx + 1;
@@ -389,20 +389,20 @@ function parse_jrp(value: string): JrpUnit[] {
 			let last_c: string | null, txt: string;
 			[pos, last_c, txt] = read_until(val, pos, ["[", ";", "}"]);
 			if(txt.length > 0) {
-				segments.push(new JrpSegment(txt));
+				segments.push(new Segment(txt));
 				base_reading_parts.push(txt);
 			}
 
 			if(last_c === "[") {
-				let srv: JrpSegment | [string, string];
+				let srv: Segment | [string, string];
 				[pos, srv] = parse_segment(val, pos);
 				// different from Python
-				if(srv instanceof JrpSegment) {
+				if(srv instanceof Segment) {
 					segments.push(srv);
 					base_reading_parts.push(srv.get_reading());
 				} else {
 					const [text, base_reading] = srv;
-					segments.push(new JrpSegment(text));
+					segments.push(new Segment(text));
 					base_reading_parts.push(base_reading);
 				}
 			} else if(last_c === ";" || last_c === "}") {
@@ -411,7 +411,7 @@ function parse_jrp(value: string): JrpUnit[] {
 			}
 		}
 		if(!broke_out) {
-			throw new JrpParsingError(`unclosed unit: ${val}`);
+			throw new ParsingError(`unclosed unit: ${val}`);
 		}
 
 		let accents: number[] = [];
@@ -436,17 +436,17 @@ function parse_jrp(value: string): JrpUnit[] {
 				accents = accent_str.split(",").map(acc => {
 					const val = parseInt(acc);
 					if(isNaN(val)) {
-						throw new JrpParsingError(`invalid accent: ${val}`);
+						throw new ParsingError(`invalid accent: ${val}`);
 					} else return val;
 				});
-			} else throw new JrpParsingError(`unclosed unit: ${val}`);
+			} else throw new ParsingError(`unclosed unit: ${val}`);
 
 			if(end_c === "|") {
 				let unit_end_idx: number, ec: string | null;
 				[unit_end_idx, ec, special_base] = read_until(val, end_idx + 1, ["}"]);
 				if(ec !== null) {
 					pos = unit_end_idx;
-				} else throw new JrpParsingError(`unclosed unit: ${val}`);
+				} else throw new ParsingError(`unclosed unit: ${val}`);
 			} else {
 				pos = end_idx;
 			}
@@ -457,35 +457,35 @@ function parse_jrp(value: string): JrpUnit[] {
 		if(special_base !== null) {
 			base_reading = special_base;
 		}
-		return [pos + 1, new JrpUnit(segments, accents, is_yougen, uncertain, base_reading)];
+		return [pos + 1, new Unit(segments, accents, is_yougen, uncertain, base_reading)];
 	}
 
-	const units: JrpUnit[] = [];
-	let free_segments: JrpSegment[] = [];
+	const units: Unit[] = [];
+	let free_segments: Segment[] = [];
 
 	let idx = 0;
 	while(idx < value.length) {
 		let c: string | null, text: string;
 		[idx, c, text] = read_until(value, idx, ["[", "{"]);
 		if(text.length > 0) {
-			free_segments.push(new JrpSegment(text));
+			free_segments.push(new Segment(text));
 		}
 
 		switch(c) {
 			case "{":
 				if(free_segments.length > 0) {
-					units.push(new JrpUnit(free_segments));
+					units.push(new Unit(free_segments));
 				}
 				free_segments = [];
-				let u: JrpUnit;
+				let u: Unit;
 				[idx, u] = parse_unit(value, idx);
 				units.push(u);
 				break;
 			case "[":
-				let segment: JrpSegment | [string, string];
+				let segment: Segment | [string, string];
 				[idx, segment] = parse_segment(value, idx);
-				if(!(segment instanceof JrpSegment)) {
-					throw new JrpParsingError(`base form segment outside of unit: ${value}`);
+				if(!(segment instanceof Segment)) {
+					throw new ParsingError(`base form segment outside of unit: ${value}`);
 				}
 				free_segments.push(segment);
 				break;
@@ -493,7 +493,7 @@ function parse_jrp(value: string): JrpUnit[] {
 	}
 
 	if(free_segments.length > 0) {
-		units.push(new JrpUnit(free_segments));
+		units.push(new Unit(free_segments));
 	}
 
 	return units;
@@ -515,13 +515,13 @@ function generator_settings(attr_val: string): object {
 				res[split[0]] = split[1];
 				break;
 			default:
-				throw new JrpParsingError(`invalid config attribute: ${attr_val}`);
+				throw new ParsingError(`invalid config attribute: ${attr_val}`);
 		}
 	}
 	return res;
 }
 
-function jrp_generate() {
+function generate() {
 	const root_elements: [Element, object][] = [];
 	for(const e of document.querySelectorAll("[data-jrp-generate]")) {
 		const settings = generator_settings(e.getAttribute("data-jrp-generate")!);
@@ -549,4 +549,4 @@ function jrp_generate() {
 	}
 }
 
-jrp_generate();
+generate();
