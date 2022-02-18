@@ -1,154 +1,154 @@
-	function every<T>(itr: Iterable<T>, pre: (e: T) => boolean): boolean {
-		for(const e of itr) if(!pre(e)) return false;
-		return true;
+function every<T>(itr: Iterable<T>, pre: (e: T) => boolean): boolean {
+	for(const e of itr) if(!pre(e)) return false;
+	return true;
+}
+
+function some<T>(itr: Iterable<T>, pre: (e: T) => boolean): boolean {
+	for(const e of itr) if(pre(e)) return true;
+	return false;
+}
+
+function maketrans(src: string, tgt: string): (c: string) => string {
+	// TODO improve efficiency
+	return (chr: string) => {
+		const pos = src.indexOf(chr);
+		if(pos < 0) {
+			return chr;
+		} else return tgt[pos];
+	};
+}
+
+function translate(val: string, tr: (c: string) => string) {
+	const chars: string[] = [];
+	for(const c of val) {
+		chars.push(tr(c));
 	}
+	return chars.join("");
+}
 
-	function some<T>(itr: Iterable<T>, pre: (e: T) => boolean): boolean {
-		for(const e of itr) if(pre(e)) return true;
-		return false;
-	}
+function parseHtml(text: string): Node[] {
+	const parent = document.createElement("div");
+	parent.innerHTML = text;
+	return Array.from(parent.childNodes);
+}
 
-	function maketrans(src: string, tgt: string): (c: string) => string {
-		// TODO improve efficiency
-		return (chr: string) => {
-			const pos = src.indexOf(chr);
-			if(pos < 0) {
-				return chr;
-			} else return tgt[pos];
-		};
-	}
+const hira = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖゝゞ";
+const kata = "ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヽヾ";
+const to_hira_tbl = maketrans(kata, hira);
+const to_kata_tbl = maketrans(hira, kata);
+const non_script_chrs = "ー・";
+const is_hira_set = new Set(hira + non_script_chrs);
+const is_kata_set = new Set(kata + non_script_chrs);
 
-	function translate(val: string, tr: (c: string) => string) {
-		const chars: string[] = [];
-		for(const c of val) {
-			chars.push(tr(c));
-		}
-		return chars.join("");
-	}
+function is_hira(kana: string): boolean {
+	return every(kana, c => is_hira_set.has(c));
+}
 
-	function parseHtml(text: string): Node[] {
-		const parent = document.createElement("div");
-		parent.innerHTML = text;
-		return Array.from(parent.childNodes);
-	}
+function to_hira(kana: string): string {
+	return translate(kana, to_hira_tbl);
+}
 
-	const hira = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖゝゞ";
-	const kata = "ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヽヾ";
-	const to_hira_tbl = maketrans(kata, hira);
-	const to_kata_tbl = maketrans(hira, kata);
-	const non_script_chrs = "ー・";
-	const is_hira_set = new Set(hira + non_script_chrs);
-	const is_kata_set = new Set(kata + non_script_chrs);
+function is_kata(kana: string): boolean {
+	return every(kana, (c) => is_kata_set.has(c));
+}
 
-	function is_hira(kana: string): boolean {
-		return every(kana, c => is_hira_set.has(c));
-	}
+function to_kata(kana: string): string {
+	return translate(kana, to_kata_tbl);
+}
 
-	function to_hira(kana: string): string {
-		return translate(kana, to_hira_tbl);
-	}
+function comp_kana(kana: string, ...args: string[]): boolean {
+	const first = to_kata(kana);
+	return every(args, kstr => to_kata(kstr) === first);
+}
 
-	function is_kata(kana: string): boolean {
-		return every(kana, (c) => is_kata_set.has(c));
-	}
+const i_dan = ["キ", "ギ", "シ", "ジ", "チ", "ヂ", "ニ", "ヒ", "ビ", "ピ", "ミ", "リ"];
+const e_comp = ["イ", "ウ", "キ", "ギ", "ク", "グ", "シ", "ジ", "チ", "ツ", "ニ", "ヒ", "ビ", "ピ", "フ", "ミ", "リ", "ヴ"];
 
-	function to_kata(kana: string): string {
-		return translate(kana, to_kata_tbl);
-	}
-
-	function comp_kana(kana: string, ...args: string[]): boolean {
-		const first = to_kata(kana);
-		return every(args, kstr => to_kata(kstr) === first);
-	}
-
-	const i_dan = ["キ", "ギ", "シ", "ジ", "チ", "ヂ", "ニ", "ヒ", "ビ", "ピ", "ミ", "リ"];
-	const e_comp = ["イ", "ウ", "キ", "ギ", "ク", "グ", "シ", "ジ", "チ", "ツ", "ニ", "ヒ", "ビ", "ピ", "フ", "ミ", "リ", "ヴ"];
-
-	function split_moras(reading: string, as_hira: boolean = false): string[] {
-		const conv_fn = as_hira ? to_hira : to_kata;
-		const kana = to_kata(reading);
-		const moras: string[] = [];
-		for(let i = 0; i < kana.length; ++i) {
-			const ck = kana[i];
-			const nk = i + 1 < kana.length ? kana[i + 1] : null;
-			if(nk !== null) {
-				if(i_dan.includes(ck) && ["ャ", "ュ", "ョ"].includes(nk)
-					|| nk === "ヮ" && ["ク", "グ"].includes(ck)
-					|| nk === "ァ" && ["ツ", "フ", "ヴ"].includes(ck)
-					|| nk === "ィ" && ["ク", "グ", "ス", "ズ", "テ", "ツ", "デ", "フ", "イ", "ウ", "ヴ"].includes(ck)
-					|| nk === "ゥ" && ["ト", "ド", "ホ", "ウ"].includes(ck)
-					|| nk === "ェ" && e_comp.includes(ck)
-					|| nk === "ォ" && ["ク", "グ", "ツ", "フ", "ウ", "ヴ"].includes(ck)
-					|| nk === "ャ" && ["フ", "ヴ"].includes(ck)
-					|| nk === "ュ" && ["テ", "デ", "フ", "ウ", "ヴ"].includes(ck)
-					|| nk === "ョ" && ["フ", "ヴ"].includes(ck)) {
-					moras.push(conv_fn(ck + nk));
-					++i;
-					continue;
-				}
-			}
-			moras.push(conv_fn(ck));
-		}
-		return moras;
-	}
-
-	function generate_accent_nodes(reading: string, accents: number[], is_yougen: boolean): [string, Node, Node] {
-		function acc_span(text: string, flat: boolean = false): Node {
-			const span = document.createElement("span");
-			span.classList.add(flat ? "jrp-graph-bar-unaccented" : "jrp-graph-bar-accented");
-			span.append(text);
-			return span;
-		}
-
-		function pattern_class(acc: number, mora_count: number, is_yougen: boolean): string {
-			if(acc == 0) {
-				return "jrp-heiban";
-			} else if(is_yougen) {
-				return "jrp-kifuku";
-			} else if(acc == 1) {
-				return "jrp-atamadaka";
-			} else if(acc == mora_count) {
-				return "jrp-odaka";
-			} else {
-				return "jrp-nakadaka";
+function split_moras(reading: string, as_hira: boolean = false): string[] {
+	const conv_fn = as_hira ? to_hira : to_kata;
+	const kana = to_kata(reading);
+	const moras: string[] = [];
+	for(let i = 0; i < kana.length; ++i) {
+		const ck = kana[i];
+		const nk = i + 1 < kana.length ? kana[i + 1] : null;
+		if(nk !== null) {
+			if(i_dan.includes(ck) && ["ャ", "ュ", "ョ"].includes(nk)
+				|| nk === "ヮ" && ["ク", "グ"].includes(ck)
+				|| nk === "ァ" && ["ツ", "フ", "ヴ"].includes(ck)
+				|| nk === "ィ" && ["ク", "グ", "ス", "ズ", "テ", "ツ", "デ", "フ", "イ", "ウ", "ヴ"].includes(ck)
+				|| nk === "ゥ" && ["ト", "ド", "ホ", "ウ"].includes(ck)
+				|| nk === "ェ" && e_comp.includes(ck)
+				|| nk === "ォ" && ["ク", "グ", "ツ", "フ", "ウ", "ヴ"].includes(ck)
+				|| nk === "ャ" && ["フ", "ヴ"].includes(ck)
+				|| nk === "ュ" && ["テ", "デ", "フ", "ウ", "ヴ"].includes(ck)
+				|| nk === "ョ" && ["フ", "ヴ"].includes(ck)) {
+				moras.push(conv_fn(ck + nk));
+				++i;
+				continue;
 			}
 		}
-
-		const moras = split_moras(reading);
-		const graph_div = document.createElement("div");
-		graph_div.classList.add("jrp-graph");
-
-		const indicator_div = document.createElement("div");
-		indicator_div.classList.add("jrp-indicator-container");
-
-		function mora_slice(start: number, end?: number): string {
-			return moras.slice(start, end).join("");
-		}
-
-		let first_pat: string | null = null;
-		for(const acc of accents) {
-			const pat_class = pattern_class(acc, moras.length, is_yougen);
-			if(first_pat === null) {
-				first_pat = pat_class;
-			}
-
-			const acc_div = document.createElement("div");
-			acc_div.classList.add(pat_class);
-			if(acc === 1) {
-				acc_div.append(acc_span(moras[0]), mora_slice(1));
-			} else if(acc === 0) {
-				acc_div.append(moras[0], acc_span(mora_slice(1), true));
-			} else {
-				acc_div.append(moras[0], acc_span(mora_slice(1, acc)), mora_slice(acc));
-			}
-			graph_div.appendChild(acc_div);
-
-			const acc_indicator = document.createElement("div");
-			acc_indicator.classList.add("jrp-indicator", pat_class);
-			indicator_div.append(acc_indicator);
-		}
-		return [first_pat!, graph_div, indicator_div];
+		moras.push(conv_fn(ck));
 	}
+	return moras;
+}
+
+function generate_accent_nodes(reading: string, accents: number[], is_yougen: boolean): [string, Node, Node] {
+	function acc_span(text: string, flat: boolean = false): Node {
+		const span = document.createElement("span");
+		span.classList.add(flat ? "jrp-graph-bar-unaccented" : "jrp-graph-bar-accented");
+		span.append(text);
+		return span;
+	}
+
+	function pattern_class(acc: number, mora_count: number, is_yougen: boolean): string {
+		if(acc == 0) {
+			return "jrp-heiban";
+		} else if(is_yougen) {
+			return "jrp-kifuku";
+		} else if(acc == 1) {
+			return "jrp-atamadaka";
+		} else if(acc == mora_count) {
+			return "jrp-odaka";
+		} else {
+			return "jrp-nakadaka";
+		}
+	}
+
+	const moras = split_moras(reading);
+	const graph_div = document.createElement("div");
+	graph_div.classList.add("jrp-graph");
+
+	const indicator_div = document.createElement("div");
+	indicator_div.classList.add("jrp-indicator-container");
+
+	function mora_slice(start: number, end?: number): string {
+		return moras.slice(start, end).join("");
+	}
+
+	let first_pat: string | null = null;
+	for(const acc of accents) {
+		const pat_class = pattern_class(acc, moras.length, is_yougen);
+		if(first_pat === null) {
+			first_pat = pat_class;
+		}
+
+		const acc_div = document.createElement("div");
+		acc_div.classList.add(pat_class);
+		if(acc === 1) {
+			acc_div.append(acc_span(moras[0]), mora_slice(1));
+		} else if(acc === 0) {
+			acc_div.append(moras[0], acc_span(mora_slice(1), true));
+		} else {
+			acc_div.append(moras[0], acc_span(mora_slice(1, acc)), mora_slice(acc));
+		}
+		graph_div.appendChild(acc_div);
+
+		const acc_indicator = document.createElement("div");
+		acc_indicator.classList.add("jrp-indicator", pat_class);
+		indicator_div.append(acc_indicator);
+	}
+	return [first_pat!, graph_div, indicator_div];
+}
 
 class JrpSegment {
 	constructor(public text: string, public reading: string | null = null) {
@@ -212,83 +212,99 @@ class JrpParsingError extends Error {
 	}
 }
 
-	function read_until(val: string, idx: number, stop: string[]): [number, string | null, string] {
-		// implementation differs from Python
-		const chars: string[] = [];
-		for(let i = idx; i < val.length; ++i) {
-			const c = val[i];
-			if(stop.includes(c)) {
-				return [i, c, chars.join("")];
-			} else if(c === "\\") {
-				if(++i < val.length) {
-					chars.push(val[i]);
-				} else throw new JrpParsingError("backslash at end of input");
-			} else chars.push(c);
+function read_until(val: string, idx: number, stop: string[]): [number, string | null, string] {
+	// implementation differs from Python
+	const chars: string[] = [];
+	for(let i = idx; i < val.length; ++i) {
+		const c = val[i];
+		if(stop.includes(c)) {
+			return [i, c, chars.join("")];
+		} else if(c === "\\") {
+			if(++i < val.length) {
+				chars.push(val[i]);
+			} else throw new JrpParsingError("backslash at end of input");
+		} else chars.push(c);
+	}
+	return [val.length, null, chars.join("")];
+}
+
+function parse_migaku_accents(val: string, reading: string): number[] {
+	function convert(tag: string, moras: number): number {
+		switch(tag[0]) {
+			case "h":
+				return 0;
+			case "a":
+				return 1;
+			case "k":
+			case "n":
+				return parseInt(tag.slice(1));
+			case "o":
+				return moras;
+			default:
+				throw new JrpParsingError(`invalid Migaku accent pattern: ${tag}`);
 		}
-		return [val.length, null, chars.join("")];
 	}
 
-	function parse_migaku_accents(val: string, reading: string): number[] {
-		function convert(tag: string, moras: number): number {
-			switch(tag[0]) {
-				case "h":
-					return 0;
-				case "a":
-					return 1;
-				case "k":
-				case "n":
-					return parseInt(tag.slice(1));
-				case "o":
-					return moras;
+	const moras = split_moras(reading).length;
+	const tags = val.split(",");
+	return tags.map(t => convert(t, moras));
+}
+
+function parse_migaku(val: string): JrpUnit[] {
+	enum State {
+		BASE_READING,
+		ACCENTS,
+		SUFFIX,
+	}
+
+	class Parser {
+		private pos: number;
+
+		constructor(private readonly val: string) {
+			this.pos = 0;
+		}
+
+		skip_space() {
+			while(this.pos < this.val.length && this.val[this.pos] === " ") {
+				++this.pos;
+			}
+		}
+
+		parse_unit(): JrpUnit {
+			let state: State;
+
+			const [prfx_end, prfx_c, prefix] = read_until(this.val, this.pos, ["[", " "]);
+			switch(prfx_c) {
+				case " ":
+				case null:
+					this.pos = prfx_end + 1;
+					return new JrpUnit([new JrpSegment(prefix)]);
+				case "[":
+					this.pos = prfx_end + 1;
+					break;
+			}
+
+			const [rdng_end, rdng_c, prefix_reading] = read_until(this.val, this.pos, [",", ";", "]"]);
+			switch(rdng_c) {
+				case ",":
+					state = State.BASE_READING;
+					break;
+				case ";":
+					state = State.ACCENTS;
+					break;
+				case "]":
+					state = State.SUFFIX;
+					break;
 				default:
-					throw new JrpParsingError(`invalid Migaku accent pattern: ${tag}`);
+					throw new JrpParsingError(`unclosed Migaku tag: ${this.val}`);
 			}
-		}
+			this.pos = rdng_end + 1;
 
-		const moras = split_moras(reading).length;
-		const tags = val.split(",");
-		return tags.map(t => convert(t, moras));
-	}
-
-	function parse_migaku(val: string): JrpUnit[] {
-		enum State {
-			BASE_READING,
-			ACCENTS,
-			SUFFIX,
-		}
-
-		class Parser {
-			private pos: number;
-
-			constructor(private readonly val: string) {
-				this.pos = 0;
-			}
-
-			skip_space() {
-				while(this.pos < this.val.length && this.val[this.pos] === " ") {
-					++this.pos;
-				}
-			}
-
-			parse_unit(): JrpUnit {
-				let state: State;
-
-				const [prfx_end, prfx_c, prefix] = read_until(this.val, this.pos, ["[", " "]);
-				switch(prfx_c) {
-					case " ":
-					case null:
-						this.pos = prfx_end + 1;
-						return new JrpUnit([new JrpSegment(prefix)]);
-					case "[":
-						this.pos = prfx_end + 1;
-						break;
-				}
-
-				const [rdng_end, rdng_c, prefix_reading] = read_until(this.val, this.pos, [",", ";", "]"]);
-				switch(rdng_c) {
-					case ",":
-						state = State.BASE_READING;
-						break;
+			let base_reading: string = "";
+			if(state === State.BASE_READING) {
+				let bsfm_end: number, bsfm_c: string | null;
+				[bsfm_end, bsfm_c, base_reading] = read_until(this.val, this.pos, [";", "]"]);
+				switch(bsfm_c) {
 					case ";":
 						state = State.ACCENTS;
 						break;
@@ -298,228 +314,212 @@ class JrpParsingError extends Error {
 					default:
 						throw new JrpParsingError(`unclosed Migaku tag: ${this.val}`);
 				}
-				this.pos = rdng_end + 1;
-
-				let base_reading: string = "";
-				if(state === State.BASE_READING) {
-					let bsfm_end: number, bsfm_c: string | null;
-					[bsfm_end, bsfm_c, base_reading] = read_until(this.val, this.pos, [";", "]"]);
-					switch(bsfm_c) {
-						case ";":
-							state = State.ACCENTS;
-							break;
-						case "]":
-							state = State.SUFFIX;
-							break;
-						default:
-							throw new JrpParsingError(`unclosed Migaku tag: ${this.val}`);
-					}
-					this.pos = bsfm_end + 1;
-				}
-
-				let accent_str: string = "";
-				if(state === State.ACCENTS) {
-					let acct_end: number, acct_c: string | null;
-					[acct_end, acct_c, accent_str] = read_until(this.val, this.pos, ["]"]);
-					switch(acct_c) {
-						case "]":
-							state = State.SUFFIX;
-							break;
-						default:
-							throw new JrpParsingError(`closing ] missing: ${this.val}`);
-					}
-					this.pos = acct_end + 1;
-				}
-
-				let suffix: string = "";
-				if(state === State.SUFFIX) {
-					let sufx_end: number;
-					[sufx_end, , suffix] = read_until(this.val, this.pos, [" "]);
-					this.pos = sufx_end + 1;
-				}
-
-				// different from Python
-				const segments = [new JrpSegment(prefix, prefix_reading)];
-				if(suffix.length > 0) {
-					segments.push(new JrpSegment(suffix));
-				}
-				const is_yougen = base_reading.length > 0;
-				let accents: number[];
-				if(accent_str.length > 0) {
-					const reading = is_yougen ? base_reading : (prefix_reading + (suffix.length > 0 ? suffix : ""));
-					accents = parse_migaku_accents(accent_str, reading);
-				} else accents = [];
-				return new JrpUnit(segments, accents, is_yougen, false, is_yougen ? base_reading : null);
+				this.pos = bsfm_end + 1;
 			}
 
-			execute(): JrpUnit[] {
-				const units: JrpUnit[] = [];
-				while(this.pos < this.val.length) {
-					this.skip_space();
-					units.push(this.parse_unit());
+			let accent_str: string = "";
+			if(state === State.ACCENTS) {
+				let acct_end: number, acct_c: string | null;
+				[acct_end, acct_c, accent_str] = read_until(this.val, this.pos, ["]"]);
+				switch(acct_c) {
+					case "]":
+						state = State.SUFFIX;
+						break;
+					default:
+						throw new JrpParsingError(`closing ] missing: ${this.val}`);
 				}
-				return units;
-			}
-		}
-
-		return new Parser(val).execute();
-	}
-
-	function parse_jrp(value: string): JrpUnit[] {
-		function parse_segment(val: string, start_idx: number): [number, JrpSegment | [string, string]] {
-			const [sep_idx, sep_c, seg_text] = read_until(val, start_idx + 1, ["|", "="]);
-			if(sep_c !== null) {
-				const [end_idx, end_c, reading] = read_until(val, sep_idx + 1, ["]"]);
-				// different from Python
-				if(end_c === null) {
-					throw new JrpParsingError(`segment is missing closing bracket: ${val}`);
-				}
-				return [end_idx + 1, sep_c === "=" ? [seg_text, reading] : new JrpSegment(seg_text, reading)];
-			}
-			throw new JrpParsingError(`invalid segment: ${val}`);
-		}
-
-		function parse_unit(val: string, start_idx: number): [number, JrpUnit] {
-			const segments: JrpSegment[] = [];
-			const base_reading_parts: string[] = [];
-
-			let pos = start_idx + 1;
-			let broke_out = false;
-			while(pos < val.length) {
-				let last_c: string | null, txt: string;
-				[pos, last_c, txt] = read_until(val, pos, ["[", ";", "}"]);
-				if(txt.length > 0) {
-					segments.push(new JrpSegment(txt));
-					base_reading_parts.push(txt);
-				}
-
-				if(last_c === "[") {
-					let srv: JrpSegment | [string, string];
-					[pos, srv] = parse_segment(val, pos);
-					// different from Python
-					if(srv instanceof JrpSegment) {
-						segments.push(srv);
-						base_reading_parts.push(srv.get_reading());
-					} else {
-						const [text, base_reading] = srv;
-						segments.push(new JrpSegment(text));
-						base_reading_parts.push(base_reading);
-					}
-				} else if(last_c === ";" || last_c === "}") {
-					broke_out = true;
-					break;
-				}
-			}
-			if(!broke_out) {
-				throw new JrpParsingError(`unclosed unit: ${val}`);
+				this.pos = acct_end + 1;
 			}
 
-			let accents: number[] = [];
-			let special_base: string | null = null;
-			let uncertain = false;
-			let is_yougen = false;
-			if(val[pos] === ";") {
-				++pos;
-				if(val[pos] === "!") {
-					uncertain = true;
-					++pos;
-				}
-				if(val[pos] === "Y") {
-					is_yougen = true;
-					++pos;
-				}
-
-
-				const [end_idx, end_c, accent_str] = read_until(val, pos, ["|", "}"]);
-				if(end_c !== null) {
-					// implementation differs from Python
-					accents = accent_str.split(",").map(acc => {
-						const val = parseInt(acc);
-						if(isNaN(val)) {
-							throw new JrpParsingError(`invalid accent: ${val}`);
-						} else return val;
-					});
-				} else throw new JrpParsingError(`unclosed unit: ${val}`);
-
-				if(end_c === "|") {
-					let unit_end_idx: number, ec: string | null;
-					[unit_end_idx, ec, special_base] = read_until(val, end_idx + 1, ["}"]);
-					if(ec !== null) {
-						pos = unit_end_idx;
-					} else throw new JrpParsingError(`unclosed unit: ${val}`);
-				} else {
-					pos = end_idx;
-				}
+			let suffix: string = "";
+			if(state === State.SUFFIX) {
+				let sufx_end: number;
+				[sufx_end, , suffix] = read_until(this.val, this.pos, [" "]);
+				this.pos = sufx_end + 1;
 			}
 
 			// different from Python
-			let base_reading: string = base_reading_parts.join("");
-			if(special_base !== null) {
-				base_reading = special_base;
+			const segments = [new JrpSegment(prefix, prefix_reading)];
+			if(suffix.length > 0) {
+				segments.push(new JrpSegment(suffix));
 			}
-			return [pos + 1, new JrpUnit(segments, accents, is_yougen, uncertain, base_reading)];
+			const is_yougen = base_reading.length > 0;
+			let accents: number[];
+			if(accent_str.length > 0) {
+				const reading = is_yougen ? base_reading : (prefix_reading + (suffix.length > 0 ? suffix : ""));
+				accents = parse_migaku_accents(accent_str, reading);
+			} else accents = [];
+			return new JrpUnit(segments, accents, is_yougen, false, is_yougen ? base_reading : null);
 		}
 
-		const units: JrpUnit[] = [];
-		let free_segments: JrpSegment[] = [];
-
-		let idx = 0;
-		while(idx < value.length) {
-			let c: string | null, text: string;
-			[idx, c, text] = read_until(value, idx, ["[", "{"]);
-			if(text.length > 0) {
-				free_segments.push(new JrpSegment(text));
+		execute(): JrpUnit[] {
+			const units: JrpUnit[] = [];
+			while(this.pos < this.val.length) {
+				this.skip_space();
+				units.push(this.parse_unit());
 			}
-
-			switch(c) {
-				case "{":
-					if(free_segments.length > 0) {
-						units.push(new JrpUnit(free_segments));
-					}
-					free_segments = [];
-					let u: JrpUnit;
-					[idx, u] = parse_unit(value, idx);
-					units.push(u);
-					break;
-				case "[":
-					let segment: JrpSegment | [string, string];
-					[idx, segment] = parse_segment(value, idx);
-					if(!(segment instanceof JrpSegment)) {
-						throw new JrpParsingError(`base form segment outside of unit: ${value}`);
-					}
-					free_segments.push(segment);
-					break;
-			}
+			return units;
 		}
-
-		if(free_segments.length > 0) {
-			units.push(new JrpUnit(free_segments));
-		}
-
-		return units;
 	}
 
-	function generator_settings(attr_val: string): object {
-		const res = {};
+	return new Parser(val).execute();
+}
 
-		let idx = 0;
-		while(idx < attr_val.length) {
-			let stop_c: string | null, text: string;
-			[idx, stop_c, text] = read_until(attr_val, idx, [";"]);
-			const split = text.split(":");
-			switch(split.length) {
-				case 1:
-					res[split[0]] = true;
-					break;
-				case 2:
-					res[split[0]] = split[1];
-					break;
-				default:
-					throw new JrpParsingError(`invalid config attribute: ${attr_val}`);
+function parse_jrp(value: string): JrpUnit[] {
+	function parse_segment(val: string, start_idx: number): [number, JrpSegment | [string, string]] {
+		const [sep_idx, sep_c, seg_text] = read_until(val, start_idx + 1, ["|", "="]);
+		if(sep_c !== null) {
+			const [end_idx, end_c, reading] = read_until(val, sep_idx + 1, ["]"]);
+			// different from Python
+			if(end_c === null) {
+				throw new JrpParsingError(`segment is missing closing bracket: ${val}`);
+			}
+			return [end_idx + 1, sep_c === "=" ? [seg_text, reading] : new JrpSegment(seg_text, reading)];
+		}
+		throw new JrpParsingError(`invalid segment: ${val}`);
+	}
+
+	function parse_unit(val: string, start_idx: number): [number, JrpUnit] {
+		const segments: JrpSegment[] = [];
+		const base_reading_parts: string[] = [];
+
+		let pos = start_idx + 1;
+		let broke_out = false;
+		while(pos < val.length) {
+			let last_c: string | null, txt: string;
+			[pos, last_c, txt] = read_until(val, pos, ["[", ";", "}"]);
+			if(txt.length > 0) {
+				segments.push(new JrpSegment(txt));
+				base_reading_parts.push(txt);
+			}
+
+			if(last_c === "[") {
+				let srv: JrpSegment | [string, string];
+				[pos, srv] = parse_segment(val, pos);
+				// different from Python
+				if(srv instanceof JrpSegment) {
+					segments.push(srv);
+					base_reading_parts.push(srv.get_reading());
+				} else {
+					const [text, base_reading] = srv;
+					segments.push(new JrpSegment(text));
+					base_reading_parts.push(base_reading);
+				}
+			} else if(last_c === ";" || last_c === "}") {
+				broke_out = true;
+				break;
 			}
 		}
-		return res;
+		if(!broke_out) {
+			throw new JrpParsingError(`unclosed unit: ${val}`);
+		}
+
+		let accents: number[] = [];
+		let special_base: string | null = null;
+		let uncertain = false;
+		let is_yougen = false;
+		if(val[pos] === ";") {
+			++pos;
+			if(val[pos] === "!") {
+				uncertain = true;
+				++pos;
+			}
+			if(val[pos] === "Y") {
+				is_yougen = true;
+				++pos;
+			}
+
+
+			const [end_idx, end_c, accent_str] = read_until(val, pos, ["|", "}"]);
+			if(end_c !== null) {
+				// implementation differs from Python
+				accents = accent_str.split(",").map(acc => {
+					const val = parseInt(acc);
+					if(isNaN(val)) {
+						throw new JrpParsingError(`invalid accent: ${val}`);
+					} else return val;
+				});
+			} else throw new JrpParsingError(`unclosed unit: ${val}`);
+
+			if(end_c === "|") {
+				let unit_end_idx: number, ec: string | null;
+				[unit_end_idx, ec, special_base] = read_until(val, end_idx + 1, ["}"]);
+				if(ec !== null) {
+					pos = unit_end_idx;
+				} else throw new JrpParsingError(`unclosed unit: ${val}`);
+			} else {
+				pos = end_idx;
+			}
+		}
+
+		// different from Python
+		let base_reading: string = base_reading_parts.join("");
+		if(special_base !== null) {
+			base_reading = special_base;
+		}
+		return [pos + 1, new JrpUnit(segments, accents, is_yougen, uncertain, base_reading)];
 	}
+
+	const units: JrpUnit[] = [];
+	let free_segments: JrpSegment[] = [];
+
+	let idx = 0;
+	while(idx < value.length) {
+		let c: string | null, text: string;
+		[idx, c, text] = read_until(value, idx, ["[", "{"]);
+		if(text.length > 0) {
+			free_segments.push(new JrpSegment(text));
+		}
+
+		switch(c) {
+			case "{":
+				if(free_segments.length > 0) {
+					units.push(new JrpUnit(free_segments));
+				}
+				free_segments = [];
+				let u: JrpUnit;
+				[idx, u] = parse_unit(value, idx);
+				units.push(u);
+				break;
+			case "[":
+				let segment: JrpSegment | [string, string];
+				[idx, segment] = parse_segment(value, idx);
+				if(!(segment instanceof JrpSegment)) {
+					throw new JrpParsingError(`base form segment outside of unit: ${value}`);
+				}
+				free_segments.push(segment);
+				break;
+		}
+	}
+
+	if(free_segments.length > 0) {
+		units.push(new JrpUnit(free_segments));
+	}
+
+	return units;
+}
+
+function generator_settings(attr_val: string): object {
+	const res = {};
+
+	let idx = 0;
+	while(idx < attr_val.length) {
+		let stop_c: string | null, text: string;
+		[idx, stop_c, text] = read_until(attr_val, idx, [";"]);
+		const split = text.split(":");
+		switch(split.length) {
+			case 1:
+				res[split[0]] = true;
+				break;
+			case 2:
+				res[split[0]] = split[1];
+				break;
+			default:
+				throw new JrpParsingError(`invalid config attribute: ${attr_val}`);
+		}
+	}
+	return res;
+}
 
 function jrp_generate() {
 	const root_elements: [Element, object][] = [];
