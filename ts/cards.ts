@@ -534,13 +534,18 @@ function jrp_generate() {
 		}
 	}
 
+	const br_re = /<br[\t\n\f\r ]*>/;
 	for(const [root, settings] of root_elements) {
-		const innerHtml = root.innerHTML;
+		const lines = root.innerHTML.split(br_re);
 		while(root.firstChild !== null) {
 			root.firstChild.remove();
 		}
-		const new_children = "migaku" in settings ? parse_migaku(innerHtml) : parse_jrp(innerHtml);
-		root.append(...new_children.map(u => u.generate_dom_node()));
+		root.append(...lines.flatMap((line, index) => {
+			const parser = "migaku" in settings ? parse_migaku : parse_jrp;
+			const unit_nodes = parser(line).map(u => u.generate_dom_node());
+			return index > 0 ? unit_nodes : [document.createElement("br"), ...unit_nodes];
+		}));
+		root.normalize();
 	}
 }
 
