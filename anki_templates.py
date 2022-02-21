@@ -26,7 +26,7 @@ def generate_css(p: NoteTypePrefs) -> str:
 
 
 def generate_js() -> str:
-    return _compress_spaces(_read_file("js", "cards.js"))
+    return f"(function(){{ {_compress_spaces(_read_file('js', 'cards.js'))} }})();"
 
 
 _trail_str = "Do Not Edit If Using Automatic CSS and JS Management"
