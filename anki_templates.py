@@ -61,7 +61,7 @@ def _split_managed_section(value: str, css: bool = False) -> tuple[str, str] | N
     def tag_re(end: bool = False) -> Pattern:
         oc, cc = [re.escape(c) for c in _comment_symbols["css" if css else "html"]]
         tag_pat = "end" if end else r"start \[version:(\d+)]"
-        return re.compile(rf"^\s*{oc} JRP add-on managed section {tag_pat} {cc}$", re.M)
+        return re.compile(rf"^[^\S\r\n]*{oc} JRP add-on managed section {tag_pat} {cc}[^\S\r\n]*$", re.M)
 
     if start_m := tag_re().search(value):
         if int(start_m.group(1)) == (version.css if css else version.js):
