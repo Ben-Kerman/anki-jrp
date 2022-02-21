@@ -41,23 +41,27 @@ def _remove_mia_migaku(value: str, css: bool = False) -> str:
 
 
 def update_template(col: Collection, note_type_id: int, prefs: NoteTypePrefs) -> bool:
+    def update_css(css: str) -> str:
+        if prefs.remove_mia_migaku:
+            css = _remove_mia_migaku(css, css=True)
+        return f"{css}\n\n{generate_css(prefs)}"
+
+    def update_js(fmt: str) -> str:
+        if prefs.remove_mia_migaku:
+            fmt = _remove_mia_migaku(fmt)
+        return f"{fmt}\n\n<script>{generate_js()}</script>"
+
     nt = col.models.get(note_type_id)
     if not nt:
         return False
 
     if prefs.manage_style:
-        css = nt["css"]
-        if prefs.remove_mia_migaku:
-            css = _remove_mia_migaku(css, css=True)
-        nt["css"] = f"{css}\n\n{generate_css(prefs)}"
+        nt["css"] = update_css(nt["css"])
 
     if prefs.manage_script:
         for tpl in nt["tmpls"]:
             for fmt_name in ("qfmt", "afmt"):
-                fmt = tpl[fmt_name]
-                if prefs.remove_mia_migaku:
-                    fmt = _remove_mia_migaku(fmt)
-                tpl[fmt_name] = f"{fmt}\n\n<script>{generate_js()}</script>"
+                tpl[fmt_name] = update_js(tpl[fmt_name])
 
     try:
         col.models.update_dict(nt)
