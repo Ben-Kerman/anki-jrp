@@ -4,9 +4,10 @@ import re
 from re import Pattern
 
 from anki.collection import Collection
+from anki.models import NotetypeDict
 
 import version
-from preferences import NoteTypePrefs
+from preferences import AddonPrefs, NoteTypePrefs
 
 
 def _read_file(*path_comps: str) -> str:
@@ -72,7 +73,7 @@ def _split_managed_section(value: str, css: bool = False) -> tuple[str, str] | N
     return f"{value.rstrip()}\n\n", ""
 
 
-def update_template(col: Collection, note_type_id: int, prefs: NoteTypePrefs) -> bool:
+def update_templates(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
     def update_css(css: str) -> str | None:
         if prefs.remove_mia_migaku:
             css = _remove_mia_migaku(css, css=True)
@@ -91,13 +92,12 @@ def update_template(col: Collection, note_type_id: int, prefs: NoteTypePrefs) ->
         else:
             return None
 
-    nt = col.models.get(note_type_id)
-    if not nt:
-        return False
+    had_changes = False
 
     if prefs.manage_style:
         new_css = update_css(nt["css"])
         if new_css:
+            had_changes = True
             nt["css"] = new_css
 
     if prefs.manage_script:
@@ -105,10 +105,26 @@ def update_template(col: Collection, note_type_id: int, prefs: NoteTypePrefs) ->
             for fmt_name in ("qfmt", "afmt"):
                 new_fmt = update_js(tpl[fmt_name])
                 if new_fmt:
+                    had_changes = True
                     tpl[fmt_name] = new_fmt
 
-    try:
-        col.models.update_dict(nt)
-        return True
-    except Exception as e:
-        return False  # TODO report error
+    if had_changes:
+        return nt
+    else:
+        return None
+
+
+def update_notetypes(col: Collection, prefs: AddonPrefs) -> None:
+    for nt_prefs in prefs.note_types:
+        nt = col.models.get(nt_prefs.nt_id)
+        if not nt:
+            # TODO report error
+            continue
+
+        nt = update_templates(nt, nt_prefs)
+        if nt:
+            try:
+                col.models.update_dict(nt)
+            except Exception as e:
+                # TODO report error
+                pass

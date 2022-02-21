@@ -35,6 +35,7 @@ class StylePrefs:
 
 @dataclass
 class NoteTypePrefs:
+    nt_id: int
     manage_script: bool = True
     manage_style: bool = True
     remove_mia_migaku: bool = True
