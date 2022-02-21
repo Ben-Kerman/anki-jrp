@@ -40,16 +40,24 @@ def _remove_mia_migaku(value: str, css: bool = False) -> str:
     return (_css_re if css else _js_re).sub("", value)
 
 
+def enclose_code(code: str, oc: str = "<!--", cc: str = "-->") -> str:
+    return f"{oc} JRP add-on managed section start [ver:{0}] {cc}\n" \
+           f"{oc} Changing the opening and closing tags in any way will break automatic CSS/JS handling.\n" \
+           f"{' ' * len(oc)} Any manual changes made within this section will be overwritten. {cc}\n" \
+           f"{code}\n" \
+           f"{oc} JRP add-on managed section end {cc}"
+
+
 def update_template(col: Collection, note_type_id: int, prefs: NoteTypePrefs) -> bool:
     def update_css(css: str) -> str:
         if prefs.remove_mia_migaku:
             css = _remove_mia_migaku(css, css=True)
-        return f"{css}\n\n{generate_css(prefs)}"
+        return f"{css}\n\n{enclose_code(generate_css(prefs), '/*', '*/')}"
 
     def update_js(fmt: str) -> str:
         if prefs.remove_mia_migaku:
             fmt = _remove_mia_migaku(fmt)
-        return f"{fmt}\n\n<script>{generate_js()}</script>"
+        return f"{fmt}\n\n{enclose_code(f'<script>{generate_js()}</script>')}"
 
     nt = col.models.get(note_type_id)
     if not nt:
