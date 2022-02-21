@@ -2,16 +2,12 @@ from collections.abc import Callable
 
 from aqt import editor, gui_hooks
 
-_trans = {
+_js_esc = str.maketrans({
     "\r": "\\r",
     "\n": "\\n",
     "\"": "\\\"",
     "\\": "\\\\",
-}
-
-
-def _escape_js_str(val: str) -> str:
-    return "".join([_trans[c] if c in _trans else c for c in val])
+})
 
 
 def _replace(edit: editor.Editor, transform: Callable[[str], str]):
@@ -19,7 +15,7 @@ def _replace(edit: editor.Editor, transform: Callable[[str], str]):
         nonlocal edit
         edit.web.page().runJavaScript(f"""
         editable = getCurrentField().activeInput
-        editable.fieldHTML = \"{_escape_js_str(transform(new_html))}\"
+        editable.fieldHTML = \"{transform(new_html).translate(_js_esc)}\"
         editable.caretToEnd()""")
 
     edit.web.page().runJavaScript("getCurrentField().activeInput.fieldHTML", lambda html: inject_html(html))
