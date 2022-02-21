@@ -57,9 +57,9 @@ def enclose_code(code: str, css: bool = False) -> str:
            f"{oc} JRP add-on managed section end {cc}"
 
 
-def _split_managed_section(value: str, css: bool = True) -> tuple[str, str] | None:
+def _split_managed_section(value: str, css: bool = False) -> tuple[str, str] | None:
     def tag_re(end: bool = False) -> Pattern:
-        oc, cc = _comment_symbols["css" if css else "html"]
+        oc, cc = [re.escape(c) for c in _comment_symbols["css" if css else "html"]]
         tag_pat = "end" if end else r"start \[version:(\d+)]"
         return re.compile(rf"^\s*{oc} JRP add-on managed section {tag_pat} {cc}$", re.M)
 
@@ -78,7 +78,7 @@ def update_template(col: Collection, note_type_id: int, prefs: NoteTypePrefs) ->
             css = _remove_mia_migaku(css, css=True)
         if sects := _split_managed_section(css, css=True):
             before, after = sects
-            return f"{before}{enclose_code(generate_css(prefs))}{after}"
+            return f"{before}{enclose_code(generate_css(prefs), css=True)}{after}"
         else:
             return None
 
