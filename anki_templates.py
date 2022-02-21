@@ -40,8 +40,15 @@ def _remove_mia_migaku(value: str, css: bool = False) -> str:
     return (_css_re if css else _js_re).sub("", value)
 
 
-def enclose_code(code: str, oc: str = "<!--", cc: str = "-->") -> str:
-    return f"{oc} JRP add-on managed section start [ver:{0}] {cc}\n" \
+_comment_symbols = {
+    "html": ("<!--", "-->"),
+    "css": ("/*", "*/")
+}
+
+
+def enclose_code(code: str, css: bool = False) -> str:
+    oc, cc = _comment_symbols["css" if css else "html"]
+    return f"{oc} JRP add-on managed section start [version:{0}] {cc}\n" \
            f"{oc} Changing the opening and closing tags in any way will break automatic CSS/JS handling.\n" \
            f"{' ' * len(oc)} Any manual changes made within this section will be overwritten. {cc}\n" \
            f"{code}\n" \
@@ -52,7 +59,7 @@ def update_template(col: Collection, note_type_id: int, prefs: NoteTypePrefs) ->
     def update_css(css: str) -> str:
         if prefs.remove_mia_migaku:
             css = _remove_mia_migaku(css, css=True)
-        return f"{css}\n\n{enclose_code(generate_css(prefs), '/*', '*/')}"
+        return f"{css}\n\n{enclose_code(generate_css(prefs), css=True)}"
 
     def update_js(fmt: str) -> str:
         if prefs.remove_mia_migaku:
