@@ -1,5 +1,6 @@
 import dataclasses
 import os.path
+import re
 
 from preferences import NoteTypePrefs
 
@@ -24,3 +25,14 @@ def generate_css(p: NoteTypePrefs) -> str:
 
 def generate_js() -> str:
     return _compress_spaces(_read_file("js", "cards.js"))
+
+
+_trail_str = "Do Not Edit If Using Automatic CSS and JS Management"
+_css_re = re.compile(rf"\n*/\*###((?:MIA|MIGAKU) JAPANESE SUPPORT) CSS STARTS###\n"
+                     rf"{_trail_str}\*/\n.*?\n/\*###\1 CSS ENDS###\*/\n*")
+_js_re = re.compile(rf"\n*<!--###((?:MIA|MIGAKU) JAPANESE SUPPORT) ((?:(?:KATAKANA )?CONVERTER )?JS) START###\n"
+                    rf"{_trail_str}-->.*?<!--###\1 \2 ENDS###-->\n*")
+
+
+def _remove_mia_migaku(value: str, css: bool = False) -> str:
+    return (_css_re if css else _js_re).sub("", value)
