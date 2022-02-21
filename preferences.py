@@ -6,7 +6,7 @@ from itertools import chain
 
 import overrides
 from overrides import AccentOverride, IgnoreOverride, WordOverride
-from util import empty_list, from_json, get_path, to_json
+from util import from_json, get_path, to_json
 
 
 @dataclass
@@ -45,7 +45,7 @@ class NoteTypePrefs:
 
 @dataclass
 class AddonPrefs:
-    note_types: list[NoteTypePrefs] = field(default_factory=empty_list)
+    note_types: list[NoteTypePrefs] = field(default_factory=list)
 
 
 @dataclass
@@ -69,16 +69,16 @@ class JoinPrefs:
 
 @dataclass
 class Overrides:
-    ignore: list[IgnoreOverride] = field(default_factory=empty_list)
-    word: list[WordOverride] = field(default_factory=empty_list)
-    accent: list[AccentOverride] = field(default_factory=empty_list)
+    ignore: list[IgnoreOverride] = field(default_factory=list)
+    word: list[WordOverride] = field(default_factory=list)
+    accent: list[AccentOverride] = field(default_factory=list)
 
 
 @dataclass
 class DisabledOverrideIds:
-    ignore: set[int] = field(default_factory=empty_list)
-    word: set[int] = field(default_factory=empty_list)
-    accent: set[int] = field(default_factory=empty_list)
+    ignore: set[int] = field(default_factory=set)
+    word: set[int] = field(default_factory=set)
+    accent: set[int] = field(default_factory=set)
 
     def to_json(self, default: "DisabledOverrideIds") -> dict:
         val: dict = to_json(self, default, False)

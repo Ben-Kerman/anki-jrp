@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 
 from normalize import comp_kana, has_kana, is_kana, split_moras, to_hiragana, to_katakana
-from util import empty_list, warn
+from util import warn
 
 
 @dataclass
@@ -94,7 +94,7 @@ class BaseSegment:
 @dataclass
 class Unit:
     segments: list[Segment | BaseSegment]
-    accents: list[int] = field(default_factory=empty_list)
+    accents: list[int] = field(default_factory=list)
     is_yougen: bool = False
     uncertain: bool = False
     special_base: str | None = None

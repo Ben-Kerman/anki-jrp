@@ -14,10 +14,6 @@ def get_path(*comps: str) -> str:
     return os.path.join(os.path.dirname(__file__), *comps)
 
 
-def empty_list() -> list:
-    return []
-
-
 @dataclass
 class ConfigError:
     msg: str
