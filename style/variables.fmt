@@ -1,0 +1,22 @@
+:root {{
+	--jrp-ruby-font-size: {ruby_font_size};
+	--jrp-graph-font-size: {graph_font_size};
+	--jrp-heiban: {heiban};
+	--jrp-kifuku: {kifuku};
+	--jrp-atamadaka: {atamadaka};
+	--jrp-odaka: {odaka};
+	--jrp-nakadaka: {nakadaka};
+	--jrp-graph-border-width: {graph_border_width};
+	--jrp-graph-border-radius: {graph_border_radius};
+	--jrp-graph-bg-light: {graph_bg_light};
+	--jrp-graph-border-light: {graph_border_light};
+	--jrp-graph-bg-dark: {graph_bg_dark};
+	--jrp-graph-border-dark: {graph_border_dark};
+	--jrp-indicator-bar-width: {indicator_bar_width};
+	--jrp-indicator-bar-radius: {indicator_bar_radius};
+	--jrp-indicator-bar-gap: {indicator_bar_gap};
+	--jrp-indicator-bar-margin: {indicator_bar_margin};
+	--jrp-indicator-bar-offset: {indicator_bar_offset};
+	--jrp-indicator-bar-offset-vert: {indicator_bar_offset_vert};
+	--jrp-indicator-diamond-size: {indicator_diamond_size};
+}}
