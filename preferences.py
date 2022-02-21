@@ -37,6 +37,7 @@ class StylePrefs:
 class NoteTypePrefs:
     manage_script: bool = True
     manage_style: bool = True
+    remove_mia_migaku: bool = True
     use_diamond_indicators: bool = False
     style: StylePrefs = field(default_factory=StylePrefs)
 

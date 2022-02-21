@@ -2,6 +2,8 @@ import dataclasses
 import os.path
 import re
 
+from anki.collection import Collection
+
 from preferences import NoteTypePrefs
 
 
@@ -36,3 +38,29 @@ _js_re = re.compile(rf"\n*<!--###((?:MIA|MIGAKU) JAPANESE SUPPORT) ((?:(?:KATAKA
 
 def _remove_mia_migaku(value: str, css: bool = False) -> str:
     return (_css_re if css else _js_re).sub("", value)
+
+
+def update_template(col: Collection, note_type_id: int, prefs: NoteTypePrefs) -> bool:
+    nt = col.models.get(note_type_id)
+    if not nt:
+        return False
+
+    if prefs.manage_style:
+        css = nt["css"]
+        if prefs.remove_mia_migaku:
+            css = _remove_mia_migaku(css, css=True)
+        nt["css"] = f"{css}\n\n{generate_css(prefs)}"
+
+    if prefs.manage_script:
+        for tpl in nt["tmpls"]:
+            for fmt_name in ("qfmt", "afmt"):
+                fmt = tpl[fmt_name]
+                if prefs.remove_mia_migaku:
+                    fmt = _remove_mia_migaku(fmt)
+                tpl[fmt_name] = f"{fmt}\n\n<script>{generate_js()}</script>"
+
+    try:
+        col.models.update_dict(nt)
+        return True
+    except Exception as e:
+        return False  # TODO report error
