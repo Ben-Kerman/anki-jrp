@@ -1,9 +1,11 @@
 import dataclasses
 import os.path
 import re
+from re import Pattern
 
 from anki.collection import Collection
 
+import version
 from preferences import NoteTypePrefs
 
 
@@ -55,28 +57,55 @@ def enclose_code(code: str, css: bool = False) -> str:
            f"{oc} JRP add-on managed section end {cc}"
 
 
+def _split_managed_section(value: str, css: bool = True) -> tuple[str, str] | None:
+    def tag_re(end: bool = False) -> Pattern:
+        oc, cc = _comment_symbols["css" if css else "html"]
+        tag_pat = "end" if end else r"start \[version:(\d+)]"
+        return re.compile(rf"^\s*{oc} JRP add-on managed section {tag_pat} {cc}$", re.M)
+
+    if start_m := tag_re().search(value):
+        if int(start_m.group(1)) == (version.css if css else version.js):
+            return None
+        if end_m := tag_re(end=True).search(value, start_m.end()):
+            return value[:start_m.start()], value[end_m.end():]
+
+    return f"{value.rstrip()}\n\n", ""
+
+
 def update_template(col: Collection, note_type_id: int, prefs: NoteTypePrefs) -> bool:
-    def update_css(css: str) -> str:
+    def update_css(css: str) -> str | None:
         if prefs.remove_mia_migaku:
             css = _remove_mia_migaku(css, css=True)
-        return f"{css}\n\n{enclose_code(generate_css(prefs), css=True)}"
+        if sects := _split_managed_section(css, css=True):
+            before, after = sects
+            return f"{before}{enclose_code(generate_css(prefs))}{after}"
+        else:
+            return None
 
-    def update_js(fmt: str) -> str:
+    def update_js(fmt: str) -> str | None:
         if prefs.remove_mia_migaku:
             fmt = _remove_mia_migaku(fmt)
-        return f"{fmt}\n\n{enclose_code(f'<script>{generate_js()}</script>')}"
+        if sects := _split_managed_section(fmt):
+            before, after = sects
+            return f"{before}{enclose_code(f'<script>{generate_js()}</script>')}{after}"
+        else:
+            return None
 
     nt = col.models.get(note_type_id)
     if not nt:
         return False
 
     if prefs.manage_style:
-        nt["css"] = update_css(nt["css"])
+        new_css = update_css(nt["css"])
+        if new_css:
+            nt["css"] = new_css
 
     if prefs.manage_script:
         for tpl in nt["tmpls"]:
             for fmt_name in ("qfmt", "afmt"):
-                tpl[fmt_name] = update_js(tpl[fmt_name])
+                new_fmt = update_js(tpl[fmt_name])
+                if new_fmt:
+                    tpl[fmt_name] = new_fmt
 
     try:
         col.models.update_dict(nt)
