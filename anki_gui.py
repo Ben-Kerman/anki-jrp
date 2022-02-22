@@ -1,10 +1,12 @@
 from collections.abc import Sequence
 from typing import Iterable
 
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QLabel, QPushButton, QTabWidget, QVBoxLayout, QWidget
 
 import anki_ui_defs
 import overrides
+import util
 from overrides import DefaultOverride
 from preferences import Prefs
 
@@ -38,10 +40,12 @@ class Checkbox(QWidget):
         self.defaults = defaults
         self.path = path
 
-        self._btn = QPushButton("Reset", self)
+        self._btn = QPushButton(QIcon(util.get_path("assets", "reset.svg")), "", self)
+        self._btn.setFlat(True)
         sp = self._btn.sizePolicy()
         sp.setRetainSizeWhenHidden(True)
         self._btn.setSizePolicy(sp)
+        self._btn.setToolTip("Reset to default")
         self._btn.clicked.connect(self.reset)
 
         self._cb = QCheckBox(label, self)
