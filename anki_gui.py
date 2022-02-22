@@ -99,6 +99,33 @@ def _split(txt: str, sep: str = "・", conv: Callable[[str], T] = lambda s: s) -
     return [conv(v.strip()) for v in txt.split(sep)]
 
 
+def _new(self, new_or) -> None:
+    self._ors.append(new_or)
+    rc = self._tbl.rowCount()
+    self._tbl.setRowCount(rc + 1)
+    self.insert_row(rc, new_or)
+
+
+def _del(self) -> None:
+    cr = self._tbl.currentRow()
+    if cr < 0:
+        aqt.utils.showWarning("No row selected")
+        return
+    del self._ors[cr]
+    self._tbl.removeRow(cr)
+
+
+def _setup_btns(self, default: Callable) -> QHBoxLayout:
+    btn_bar = QHBoxLayout()
+    new_btn = QPushButton("New", self)
+    new_btn.clicked.connect(lambda: _new(self, default()))
+    btn_bar.addWidget(new_btn)
+    del_btn = QPushButton("Delete", self)
+    del_btn.clicked.connect(lambda: _del(self))
+    btn_bar.addWidget(del_btn)
+    return btn_bar
+
+
 class IgnoreOverrideWidget(QWidget):
     _ors: list[IgnoreOverride]
     _tbl: QTableWidget
@@ -110,10 +137,17 @@ class IgnoreOverrideWidget(QWidget):
         self._tbl = QTableWidget(len(ors), 2, self)
         self._tbl.setHorizontalHeaderLabels(("Variants", "Reading"))
         for row, ior in enumerate(ors):
-            self._tbl.setItem(row, 0, QTableWidgetItem("・".join(ior.variants)))
-            self._tbl.setItem(row, 1, QTableWidgetItem(ior.reading))
+            self.insert_row(row, ior)
         self._tbl.cellChanged.connect(self.on_change)
         self._tbl.itemActivated.connect(lambda i: self._tbl.editItem(i))
+
+        layout = QVBoxLayout(self)
+        layout.addLayout(_setup_btns(self, lambda: IgnoreOverride(["漢字"], "よみ")), 0)
+        layout.addWidget(self._tbl, 1)
+
+    def insert_row(self, r: int, ovrd: IgnoreOverride):
+        self._tbl.setItem(r, 0, QTableWidgetItem("・".join(ovrd.variants)))
+        self._tbl.setItem(r, 1, QTableWidgetItem(ovrd.reading))
 
     def on_change(self, row: int, col: int):
         item = self._tbl.item(row, col)
@@ -129,18 +163,14 @@ class IgnoreOverrideWidget(QWidget):
         else:
             override.reading = txt or None
 
+        print(self._ors)
+
 
 class WordOverrideWidget(QWidget):
     _ors: list[WordOverride]
     _tbl: QTableWidget
 
     def __init__(self, ors: list[WordOverride], parent: QWidget | None = None):
-        def make_cb(ovrd: WordOverride, attr_name: str) -> QCheckBox:
-            cb = QCheckBox(self)
-            cb.setChecked(getattr(ovrd, attr_name))
-            cb.stateChanged.connect(lambda s: setattr(ovrd, attr_name, bool(s)))
-            return cb
-
         super().__init__(parent)
         self._ors = ors
 
@@ -149,15 +179,27 @@ class WordOverrideWidget(QWidget):
                                              "New Variants", "New Reading",
                                              "Pre", "Post"))
         for row, wor in enumerate(ors):
-            self._tbl.setItem(row, 0, QTableWidgetItem("・".join(wor.old_variants)))
-            self._tbl.setItem(row, 1, QTableWidgetItem(wor.old_reading or ""))
-            self._tbl.setItem(row, 2, QTableWidgetItem("・".join(wor.new_variants or [])))
-            self._tbl.setItem(row, 3, QTableWidgetItem(wor.new_reading or ""))
-            self._tbl.setCellWidget(row, 4, make_cb(wor, "pre_lookup"))
-            self._tbl.setCellWidget(row, 5, make_cb(wor, "post_lookup"))
-
+            self.insert_row(row, wor)
         self._tbl.cellChanged.connect(self.on_change)
         self._tbl.itemActivated.connect(lambda i: self._tbl.editItem(i))
+
+        layout = QVBoxLayout(self)
+        layout.addLayout(_setup_btns(self, lambda: WordOverride(["旧"], new_variants=["新"])), 0)
+        layout.addWidget(self._tbl, 1)
+
+    def insert_row(self, r: int, ovrd: WordOverride):
+        def make_cb(attr_name: str) -> QCheckBox:
+            cb = QCheckBox(self)
+            cb.setChecked(getattr(ovrd, attr_name))
+            cb.stateChanged.connect(lambda s: setattr(ovrd, attr_name, bool(s)))
+            return cb
+
+        self._tbl.setItem(r, 0, QTableWidgetItem("・".join(ovrd.old_variants)))
+        self._tbl.setItem(r, 1, QTableWidgetItem(ovrd.old_reading or ""))
+        self._tbl.setItem(r, 2, QTableWidgetItem("・".join(ovrd.new_variants or [])))
+        self._tbl.setItem(r, 3, QTableWidgetItem(ovrd.new_reading or ""))
+        self._tbl.setCellWidget(r, 4, make_cb("pre_lookup"))
+        self._tbl.setCellWidget(r, 5, make_cb("post_lookup"))
 
     def on_change(self, row: int, col: int):
         item = self._tbl.item(row, col)
@@ -197,12 +239,18 @@ class AccentOverrideWidget(QWidget):
         self._tbl = QTableWidget(len(ors), 3, self)
         self._tbl.setHorizontalHeaderLabels(("Variants", "Reading", "Accents"))
         for row, aor in enumerate(ors):
-            self._tbl.setItem(row, 0, QTableWidgetItem("・".join(aor.variants)))
-            self._tbl.setItem(row, 1, QTableWidgetItem(aor.reading))
-            self._tbl.setItem(row, 2, QTableWidgetItem(", ".join(map(str, aor.accents))))
-
+            self.insert_row(row, aor)
         self._tbl.cellChanged.connect(self.on_change)
         self._tbl.itemActivated.connect(lambda i: self._tbl.editItem(i))
+
+        layout = QVBoxLayout(self)
+        layout.addLayout(_setup_btns(self, lambda: AccentOverride(["漢字"], "よみ", [0])), 0)
+        layout.addWidget(self._tbl, 1)
+
+    def insert_row(self, r: int, ovrd: AccentOverride):
+        self._tbl.setItem(r, 0, QTableWidgetItem("・".join(ovrd.variants)))
+        self._tbl.setItem(r, 1, QTableWidgetItem(ovrd.reading))
+        self._tbl.setItem(r, 2, QTableWidgetItem(", ".join(map(str, ovrd.accents))))
 
     def on_change(self, row: int, col: int):
         item = self._tbl.item(row, col)
