@@ -87,8 +87,8 @@ class DefaultOverrideCheckbox(QCheckBox):
 
 
 class PreferencesWidget(QTabWidget):
-    def __init__(self, prefs: Prefs):
-        super().__init__()
+    def __init__(self, prefs: Prefs, parent: QWidget | None = None):
+        super().__init__(parent)
         defaults = Prefs()
 
         conv_wdgt = QWidget(self)
