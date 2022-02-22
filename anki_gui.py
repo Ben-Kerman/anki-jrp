@@ -4,6 +4,8 @@ from typing import Iterable
 from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QLabel, QPushButton, QTabWidget, QVBoxLayout, QWidget
 
 import anki_ui_defs
+import overrides
+from overrides import DefaultOverride
 from preferences import Prefs
 
 
@@ -64,17 +66,55 @@ class Checkbox(QWidget):
         self._cb.setChecked(def_val)
 
 
+class DefaultOverrideCheckbox(QCheckBox):
+    id_set: set[int]
+    override: DefaultOverride
+
+    def __init__(self, id_set: set[int], override: DefaultOverride, parent: QWidget | None = None):
+        super().__init__(override.value.fmt(), parent)
+        self.id_set = id_set
+        self.override = override
+
+        self.setChecked(override.id not in id_set)
+        self.stateChanged.connect(self.state_change)
+
+    def state_change(self, state: int):
+        if state:
+            self.id_set.discard(self.override.id)
+        else:
+            self.id_set.add(self.override.id)
+
+
 class PreferencesWidget(QTabWidget):
     def __init__(self, prefs: Prefs):
         super().__init__()
         defaults = Prefs()
 
-        conv_wdgt = QWidget()
-        conv_lo = QVBoxLayout(conv_wdgt)
+        conv_wdgt = QWidget(self)
+
+        conv_lo = QVBoxLayout()
         for item in anki_ui_defs.conv_checkboxes:
             if type(item) == str:
                 conv_lo.addWidget(QLabel(item, conv_wdgt))
             else:
-                conv_lo.addWidget(Checkbox(item["desc"], prefs, defaults, item["path"], self))
+                conv_lo.addWidget(Checkbox(item["desc"], prefs, defaults, item["path"], conv_wdgt))
         conv_lo.addStretch()
+
+        default_ors = overrides.defaults()
+        dor_lo = QVBoxLayout()
+        dor_lo.addWidget(QLabel("Words ignored by default:", conv_wdgt))
+        for dior in default_ors.ignore:
+            dor_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.ignore, dior, conv_wdgt))
+        dor_lo.addWidget(QLabel("Default word overrides:", conv_wdgt))
+        for dwor in default_ors.word:
+            dor_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.word, dwor, conv_wdgt))
+        dor_lo.addWidget(QLabel("Default accent overrides:", conv_wdgt))
+        for daor in default_ors.accent:
+            dor_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.accent, daor, conv_wdgt))
+        dor_lo.addStretch()
+
+        conv_dor_lo = QHBoxLayout(conv_wdgt)
+        conv_dor_lo.addLayout(conv_lo, 0)
+        conv_dor_lo.addLayout(dor_lo, 1)
+
         self.addTab(conv_wdgt, "Conversion")
