@@ -142,6 +142,7 @@ class IgnoreOverrideWidget(QWidget):
         self._tbl.itemActivated.connect(lambda i: self._tbl.editItem(i))
 
         layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Ignored Words", self))
         layout.addLayout(_setup_btns(self, lambda: IgnoreOverride(["漢字"], "よみ")), 0)
         layout.addWidget(self._tbl, 1)
 
@@ -184,6 +185,7 @@ class WordOverrideWidget(QWidget):
         self._tbl.itemActivated.connect(lambda i: self._tbl.editItem(i))
 
         layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Word Overrides", self))
         layout.addLayout(_setup_btns(self, lambda: WordOverride(["旧"], new_variants=["新"])), 0)
         layout.addWidget(self._tbl, 1)
 
@@ -244,6 +246,7 @@ class AccentOverrideWidget(QWidget):
         self._tbl.itemActivated.connect(lambda i: self._tbl.editItem(i))
 
         layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Accent Overrides", self))
         layout.addLayout(_setup_btns(self, lambda: AccentOverride(["漢字"], "よみ", [0])), 0)
         layout.addWidget(self._tbl, 1)
 
