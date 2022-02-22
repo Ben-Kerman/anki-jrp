@@ -58,7 +58,7 @@ class Checkbox(QWidget):
         self._lo = QHBoxLayout(self)
         self._lo.setContentsMargins(0, 0, 0, 0)
         self._lo.addWidget(self._cb, 1)
-        self._lo.addWidget(self._btn, 0)
+        self._lo.addWidget(self._btn)
 
     def state_change(self, new_state: int):
         new_state = bool(new_state)
@@ -143,7 +143,7 @@ class IgnoreOverrideWidget(QWidget):
 
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("Ignored Words", self))
-        layout.addLayout(_setup_btns(self, lambda: IgnoreOverride(["漢字"], "よみ")), 0)
+        layout.addLayout(_setup_btns(self, lambda: IgnoreOverride(["漢字"], "よみ")))
         layout.addWidget(self._tbl, 1)
 
     def insert_row(self, r: int, ovrd: IgnoreOverride):
@@ -186,7 +186,7 @@ class WordOverrideWidget(QWidget):
 
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("Word Overrides", self))
-        layout.addLayout(_setup_btns(self, lambda: WordOverride(["旧"], new_variants=["新"])), 0)
+        layout.addLayout(_setup_btns(self, lambda: WordOverride(["旧"], new_variants=["新"])))
         layout.addWidget(self._tbl, 1)
 
     def insert_row(self, r: int, ovrd: WordOverride):
@@ -247,7 +247,7 @@ class AccentOverrideWidget(QWidget):
 
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("Accent Overrides", self))
-        layout.addLayout(_setup_btns(self, lambda: AccentOverride(["漢字"], "よみ", [0])), 0)
+        layout.addLayout(_setup_btns(self, lambda: AccentOverride(["漢字"], "よみ", [0])))
         layout.addWidget(self._tbl, 1)
 
     def insert_row(self, r: int, ovrd: AccentOverride):
@@ -309,7 +309,7 @@ class PreferencesWidget(QTabWidget):
         dor_lo.addStretch()
 
         conv_dor_lo = QHBoxLayout(conv_wdgt)
-        conv_dor_lo.addLayout(conv_lo, 0)
+        conv_dor_lo.addLayout(conv_lo)
         conv_dor_lo.addLayout(dor_lo, 1)
 
         self.addTab(conv_wdgt, "Conversion")
