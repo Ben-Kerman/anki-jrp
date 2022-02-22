@@ -96,7 +96,7 @@ T = TypeVar("T")
 
 
 def _split(txt: str, sep: str = "・", conv: Callable[[str], T] = lambda s: s) -> list[T]:
-    return [conv(v.strip()) for v in txt.split(sep)]
+    return [conv(v) for v in (v.strip() for v in txt.split(sep)) if v]
 
 
 def _new(self, new_or) -> None:
