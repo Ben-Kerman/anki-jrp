@@ -1,4 +1,5 @@
 conv_checkboxes = [
+    "General conversion settings",
     {
         "desc": "Prefer adding accents over readings",
         "path": ("convert", "prefer_accent_lookups")
