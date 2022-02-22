@@ -36,19 +36,20 @@ class Checkbox(QWidget):
         self.defaults = defaults
         self.path = path
 
-        self._cb = QCheckBox(label, self)
-        self._cb.stateChanged.connect(self.state_change)
-
         self._btn = QPushButton("Reset", self)
+        sp = self._btn.sizePolicy()
+        sp.setRetainSizeWhenHidden(True)
+        self._btn.setSizePolicy(sp)
         self._btn.clicked.connect(self.reset)
 
-        self._lo = QHBoxLayout(self)
-        self._lo.addWidget(self._cb)
-        self._lo.addWidget(self._btn)
-        self._lo.addStretch()
-
+        self._cb = QCheckBox(label, self)
+        self._cb.stateChanged.connect(self.state_change)
         self._cb.setChecked(_get(defaults, path))
-        self._btn.hide()
+        self.state_change(self._cb.isChecked())
+
+        self._lo = QHBoxLayout(self)
+        self._lo.addWidget(self._cb, 1)
+        self._lo.addWidget(self._btn, 0)
 
     def state_change(self, new_state: int):
         new_state = bool(new_state)
