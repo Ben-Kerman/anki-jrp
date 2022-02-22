@@ -1,8 +1,9 @@
 from collections.abc import Sequence
 from typing import Iterable
 
-from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QPushButton, QTabWidget, QWidget
+from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QLabel, QPushButton, QTabWidget, QVBoxLayout, QWidget
 
+import anki_ui_defs
 from preferences import Prefs
 
 
@@ -39,13 +40,15 @@ class Checkbox(QWidget):
         self._cb.stateChanged.connect(self.state_change)
 
         self._btn = QPushButton("Reset", self)
-        self._btn.hide()
         self._btn.clicked.connect(self.reset)
 
         self._lo = QHBoxLayout(self)
         self._lo.addWidget(self._cb)
         self._lo.addWidget(self._btn)
         self._lo.addStretch()
+
+        self._cb.setChecked(_get(defaults, path))
+        self._btn.hide()
 
     def state_change(self, new_state: int):
         new_state = bool(new_state)
@@ -64,3 +67,13 @@ class PreferencesWidget(QTabWidget):
     def __init__(self, prefs: Prefs):
         super().__init__()
         defaults = Prefs()
+
+        conv_wdgt = QWidget()
+        conv_lo = QVBoxLayout(conv_wdgt)
+        for item in anki_ui_defs.conv_checkboxes:
+            if type(item) == str:
+                conv_lo.addWidget(QLabel(item, conv_wdgt))
+            else:
+                conv_lo.addWidget(Checkbox(item["desc"], prefs, defaults, item["path"], self))
+        conv_lo.addStretch()
+        self.addTab(conv_wdgt, "Conversion")
