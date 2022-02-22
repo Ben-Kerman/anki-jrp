@@ -50,6 +50,7 @@ class Checkbox(QWidget):
         self.state_change(self._cb.isChecked())
 
         self._lo = QHBoxLayout(self)
+        self._lo.setContentsMargins(0, 0, 0, 0)
         self._lo.addWidget(self._cb, 1)
         self._lo.addWidget(self._btn, 0)
 
