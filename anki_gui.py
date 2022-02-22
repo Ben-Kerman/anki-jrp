@@ -1,13 +1,15 @@
-from collections.abc import Sequence
-from typing import Iterable
+from collections.abc import Callable, Sequence
+from typing import Iterable, TypeVar
 
+import aqt.utils
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QLabel, QPushButton, QTabWidget, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QLabel, QPushButton, QTabWidget, QTableWidget, \
+    QTableWidgetItem, QVBoxLayout, QWidget
 
 import anki_ui_defs
 import overrides
 import util
-from overrides import DefaultOverride
+from overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
 from preferences import Prefs
 
 
@@ -88,6 +90,143 @@ class DefaultOverrideCheckbox(QCheckBox):
             self.id_set.discard(self.override.id)
         else:
             self.id_set.add(self.override.id)
+
+
+T = TypeVar("T")
+
+
+def _split(txt: str, sep: str = "・", conv: Callable[[str], T] = lambda s: s) -> list[T]:
+    return [conv(v.strip()) for v in txt.split(sep)]
+
+
+class IgnoreOverrideWidget(QWidget):
+    _ors: list[IgnoreOverride]
+    _tbl: QTableWidget
+
+    def __init__(self, ors: list[IgnoreOverride], parent: QWidget | None = None):
+        super().__init__(parent)
+        self._ors = ors
+
+        self._tbl = QTableWidget(len(ors), 2, self)
+        self._tbl.setHorizontalHeaderLabels(("Variants", "Reading"))
+        for row, ior in enumerate(ors):
+            self._tbl.setItem(row, 0, QTableWidgetItem("・".join(ior.variants)))
+            self._tbl.setItem(row, 1, QTableWidgetItem(ior.reading))
+        self._tbl.cellChanged.connect(self.on_change)
+        self._tbl.itemActivated.connect(lambda i: self._tbl.editItem(i))
+
+    def on_change(self, row: int, col: int):
+        item = self._tbl.item(row, col)
+        override = self._ors[row]
+        txt = item.text().strip()
+
+        if col == 0:
+            if not txt:
+                aqt.utils.showWarning("At least one variant is required")
+                item.setText("・".join(override.variants))
+            else:
+                override.variants = _split(txt)
+        else:
+            override.reading = txt or None
+
+
+class WordOverrideWidget(QWidget):
+    _ors: list[WordOverride]
+    _tbl: QTableWidget
+
+    def __init__(self, ors: list[WordOverride], parent: QWidget | None = None):
+        def make_cb(ovrd: WordOverride, attr_name: str) -> QCheckBox:
+            cb = QCheckBox(self)
+            cb.setChecked(getattr(ovrd, attr_name))
+            cb.stateChanged.connect(lambda s: setattr(ovrd, attr_name, bool(s)))
+            return cb
+
+        super().__init__(parent)
+        self._ors = ors
+
+        self._tbl = QTableWidget(len(ors), 6, self)
+        self._tbl.setHorizontalHeaderLabels(("Old Variants", "Old Reading",
+                                             "New Variants", "New Reading",
+                                             "Pre", "Post"))
+        for row, wor in enumerate(ors):
+            self._tbl.setItem(row, 0, QTableWidgetItem("・".join(wor.old_variants)))
+            self._tbl.setItem(row, 1, QTableWidgetItem(wor.old_reading or ""))
+            self._tbl.setItem(row, 2, QTableWidgetItem("・".join(wor.new_variants or [])))
+            self._tbl.setItem(row, 3, QTableWidgetItem(wor.new_reading or ""))
+            self._tbl.setCellWidget(row, 4, make_cb(wor, "pre_lookup"))
+            self._tbl.setCellWidget(row, 5, make_cb(wor, "post_lookup"))
+
+        self._tbl.cellChanged.connect(self.on_change)
+        self._tbl.itemActivated.connect(lambda i: self._tbl.editItem(i))
+
+    def on_change(self, row: int, col: int):
+        item = self._tbl.item(row, col)
+        override = self._ors[row]
+        txt = item.text().strip()
+
+        if col == 0:
+            if not txt:
+                aqt.utils.showWarning("At least one variant is required")
+                item.setText("・".join(override.old_variants))
+            else:
+                override.old_variants = _split(txt)
+        elif col == 1:
+            override.old_reading = txt or None
+        elif col == 2:
+            if not txt and not override.new_reading:
+                aqt.utils.showWarning("New variants and reading can't both be empty")
+                item.setText("・".join(override.new_variants or []))
+            else:
+                override.new_variants = _split(txt) if txt else None
+        else:
+            if not txt and not override.new_variants:
+                aqt.utils.showWarning("New variants and reading can't both be empty")
+                item.setText(override.new_reading)
+            else:
+                override.new_reading = txt or None
+
+
+class AccentOverrideWidget(QWidget):
+    _ors: list[AccentOverride]
+    _tbl: QTableWidget
+
+    def __init__(self, ors: list[AccentOverride], parent: QWidget | None = None):
+        super().__init__(parent)
+        self._ors = ors
+
+        self._tbl = QTableWidget(len(ors), 3, self)
+        self._tbl.setHorizontalHeaderLabels(("Variants", "Reading", "Accents"))
+        for row, aor in enumerate(ors):
+            self._tbl.setItem(row, 0, QTableWidgetItem("・".join(aor.variants)))
+            self._tbl.setItem(row, 1, QTableWidgetItem(aor.reading))
+            self._tbl.setItem(row, 2, QTableWidgetItem(", ".join(map(str, aor.accents))))
+
+        self._tbl.cellChanged.connect(self.on_change)
+        self._tbl.itemActivated.connect(lambda i: self._tbl.editItem(i))
+
+    def on_change(self, row: int, col: int):
+        item = self._tbl.item(row, col)
+        override = self._ors[row]
+        txt = item.text().strip()
+
+        if col == 0:
+            if not txt:
+                aqt.utils.showWarning("At least one variant is required")
+                item.setText("・".join(override.variants))
+            else:
+                override.variants = _split(txt)
+        elif col == 1:
+            if not txt:
+                aqt.utils.showWarning("Reading is required")
+                item.setText(override.reading)
+            else:
+                override.reading = txt
+        else:
+            if not txt:
+                aqt.utils.showWarning("At least one accent is required")
+                item.setText(", ".join(map(str, override.accents)))
+            else:
+                override.accents = _split(txt, ",", int)
 
 
 class PreferencesWidget(QTabWidget):
