@@ -12,6 +12,9 @@ class IgnoreOverride:
     variants: list[str]
     reading: str | None = None
 
+    def fmt(self) -> str:
+        return f"ignore {self.reading or ''}【{'・'.join(self.variants)}】"
+
     def match(self, variant: str, reading: str | None) -> bool:
         return variant in self.variants and (not self.reading or not reading or comp_kana(reading, self.reading))
 
@@ -24,6 +27,11 @@ class WordOverride:
     new_reading: str | None = None
     pre_lookup: bool = False
     post_lookup: bool = True
+
+    def fmt(self) -> str:
+        old_vars = f"【{'・'.join(self.old_variants)}】" if self.old_variants else ""
+        new_vars = f"【{'・'.join(self.new_variants)}】" if self.new_variants else ""
+        return f"{self.old_reading or ''}{old_vars}→ {self.new_reading or ''}{new_vars}"
 
     def apply(self, variant: str, reading: str | None) -> Generator[tuple[str, str | None]] | None:
         if variant in self.old_variants \
@@ -46,6 +54,9 @@ class AccentOverride:
     variants: list[str]
     reading: str
     accents: list[int]
+
+    def fmt(self) -> str:
+        return f"{self.reading}【{'・'.join(self.variants)}】→ [{']['.join(map(str, self.accents))}]"
 
     def match(self, variant: str, reading: str) -> bool:
         return variant in self.variants and comp_kana(reading, self.reading)
