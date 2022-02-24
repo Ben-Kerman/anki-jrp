@@ -1,15 +1,17 @@
+import re
 from collections.abc import Callable, Sequence
 from typing import Any, Iterable, TypeVar
 
 import aqt.utils
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QCheckBox, QDialog, QFrame, QHBoxLayout, QLabel, QLayout, QPushButton, QTabWidget, \
-    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QColor, QIcon
+from PyQt5.QtWidgets import QCheckBox, QColorDialog, QDialog, QFormLayout, QFrame, QHBoxLayout, QLabel, QLayout, \
+    QLineEdit, QPushButton, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 
 import anki_ui_defs
 import overrides
 import util
+from anki_ui_defs import StyleTypes
 from overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
 from preferences import NoteTypePrefs, Prefs
 
@@ -292,6 +294,41 @@ class AccentOverrideWidget(QWidget):
                 override.accents = _split(txt, ",", int)
 
 
+class ColorWidget(QWidget):
+    _le: QLineEdit
+    _picker: QColorDialog
+
+    value_changed = pyqtSignal(str)
+
+    def __init__(self, init_val: str):
+        super().__init__()
+
+        self._picker = QColorDialog(self)
+        self._picker.colorSelected.connect(lambda qc: self.set_value(qc.name().lower()))
+
+        lo = QHBoxLayout(self)
+        self._le = QLineEdit()
+        self._le.textEdited.connect(lambda txt: self.set_value(txt, True))
+        lo.addWidget(self._le, 1)
+        col_btn = QPushButton("Pick")
+        col_btn.clicked.connect(lambda: self._picker.show())
+        lo.addWidget(col_btn)
+
+        lo.setContentsMargins(0, 0, 0, 0)
+
+        self.set_value(init_val)
+
+    def set_value(self, val: str, from_text: bool = False):
+        if not from_text:
+            self._le.setText(val)
+        if m := re.match(r"#([\da-f]{2})([\da-f]{2})([\da-f]{2})", val.strip(), re.I):
+            qcolor = QColor(int(m.group(1), 16), int(m.group(2), 16), int(m.group(3), 16))
+        else:
+            qcolor = QColor(0xff, 0xff, 0xff)
+        self._picker.setCurrentColor(qcolor)
+        self.value_changed.emit(val.strip())
+
+
 class NoteTypeWidget(QFrame):
     def __init__(self, nt_prefs: NoteTypePrefs, parent: QWidget | None = None):
         super().__init__(parent)
@@ -300,7 +337,24 @@ class NoteTypeWidget(QFrame):
         style_dialog = QDialog(self)
         style_dialog.setWindowTitle("Note Type Style")
         style_dialog.setWindowModality(Qt.ApplicationModal)
-        # TODO
+        style_lo = QFormLayout(style_dialog)
+        style_lo.addRow(QLabel("Values will be inserted into CSS as-is, without any verification"))
+        style_prefs = nt_prefs.style
+        for item in anki_ui_defs.style_widgets:
+            val = getattr(style_prefs, item["name"])
+            lbl = QLabel(f"{item['desc']}:")
+            tt = f"CSS variable: {item['vnme']}"
+            lbl.setToolTip(tt)
+            if item["type"] == StyleTypes.Any:
+                edit_wdgt = QLineEdit(val)
+                edit_wdgt.textEdited.connect(lambda txt: setattr(style_prefs, item["name"], txt.strip()))
+            elif item["type"] == StyleTypes.Color:
+                edit_wdgt = ColorWidget(val)
+                edit_wdgt.value_changed.connect(lambda c: setattr(style_prefs, item["name"], c))
+            else:
+                raise Exception("invalid enum variant in UI definition")
+            edit_wdgt.setToolTip(tt)
+            style_lo.addRow(lbl, edit_wdgt)
 
         top_lo = QHBoxLayout()
         top_lo.addWidget(QLabel(aqt.mw.col.models.get(nt_prefs.nt_id)["name"]), 1)
