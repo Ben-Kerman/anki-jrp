@@ -381,12 +381,15 @@ class NoteTypesWidget(QWidget):
         super().__init__(parent)
         self._lst = nt_pref_list
 
-        self._ntc = NotetypeChooser(mw=aqt.mw, widget=QWidget(),
+        print(aqt.mw.col.models.all_names_and_ids())
+
+        ntc_wdgt = QWidget(self)
+        self._ntc = NotetypeChooser(mw=aqt.mw, widget=ntc_wdgt,
                                     starting_notetype_id=aqt.mw.col.models.all_names_and_ids()[0].id)
         add_btn = QPushButton("Add", self)
         add_btn.clicked.connect(self.add_new)
         add_lo = QHBoxLayout()
-        add_lo.addWidget(self._ntc)
+        add_lo.addWidget(ntc_wdgt)
         add_lo.addWidget(add_btn)
 
         self._lo = QVBoxLayout(self)
