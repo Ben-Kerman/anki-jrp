@@ -9,12 +9,10 @@ from PyQt5.QtWidgets import QCheckBox, QColorDialog, QDialog, QFormLayout, QFram
     QLineEdit, QPushButton, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 from aqt.notetypechooser import NotetypeChooser
 
-import anki_ui_defs
-import overrides
-import util
-from anki_ui_defs import StyleTypes
-from overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
-from preferences import NoteTypePrefs, Prefs
+from . import anki_ui_defs, overrides, util
+from .anki_ui_defs import StyleTypes
+from .overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
+from .preferences import NoteTypePrefs, Prefs
 
 
 def _get(obj, path: Iterable[str]):

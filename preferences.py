@@ -4,9 +4,9 @@ from collections.abc import Generator
 from dataclasses import dataclass, field
 from itertools import chain
 
-import overrides
-from overrides import AccentOverride, IgnoreOverride, WordOverride
-from util import from_json, get_path, to_json
+from . import overrides
+from .overrides import AccentOverride, IgnoreOverride, WordOverride
+from .util import from_json, get_path, to_json
 
 
 @dataclass

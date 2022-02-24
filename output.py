@@ -1,8 +1,8 @@
 from collections.abc import Generator
 
-from normalize import is_hiragana, is_kana, split_moras
-from preferences import OutputPrefs
-from segments import Unit
+from .normalize import is_hiragana, is_kana, split_moras
+from .preferences import OutputPrefs
+from .segments import Unit
 
 
 class OutputError(Exception):

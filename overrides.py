@@ -3,8 +3,8 @@ from collections.abc import Generator
 from dataclasses import dataclass
 from typing import Generic, Type, TypeVar, Union
 
-from normalize import comp_kana
-from util import ConfigError, from_json, get_path
+from .normalize import comp_kana
+from .util import ConfigError, from_json, get_path
 
 
 @dataclass

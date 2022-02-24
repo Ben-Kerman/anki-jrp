@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from subprocess import PIPE, Popen
 
-from normalize import is_kana, to_hiragana
+from .normalize import is_kana, to_hiragana
 
 
 class MecabException(Exception):

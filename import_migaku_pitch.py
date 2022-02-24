@@ -4,8 +4,8 @@ import json
 import lzma
 import sys
 
-from normalize import to_hiragana
-from util import warn
+from .normalize import to_hiragana
+from .util import warn
 
 
 class Entry:

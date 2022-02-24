@@ -4,8 +4,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Generic, TextIO, Type, TypeVar
 
-from normalize import is_kana, to_hiragana
-from util import get_path, warn
+from .normalize import is_kana, to_hiragana
+from .util import get_path, warn
 
 T = TypeVar("T")
 

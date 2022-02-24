@@ -6,8 +6,8 @@ from re import Pattern
 from anki.collection import Collection
 from anki.models import NotetypeDict
 
-import version
-from preferences import AddonPrefs, NoteTypePrefs
+from . import version
+from .preferences import AddonPrefs, NoteTypePrefs
 
 
 def _read_file(*path_comps: str) -> str:

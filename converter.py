@@ -2,11 +2,11 @@ from collections.abc import Callable, Generator
 from dataclasses import dataclass
 from typing import cast
 
-from dictionary import Dictionary, Lookup
-from mecab import HinsiType, Mecab, MecabUnit, ParserUnit
-from normalize import is_kana, to_hiragana
-from preferences import ConvPrefs, JoinPrefs
-from segments import Segment, Unit
+from .dictionary import Dictionary, Lookup
+from .mecab import HinsiType, Mecab, MecabUnit, ParserUnit
+from .normalize import is_kana, to_hiragana
+from .preferences import ConvPrefs, JoinPrefs
+from .segments import Segment, Unit
 
 
 @dataclass
