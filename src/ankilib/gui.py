@@ -442,5 +442,8 @@ class PreferencesWidget(QTabWidget):
         override_lo.addWidget(WordOverrideWidget(prefs.convert.overrides.word, override_wdgt))
         override_lo.addWidget(AccentOverrideWidget(prefs.convert.overrides.accent, override_wdgt))
 
+        nt_wdgt = NoteTypesWidget(prefs.addon.note_types, self)
+
         self.addTab(conv_wdgt, "Conversion")
         self.addTab(override_wdgt, "Overrides")
+        self.addTab(nt_wdgt, "Note Types")
