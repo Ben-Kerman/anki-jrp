@@ -7,6 +7,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QIcon
 from PyQt5.QtWidgets import QCheckBox, QColorDialog, QDialog, QFormLayout, QFrame, QHBoxLayout, QLabel, QLayout, \
     QLineEdit, QPushButton, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+from aqt.notetypechooser import NotetypeChooser
 
 import anki_ui_defs
 import overrides
@@ -373,13 +374,36 @@ class NoteTypeWidget(QFrame):
 
 
 class NoteTypesWidget(QWidget):
+    _ntc: NotetypeChooser
+    _lst: list[NoteTypePrefs]
+    _lo: QVBoxLayout
+
     def __init__(self, nt_pref_list: list[NoteTypePrefs], parent: QWidget | None = None):
         super().__init__(parent)
+        self._lst = nt_pref_list
 
-        lo = QVBoxLayout(self)
+        self._ntc = NotetypeChooser(mw=aqt.mw, widget=QWidget(),
+                                    starting_notetype_id=aqt.mw.col.models.all_names_and_ids()[0].id)
+        add_btn = QPushButton("Add", self)
+        add_btn.clicked.connect(self.add_new)
+        add_lo = QHBoxLayout()
+        add_lo.addWidget(self._ntc)
+        add_lo.addWidget(add_btn)
+
+        self._lo = QVBoxLayout(self)
+        self._lo.addLayout(add_lo)
         for nt_prefs in nt_pref_list:
-            lo.addWidget(NoteTypeWidget(nt_prefs, self))
-        lo.addStretch()
+            self._lo.addWidget(NoteTypeWidget(nt_prefs, self))
+        self._lo.addStretch()
+
+    def add_new(self):
+        nt_id = self._ntc.selected_notetype_id
+        if any(nt_id == p.nt_id for p in self._lst):
+            aqt.utils.showWarning("This note type has already been added.")
+        else:
+            prefs = NoteTypePrefs(nt_id)
+            self._lst.append(prefs)
+            self._lo.insertWidget(self._lo.count() - 1, NoteTypeWidget(prefs, self))
 
 
 class PreferencesWidget(QTabWidget):
