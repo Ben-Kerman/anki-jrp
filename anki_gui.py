@@ -1,9 +1,10 @@
 from collections.abc import Callable, Sequence
-from typing import Iterable, TypeVar
+from typing import Any, Iterable, TypeVar
 
 import aqt.utils
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QLabel, QPushButton, QTabWidget, QTableWidget, \
+from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QLabel, QLayout, QPushButton, QTabWidget, \
+    QTableWidget, \
     QTableWidgetItem, QVBoxLayout, QWidget
 
 import anki_ui_defs
@@ -71,6 +72,17 @@ class Checkbox(QWidget):
     def reset(self):
         def_val = _get(self.defaults, self.path)
         self._cb.setChecked(def_val)
+
+
+def _insert_cbs(defs: list[str | dict], wdgt: QWidget, lo: QLayout, prefs: Any, defaults: Any):
+    for item in defs:
+        if type(item) == str:
+            lo.addWidget(QLabel(item, wdgt))
+        else:
+            cb = Checkbox(item["desc"], prefs, defaults, item["path"], wdgt)
+            if "tool" in item:
+                cb.setToolTip(item["tool"])
+            lo.addWidget(cb)
 
 
 class DefaultOverrideCheckbox(QCheckBox):
@@ -288,11 +300,7 @@ class PreferencesWidget(QTabWidget):
         conv_wdgt = QWidget(self)
 
         conv_lo = QVBoxLayout()
-        for item in anki_ui_defs.conv_checkboxes:
-            if type(item) == str:
-                conv_lo.addWidget(QLabel(item, conv_wdgt))
-            else:
-                conv_lo.addWidget(Checkbox(item["desc"], prefs, defaults, item["path"], conv_wdgt))
+        _insert_cbs(anki_ui_defs.conv_checkboxes, conv_wdgt, conv_lo, prefs, defaults)
         conv_lo.addStretch()
 
         default_ors = overrides.defaults()
