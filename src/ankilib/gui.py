@@ -9,10 +9,11 @@ from PyQt5.QtWidgets import QCheckBox, QColorDialog, QDialog, QFormLayout, QFram
     QLineEdit, QPushButton, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 from aqt.notetypechooser import NotetypeChooser
 
-from . import anki_ui_defs, overrides, util
-from .anki_ui_defs import StyleTypes
-from .overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
-from .preferences import NoteTypePrefs, Prefs
+from . import ui_defs
+from .ui_defs import StyleTypes
+from ..pylib import overrides, util
+from ..pylib.overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
+from ..pylib.preferences import NoteTypePrefs, Prefs
 
 
 def _get(obj, path: Iterable[str]):
@@ -44,7 +45,7 @@ class Checkbox(QWidget):
         self.defaults = defaults
         self.path = path
 
-        self._btn = QPushButton(QIcon(util.get_path("assets", "reset.svg")), "", self)
+        self._btn = QPushButton(QIcon(util.get_path(__file__, "assets", "reset.svg")), "", self)
         self._btn.setFlat(True)
         sp = self._btn.sizePolicy()
         sp.setRetainSizeWhenHidden(True)
@@ -339,7 +340,7 @@ class NoteTypeWidget(QFrame):
         style_lo = QFormLayout(style_dialog)
         style_lo.addRow(QLabel("Values will be inserted into CSS as-is, without any verification"))
         style_prefs = nt_prefs.style
-        for item in anki_ui_defs.style_widgets:
+        for item in ui_defs.style_widgets:
             val = getattr(style_prefs, item["name"])
             lbl = QLabel(f"{item['desc']}:")
             tt = f"CSS variable: {item['vnme']}"
@@ -362,7 +363,7 @@ class NoteTypeWidget(QFrame):
         top_lo.addWidget(style_btn)
 
         bottom_lo = QHBoxLayout()
-        _insert_cbs(anki_ui_defs.nt_checkboxes, self, bottom_lo, nt_prefs, defaults)
+        _insert_cbs(ui_defs.nt_checkboxes, self, bottom_lo, nt_prefs, defaults)
 
         base_lo = QVBoxLayout(self)
         base_lo.addLayout(top_lo)
@@ -412,7 +413,7 @@ class PreferencesWidget(QTabWidget):
         conv_wdgt = QWidget(self)
 
         conv_lo = QVBoxLayout()
-        _insert_cbs(anki_ui_defs.conv_checkboxes, conv_wdgt, conv_lo, prefs, defaults)
+        _insert_cbs(ui_defs.conv_checkboxes, conv_wdgt, conv_lo, prefs, defaults)
         conv_lo.addStretch()
 
         default_ors = overrides.defaults()

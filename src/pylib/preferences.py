@@ -129,7 +129,7 @@ class Prefs:
 
     @classmethod
     def load_from_file(cls) -> "Prefs":
-        path = get_path("user_files", "config.json")
+        path = get_path(__file__, "user_files", "config.json")
         if not os.path.exists(path):
             return cls()
 

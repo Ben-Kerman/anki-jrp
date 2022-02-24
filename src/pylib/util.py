@@ -10,8 +10,8 @@ def warn(*args):
     print(*args, file=sys.stderr)
 
 
-def get_path(*comps: str) -> str:
-    return os.path.join(os.path.dirname(__file__), *comps)
+def get_path(file: str, *comps: str) -> str:
+    return os.path.join(os.path.dirname(file), *comps)
 
 
 @dataclass

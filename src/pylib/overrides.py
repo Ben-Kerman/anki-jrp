@@ -83,7 +83,7 @@ class DefaultOverrides:
 
     @classmethod
     def load(cls):
-        with open(get_path("default_overrides.json")) as fd:
+        with open(get_path(__file__, "default_overrides.json")) as fd:
             obj = json.load(fd)
         ignore = [DefaultOverride.from_json(IgnoreOverride, e) for e in obj["ignore"]]
         word = [DefaultOverride.from_json(WordOverride, e) for e in obj["word"]]
