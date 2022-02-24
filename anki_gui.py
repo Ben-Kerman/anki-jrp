@@ -2,16 +2,16 @@ from collections.abc import Callable, Sequence
 from typing import Any, Iterable, TypeVar
 
 import aqt.utils
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QCheckBox, QHBoxLayout, QLabel, QLayout, QPushButton, QTabWidget, \
-    QTableWidget, \
-    QTableWidgetItem, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QCheckBox, QDialog, QFrame, QHBoxLayout, QLabel, QLayout, QPushButton, QTabWidget, \
+    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 
 import anki_ui_defs
 import overrides
 import util
 from overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
-from preferences import Prefs
+from preferences import NoteTypePrefs, Prefs
 
 
 def _get(obj, path: Iterable[str]):
@@ -290,6 +290,42 @@ class AccentOverrideWidget(QWidget):
                 item.setText(", ".join(map(str, override.accents)))
             else:
                 override.accents = _split(txt, ",", int)
+
+
+class NoteTypeWidget(QFrame):
+    def __init__(self, nt_prefs: NoteTypePrefs, parent: QWidget | None = None):
+        super().__init__(parent)
+        defaults = NoteTypePrefs(0)
+
+        style_dialog = QDialog(self)
+        style_dialog.setWindowTitle("Note Type Style")
+        style_dialog.setWindowModality(Qt.ApplicationModal)
+        # TODO
+
+        top_lo = QHBoxLayout()
+        top_lo.addWidget(QLabel(aqt.mw.col.models.get(nt_prefs.nt_id)["name"]), 1)
+        style_btn = QPushButton("Edit Style", self)
+        style_btn.clicked.connect(lambda: style_dialog.show())
+        top_lo.addWidget(style_btn)
+
+        bottom_lo = QHBoxLayout()
+        _insert_cbs(anki_ui_defs.nt_checkboxes, self, bottom_lo, nt_prefs, defaults)
+
+        base_lo = QVBoxLayout(self)
+        base_lo.addLayout(top_lo)
+        base_lo.addLayout(bottom_lo)
+
+        self.setFrameShape(QFrame.Box)
+
+
+class NoteTypesWidget(QWidget):
+    def __init__(self, nt_pref_list: list[NoteTypePrefs], parent: QWidget | None = None):
+        super().__init__(parent)
+
+        lo = QVBoxLayout(self)
+        for nt_prefs in nt_pref_list:
+            lo.addWidget(NoteTypeWidget(nt_prefs, self))
+        lo.addStretch()
 
 
 class PreferencesWidget(QTabWidget):

@@ -52,3 +52,30 @@ conv_checkboxes = [
         "desc": "Split てる（知って・る）"
     }
 ]
+
+nt_checkboxes = [
+    {
+        "path": ("manage_script",),
+        "desc": "Manage script",
+        "tool": "Automatically insert and update the script "
+                "that converts pitch accent syntax into HTML elements "
+                "into all card templates of this note type"
+    },
+    {
+        "path": ("manage_style",),
+        "desc": "Manage stylesheet",
+        "tool": "Automatically insert and update the configured stylesheet "
+                "into this note type."
+    },
+    {
+        "path": ("use_diamond_indicators",),
+        "desc": "Use diamond accent indicators"
+    },
+    {
+        "path": ("remove_mia_migaku",),
+        "desc": "Remove code managed by MIA/Migaku",
+        "tool": "Attempt to remove any scripts and stylesheets "
+                "from the Migaku (formerly MIA) Japanese addon "
+                "when managed code is inserted or updated"
+    }
+]
