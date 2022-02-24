@@ -53,7 +53,7 @@ class Checkbox(QWidget):
 
         self._cb = QCheckBox(label, self)
         self._cb.stateChanged.connect(self.state_change)
-        self._cb.setChecked(_get(defaults, path))
+        self._cb.setChecked(_get(prefs, path))
         self.state_change(self._cb.isChecked())
 
         self._lo = QHBoxLayout(self)
