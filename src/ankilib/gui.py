@@ -15,6 +15,9 @@ from ..pylib import overrides, util
 from ..pylib.overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
 from ..pylib.preferences import NoteTypePrefs, Prefs, StylePrefs
 
+_DEFAULT_PREFS = Prefs()
+_DEFAULT_NT_PREFS = NoteTypePrefs(0)
+
 
 def _get(obj, path: Iterable[str]):
     val = obj
@@ -335,7 +338,6 @@ class ColorWidget(QWidget):
 class StyleDialog(QDialog):
     def __init__(self, style_prefs: StylePrefs, parent: QWidget | None = None):
         super().__init__(parent)
-        defaults = StylePrefs()
 
         self.setWindowTitle("Note Type Style")
         self.setWindowModality(Qt.ApplicationModal)
@@ -362,7 +364,6 @@ class StyleDialog(QDialog):
 class NoteTypeWidget(QFrame):
     def __init__(self, nt_prefs: NoteTypePrefs, parent: QWidget | None = None):
         super().__init__(parent)
-        defaults = NoteTypePrefs(0)
 
         style_dialog = StyleDialog(nt_prefs.style, self)
 
@@ -373,7 +374,7 @@ class NoteTypeWidget(QFrame):
         top_lo.addWidget(style_btn)
 
         bottom_lo = QHBoxLayout()
-        _insert_cbs(ui_defs.nt_checkboxes, self, bottom_lo, nt_prefs, defaults)
+        _insert_cbs(ui_defs.nt_checkboxes, self, bottom_lo, nt_prefs, _DEFAULT_NT_PREFS)
 
         base_lo = QVBoxLayout(self)
         base_lo.addLayout(top_lo)
@@ -419,12 +420,11 @@ class NoteTypesWidget(QWidget):
 class PreferencesWidget(QTabWidget):
     def __init__(self, prefs: Prefs, parent: QWidget | None = None):
         super().__init__(parent)
-        defaults = Prefs()
 
         conv_wdgt = QWidget(self)
 
         conv_lo = QVBoxLayout()
-        _insert_cbs(ui_defs.conv_checkboxes, conv_wdgt, conv_lo, prefs, defaults)
+        _insert_cbs(ui_defs.conv_checkboxes, conv_wdgt, conv_lo, prefs, _DEFAULT_PREFS)
         conv_lo.addStretch()
 
         default_ors = overrides.defaults()
