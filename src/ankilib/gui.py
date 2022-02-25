@@ -335,30 +335,38 @@ class ColorWidget(QWidget):
         self.value_changed.emit(val.strip())
 
 
+def _add_style_row(prefs: StylePrefs, item: dict, form_lo: QFormLayout):
+    lbl = QLabel(f"{item['desc']}:")
+    tt = f"CSS variable: {item['vnme']}"
+    lbl.setToolTip(tt)
+
+    def set_val(val: str):
+        setattr(prefs, item["name"], val.strip())
+
+    val = getattr(prefs, item["name"])
+    if item["type"] == StyleTypes.Any:
+        edit_wdgt = QLineEdit(val)
+        edit_wdgt.textEdited.connect(set_val)
+    elif item["type"] == StyleTypes.Color:
+        edit_wdgt = ColorWidget(val)
+        edit_wdgt.value_changed.connect(set_val)
+    else:
+        raise Exception("invalid enum variant in UI definition")
+    edit_wdgt.setToolTip(tt)
+
+    form_lo.addRow(lbl, edit_wdgt)
+
+
 class StyleDialog(QDialog):
     def __init__(self, style_prefs: StylePrefs, parent: QWidget | None = None):
         super().__init__(parent)
 
         self.setWindowTitle("Note Type Style")
         self.setWindowModality(Qt.ApplicationModal)
-        style_lo = QFormLayout(self)
-        style_lo.addRow(QLabel("Values will be inserted into CSS as-is, without any verification"))
+        lo = QFormLayout(self)
+        lo.addRow(QLabel("Values will be inserted into CSS as-is, without any verification"))
         for item in ui_defs.style_widgets:
-            val = getattr(style_prefs, item["name"])
-            lbl = QLabel(f"{item['desc']}:")
-            tt = f"CSS variable: {item['vnme']}"
-            lbl.setToolTip(tt)
-
-            if item["type"] == StyleTypes.Any:
-                edit_wdgt = QLineEdit(val)
-                edit_wdgt.textEdited.connect(lambda txt: setattr(style_prefs, item["name"], txt.strip()))
-            elif item["type"] == StyleTypes.Color:
-                edit_wdgt = ColorWidget(val)
-                edit_wdgt.value_changed.connect(lambda c: setattr(style_prefs, item["name"], c))
-            else:
-                raise Exception("invalid enum variant in UI definition")
-            edit_wdgt.setToolTip(tt)
-            style_lo.addRow(lbl, edit_wdgt)
+            _add_style_row(style_prefs, item, lo)
 
 
 class NoteTypeWidget(QFrame):
