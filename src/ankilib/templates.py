@@ -52,7 +52,7 @@ _comment_symbols = {
 }
 
 
-def enclose_code(code: str, css: bool = False) -> str:
+def _enclose_code(code: str, css: bool = False) -> str:
     oc, cc = _comment_symbols["css" if css else "html"]
     return f"{oc} JRP add-on managed section start [version:{0}] {cc}\n" \
            f"{oc} Changing the opening and closing tags in any way will break automatic CSS/JS handling.\n" \
@@ -80,7 +80,7 @@ def update_style(nt: NotetypeDict, use_diamonds: bool, prefs: StylePrefs) -> Not
     def update_css(css: str) -> str | None:
         if sects := _split_managed_section(css, css=True):
             before, after = sects
-            return f"{before}{enclose_code(generate_css(use_diamonds, prefs), css=True)}{after}"
+            return f"{before}{_enclose_code(generate_css(use_diamonds, prefs), css=True)}{after}"
         else:
             return None
 
@@ -96,7 +96,7 @@ def update_script(nt: NotetypeDict) -> NotetypeDict | None:
     def update_js(fmt: str) -> str | None:
         if sects := _split_managed_section(fmt):
             before, after = sects
-            return f"{before}{enclose_code(f'<script>{generate_js()}</script>')}{after}"
+            return f"{before}{_enclose_code(f'<script>{generate_js()}</script>')}{after}"
         else:
             return None
 
@@ -111,7 +111,7 @@ def update_script(nt: NotetypeDict) -> NotetypeDict | None:
     return nt if had_changes else None
 
 
-def update_templates(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
+def update_note_type(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
     had_changes = False
 
     if prefs.remove_mia_migaku:
@@ -130,7 +130,7 @@ def update_templates(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | N
     return nt if had_changes else None
 
 
-def update_notetypes(col: Collection, prefs: AddonPrefs) -> list[str] | None:
+def update_all_note_types(col: Collection, prefs: AddonPrefs) -> list[str] | None:
     warnings: list[str] = []
     for nt_prefs in prefs.note_types:
         nt = col.models.get(nt_prefs.nt_id)
@@ -138,7 +138,7 @@ def update_notetypes(col: Collection, prefs: AddonPrefs) -> list[str] | None:
             warnings.append(f"Unknown note type ID: {nt_prefs.nt_id}")
             continue
 
-        nt = update_templates(nt, nt_prefs)
+        nt = update_note_type(nt, nt_prefs)
         if nt:
             try:
                 col.models.update_dict(nt)
