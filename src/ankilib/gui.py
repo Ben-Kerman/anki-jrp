@@ -183,8 +183,6 @@ class IgnoreOverrideWidget(QWidget):
         else:
             override.reading = txt or None
 
-        print(self._ors)
-
 
 class WordOverrideWidget(QWidget):
     _ors: list[WordOverride]
@@ -385,8 +383,6 @@ class NoteTypesWidget(QWidget):
     def __init__(self, nt_pref_list: list[NoteTypePrefs], parent: QWidget | None = None):
         super().__init__(parent)
         self._lst = nt_pref_list
-
-        print(aqt.mw.col.models.all_names_and_ids())
 
         ntc_wdgt = QWidget(self)
         self._ntc = NotetypeChooser(mw=aqt.mw, widget=ntc_wdgt,
