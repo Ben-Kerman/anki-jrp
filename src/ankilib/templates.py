@@ -61,14 +61,14 @@ def _enclose_code(code: str, css: bool = False) -> str:
            f"{oc} JRP add-on managed section end {cc}"
 
 
-def _split_managed_section(value: str, css: bool = False) -> tuple[str, str] | None:
+def _split_managed_section(value: str, css: bool = False, force_update: bool = False) -> tuple[str, str] | None:
     def tag_re(end: bool = False) -> Pattern:
         oc, cc = [re.escape(c) for c in _comment_symbols["css" if css else "html"]]
         tag_pat = "end" if end else r"start \[version:(\d+)]"
         return re.compile(rf"^[^\S\r\n]*{oc} JRP add-on managed section {tag_pat} {cc}[^\S\r\n]*$", re.M)
 
     if start_m := tag_re().search(value):
-        if int(start_m.group(1)) == (version.css if css else version.js):
+        if not force_update and int(start_m.group(1)) == (version.css if css else version.js):
             return None
         if end_m := tag_re(end=True).search(value, start_m.end()):
             return value[:start_m.start()], value[end_m.end():]
@@ -76,9 +76,9 @@ def _split_managed_section(value: str, css: bool = False) -> tuple[str, str] | N
     return f"{value.rstrip()}\n\n", ""
 
 
-def update_style(nt: NotetypeDict, use_diamonds: bool, prefs: StylePrefs) -> NotetypeDict | None:
+def update_style(nt: NotetypeDict, use_diamonds: bool, prefs: StylePrefs, force: bool = False) -> NotetypeDict | None:
     def update_css(css: str) -> str | None:
-        if sects := _split_managed_section(css, css=True):
+        if sects := _split_managed_section(css, css=True, force_update=force):
             before, after = sects
             return f"{before}{_enclose_code(generate_css(use_diamonds, prefs), css=True)}{after}"
         else:
@@ -92,9 +92,9 @@ def update_style(nt: NotetypeDict, use_diamonds: bool, prefs: StylePrefs) -> Not
         return None
 
 
-def update_script(nt: NotetypeDict) -> NotetypeDict | None:
+def update_script(nt: NotetypeDict, force: bool = False) -> NotetypeDict | None:
     def update_js(fmt: str) -> str | None:
-        if sects := _split_managed_section(fmt):
+        if sects := _split_managed_section(fmt, force_update=force):
             before, after = sects
             return f"{before}{_enclose_code(f'<script>{generate_js()}</script>')}{after}"
         else:
