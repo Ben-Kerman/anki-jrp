@@ -7,7 +7,7 @@ from anki.collection import Collection
 from anki.models import NotetypeDict
 
 from ..pylib import version
-from ..pylib.preferences import AddonPrefs, NoteTypePrefs
+from ..pylib.preferences import AddonPrefs, NoteTypePrefs, StylePrefs
 
 
 def _read_file(*path_comps: str) -> str:
@@ -19,12 +19,12 @@ def _compress_spaces(data: str) -> str:
     return " ".join(line for line in (raw_line.strip() for raw_line in data.splitlines()) if line)
 
 
-def generate_css(p: NoteTypePrefs) -> str:
+def generate_css(use_diamonds: bool, prefs: StylePrefs) -> str:
     filenames = (("variables", "fmt"), ("unit", "css"), ("pattern", "css"),
-                 ("indicator-diamond" if p.use_diamond_indicators else "indicator-bar", "css"),
+                 ("indicator-diamond" if use_diamonds else "indicator-bar", "css"),
                  ("graph", "css"))
     stylesheets: dict[str, str] = {name: _read_file("..", "style", f"{name}.{ext}") for name, ext in filenames}
-    stylesheets["variables"] = stylesheets["variables"].format(**dataclasses.asdict(p.style))
+    stylesheets["variables"] = stylesheets["variables"].format(**dataclasses.asdict(prefs))
     return _compress_spaces("".join(stylesheets[fn] for fn, _ in filenames))
 
 
@@ -73,13 +73,11 @@ def _split_managed_section(value: str, css: bool = False) -> tuple[str, str] | N
     return f"{value.rstrip()}\n\n", ""
 
 
-def update_style(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
+def update_style(nt: NotetypeDict, use_diamonds: bool, prefs: StylePrefs) -> NotetypeDict | None:
     def update_css(css: str) -> str | None:
-        if prefs.remove_mia_migaku:
-            css = _remove_mia_migaku(css, css=True)
         if sects := _split_managed_section(css, css=True):
             before, after = sects
-            return f"{before}{enclose_code(generate_css(prefs), css=True)}{after}"
+            return f"{before}{enclose_code(generate_css(use_diamonds, prefs), css=True)}{after}"
         else:
             return None
 
@@ -91,10 +89,8 @@ def update_style(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
         return None
 
 
-def update_script(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
+def update_script(nt: NotetypeDict) -> NotetypeDict | None:
     def update_js(fmt: str) -> str | None:
-        if prefs.remove_mia_migaku:
-            fmt = _remove_mia_migaku(fmt)
         if sects := _split_managed_section(fmt):
             before, after = sects
             return f"{before}{enclose_code(f'<script>{generate_js()}</script>')}{after}"
@@ -114,13 +110,20 @@ def update_script(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None
 
 def update_templates(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
     had_changes = False
+
+    if prefs.remove_mia_migaku:
+        nt["css"] = _remove_mia_migaku(nt["css"], css=True)
+        for tpl in nt["tmpls"]:
+            for fmt_name in ("qfmt", "afmt"):
+                tpl[fmt_name] = _remove_mia_migaku(tpl[fmt_name])
+
     if prefs.manage_style:
-        if with_style := update_style(nt, prefs):
+        if with_style := update_style(nt, prefs.use_diamond_indicators, prefs.style):
             had_changes = True
             nt = with_style
 
     if prefs.manage_script:
-        if with_script := update_script(nt, prefs):
+        if with_script := update_script(nt):
             had_changes = True
             nt = with_script
 
