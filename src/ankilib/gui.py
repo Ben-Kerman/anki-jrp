@@ -368,6 +368,13 @@ class NoteTypesWidget(QWidget):
             self._lst.append(prefs)
             self._lo.insertWidget(self._lo.count() - 1, NoteTypeWidget(prefs, self))
 
+    def remove(self, wdgt: "NoteTypeWidget", prefs: NoteTypePrefs):
+        if aqt.utils.askUser("Are you sure you want to delete the addon-specific config"
+                             f"for {aqt.mw.col.models.get(prefs.nt_id)['name']}?"):
+            self._lst.remove(prefs)
+            wdgt.hide()
+            self._lo.removeWidget(wdgt)
+
 
 def _add_style_row(prefs: StylePrefs, item: dict, form_lo: QFormLayout):
     lbl = QLabel(f"{item['desc']}:")
@@ -433,6 +440,9 @@ class NoteTypeWidget(QFrame):
         style_dialog = StyleDialog(nt_prefs.style, self)
 
         top_lo = QHBoxLayout()
+        delete_btn = QPushButton("Delete", self)
+        delete_btn.clicked.connect(lambda: parent.remove(self, nt_prefs))
+        top_lo.addWidget(delete_btn)
         top_lo.addWidget(QLabel(aqt.mw.col.models.get(nt_prefs.nt_id)["name"]), 1)
         style_btn = QPushButton("Edit Style", self)
         style_btn.clicked.connect(lambda: style_dialog.show())
