@@ -340,8 +340,15 @@ def _add_style_row(prefs: StylePrefs, item: dict, form_lo: QFormLayout):
     tt = f"CSS variable: {item['vnme']}"
     lbl.setToolTip(tt)
 
-    def set_val(val: str):
-        setattr(prefs, item["name"], val.strip())
+    def update_reset_btn(new_val: str):
+        if new_val == getattr(_DEFAULT_NT_PREFS.style, item["name"]):
+            reset_btn.hide()
+        else:
+            reset_btn.show()
+
+    def set_val(new_val: str):
+        setattr(prefs, item["name"], new_val.strip())
+        update_reset_btn(new_val)
 
     val = getattr(prefs, item["name"])
     if item["type"] == StyleTypes.Any:
@@ -364,6 +371,7 @@ def _add_style_row(prefs: StylePrefs, item: dict, form_lo: QFormLayout):
 
     reset_btn = ResetButton()
     reset_btn.clicked.connect(reset_val)
+    update_reset_btn(val)
 
     edit_lo = QHBoxLayout()
     edit_lo.addWidget(reset_btn)
