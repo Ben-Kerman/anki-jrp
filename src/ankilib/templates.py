@@ -73,7 +73,7 @@ def _split_managed_section(value: str, css: bool = False) -> tuple[str, str] | N
     return f"{value.rstrip()}\n\n", ""
 
 
-def update_templates(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
+def update_style(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
     def update_css(css: str) -> str | None:
         if prefs.remove_mia_migaku:
             css = _remove_mia_migaku(css, css=True)
@@ -83,6 +83,15 @@ def update_templates(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | N
         else:
             return None
 
+    new_css = update_css(nt["css"])
+    if new_css:
+        nt["css"] = new_css
+        return nt
+    else:
+        return None
+
+
+def update_script(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
     def update_js(fmt: str) -> str | None:
         if prefs.remove_mia_migaku:
             fmt = _remove_mia_migaku(fmt)
@@ -93,25 +102,29 @@ def update_templates(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | N
             return None
 
     had_changes = False
+    for tpl in nt["tmpls"]:
+        for fmt_name in ("qfmt", "afmt"):
+            new_fmt = update_js(tpl[fmt_name])
+            if new_fmt:
+                had_changes = True
+                tpl[fmt_name] = new_fmt
 
+    return nt if had_changes else None
+
+
+def update_templates(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
+    had_changes = False
     if prefs.manage_style:
-        new_css = update_css(nt["css"])
-        if new_css:
+        if with_style := update_style(nt, prefs):
             had_changes = True
-            nt["css"] = new_css
+            nt = with_style
 
     if prefs.manage_script:
-        for tpl in nt["tmpls"]:
-            for fmt_name in ("qfmt", "afmt"):
-                new_fmt = update_js(tpl[fmt_name])
-                if new_fmt:
-                    had_changes = True
-                    tpl[fmt_name] = new_fmt
+        if with_script := update_script(nt, prefs):
+            had_changes = True
+            nt = with_script
 
-    if had_changes:
-        return nt
-    else:
-        return None
+    return nt if had_changes else None
 
 
 def update_notetypes(col: Collection, prefs: AddonPrefs) -> None:
