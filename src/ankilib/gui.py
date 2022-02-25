@@ -335,6 +335,40 @@ class ColorWidget(QWidget):
         self.value_changed.emit(val.strip())
 
 
+class NoteTypesWidget(QWidget):
+    _ntc: NotetypeChooser
+    _lst: list[NoteTypePrefs]
+    _lo: QVBoxLayout
+
+    def __init__(self, nt_pref_list: list[NoteTypePrefs], parent: QWidget | None = None):
+        super().__init__(parent)
+        self._lst = nt_pref_list
+
+        ntc_wdgt = QWidget(self)
+        self._ntc = NotetypeChooser(mw=aqt.mw, widget=ntc_wdgt,
+                                    starting_notetype_id=aqt.mw.col.models.all_names_and_ids()[0].id)
+        add_btn = QPushButton("Add", self)
+        add_btn.clicked.connect(self.add_new)
+        add_lo = QHBoxLayout()
+        add_lo.addWidget(ntc_wdgt)
+        add_lo.addWidget(add_btn)
+
+        self._lo = QVBoxLayout(self)
+        self._lo.addLayout(add_lo)
+        for nt_prefs in nt_pref_list:
+            self._lo.addWidget(NoteTypeWidget(nt_prefs, self))
+        self._lo.addStretch()
+
+    def add_new(self):
+        nt_id = self._ntc.selected_notetype_id
+        if any(nt_id == p.nt_id for p in self._lst):
+            aqt.utils.showWarning("This note type has already been added.")
+        else:
+            prefs = NoteTypePrefs(nt_id)
+            self._lst.append(prefs)
+            self._lo.insertWidget(self._lo.count() - 1, NoteTypeWidget(prefs, self))
+
+
 def _add_style_row(prefs: StylePrefs, item: dict, form_lo: QFormLayout):
     lbl = QLabel(f"{item['desc']}:")
     tt = f"CSS variable: {item['vnme']}"
@@ -393,7 +427,7 @@ class StyleDialog(QDialog):
 
 
 class NoteTypeWidget(QFrame):
-    def __init__(self, nt_prefs: NoteTypePrefs, parent: QWidget | None = None):
+    def __init__(self, nt_prefs: NoteTypePrefs, parent: NoteTypesWidget):
         super().__init__(parent)
 
         style_dialog = StyleDialog(nt_prefs.style, self)
@@ -412,40 +446,6 @@ class NoteTypeWidget(QFrame):
         base_lo.addLayout(bottom_lo)
 
         self.setFrameShape(QFrame.Box)
-
-
-class NoteTypesWidget(QWidget):
-    _ntc: NotetypeChooser
-    _lst: list[NoteTypePrefs]
-    _lo: QVBoxLayout
-
-    def __init__(self, nt_pref_list: list[NoteTypePrefs], parent: QWidget | None = None):
-        super().__init__(parent)
-        self._lst = nt_pref_list
-
-        ntc_wdgt = QWidget(self)
-        self._ntc = NotetypeChooser(mw=aqt.mw, widget=ntc_wdgt,
-                                    starting_notetype_id=aqt.mw.col.models.all_names_and_ids()[0].id)
-        add_btn = QPushButton("Add", self)
-        add_btn.clicked.connect(self.add_new)
-        add_lo = QHBoxLayout()
-        add_lo.addWidget(ntc_wdgt)
-        add_lo.addWidget(add_btn)
-
-        self._lo = QVBoxLayout(self)
-        self._lo.addLayout(add_lo)
-        for nt_prefs in nt_pref_list:
-            self._lo.addWidget(NoteTypeWidget(nt_prefs, self))
-        self._lo.addStretch()
-
-    def add_new(self):
-        nt_id = self._ntc.selected_notetype_id
-        if any(nt_id == p.nt_id for p in self._lst):
-            aqt.utils.showWarning("This note type has already been added.")
-        else:
-            prefs = NoteTypePrefs(nt_id)
-            self._lst.append(prefs)
-            self._lo.insertWidget(self._lo.count() - 1, NoteTypeWidget(prefs, self))
 
 
 class PreferencesWidget(QTabWidget):
