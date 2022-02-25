@@ -39,8 +39,11 @@ _js_re = re.compile(rf"\n*<!--###((?:MIA|MIGAKU) JAPANESE SUPPORT) ((?:(?:KATAKA
                     rf"{_trail_str}-->.*?<!--###\1 \2 ENDS###-->\n*")
 
 
-def _remove_mia_migaku(value: str, css: bool = False) -> str:
-    return (_css_re if css else _js_re).sub("", value)
+def _remove_mia_migaku(nt: NotetypeDict):
+    nt["css"] = _css_re.sub("", nt["css"])
+    for tpl in nt["tmpls"]:
+        for fmt_name in ("qfmt", "afmt"):
+            tpl[fmt_name] = _js_re.sub("", tpl[fmt_name])
 
 
 _comment_symbols = {
@@ -112,10 +115,7 @@ def update_templates(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | N
     had_changes = False
 
     if prefs.remove_mia_migaku:
-        nt["css"] = _remove_mia_migaku(nt["css"], css=True)
-        for tpl in nt["tmpls"]:
-            for fmt_name in ("qfmt", "afmt"):
-                tpl[fmt_name] = _remove_mia_migaku(tpl[fmt_name])
+        _remove_mia_migaku(nt)
 
     if prefs.manage_style:
         if with_style := update_style(nt, prefs.use_diamond_indicators, prefs.style):
