@@ -13,7 +13,7 @@ from . import ui_defs
 from .ui_defs import StyleTypes
 from ..pylib import overrides, util
 from ..pylib.overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
-from ..pylib.preferences import NoteTypePrefs, Prefs
+from ..pylib.preferences import NoteTypePrefs, Prefs, StylePrefs
 
 
 def _get(obj, path: Iterable[str]):
@@ -332,22 +332,21 @@ class ColorWidget(QWidget):
         self.value_changed.emit(val.strip())
 
 
-class NoteTypeWidget(QFrame):
-    def __init__(self, nt_prefs: NoteTypePrefs, parent: QWidget | None = None):
+class StyleDialog(QDialog):
+    def __init__(self, style_prefs: StylePrefs, parent: QWidget | None = None):
         super().__init__(parent)
-        defaults = NoteTypePrefs(0)
+        defaults = StylePrefs()
 
-        style_dialog = QDialog(self)
-        style_dialog.setWindowTitle("Note Type Style")
-        style_dialog.setWindowModality(Qt.ApplicationModal)
-        style_lo = QFormLayout(style_dialog)
+        self.setWindowTitle("Note Type Style")
+        self.setWindowModality(Qt.ApplicationModal)
+        style_lo = QFormLayout(self)
         style_lo.addRow(QLabel("Values will be inserted into CSS as-is, without any verification"))
-        style_prefs = nt_prefs.style
         for item in ui_defs.style_widgets:
             val = getattr(style_prefs, item["name"])
             lbl = QLabel(f"{item['desc']}:")
             tt = f"CSS variable: {item['vnme']}"
             lbl.setToolTip(tt)
+
             if item["type"] == StyleTypes.Any:
                 edit_wdgt = QLineEdit(val)
                 edit_wdgt.textEdited.connect(lambda txt: setattr(style_prefs, item["name"], txt.strip()))
@@ -358,6 +357,14 @@ class NoteTypeWidget(QFrame):
                 raise Exception("invalid enum variant in UI definition")
             edit_wdgt.setToolTip(tt)
             style_lo.addRow(lbl, edit_wdgt)
+
+
+class NoteTypeWidget(QFrame):
+    def __init__(self, nt_prefs: NoteTypePrefs, parent: QWidget | None = None):
+        super().__init__(parent)
+        defaults = NoteTypePrefs(0)
+
+        style_dialog = StyleDialog(nt_prefs.style, self)
 
         top_lo = QHBoxLayout()
         top_lo.addWidget(QLabel(aqt.mw.col.models.get(nt_prefs.nt_id)["name"]), 1)
