@@ -30,6 +30,16 @@ def _set(obj, path: Sequence[str], new_val):
     setattr(val, path[-1], new_val)
 
 
+class ResetButton(QPushButton):
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(QIcon(util.get_path(__file__, "assets", "reset.svg")), "", parent)
+        self.setFlat(True)
+        sp = self.sizePolicy()
+        sp.setRetainSizeWhenHidden(True)
+        self.setSizePolicy(sp)
+        self.setToolTip("Reset to default")
+
+
 class Checkbox(QWidget):
     prefs: Prefs
     defaults: Prefs
@@ -45,12 +55,7 @@ class Checkbox(QWidget):
         self.defaults = defaults
         self.path = path
 
-        self._btn = QPushButton(QIcon(util.get_path(__file__, "assets", "reset.svg")), "", self)
-        self._btn.setFlat(True)
-        sp = self._btn.sizePolicy()
-        sp.setRetainSizeWhenHidden(True)
-        self._btn.setSizePolicy(sp)
-        self._btn.setToolTip("Reset to default")
+        self._btn = ResetButton(self)
         self._btn.clicked.connect(self.reset)
 
         self._cb = QCheckBox(label, self)
