@@ -369,8 +369,9 @@ class NoteTypesWidget(QWidget):
             self._lo.insertWidget(self._lo.count() - 1, NoteTypeWidget(prefs, self))
 
     def remove(self, wdgt: "NoteTypeWidget", prefs: NoteTypePrefs):
-        if aqt.utils.askUser("Are you sure you want to delete the addon-specific config"
-                             f"for {aqt.mw.col.models.get(prefs.nt_id)['name']}?"):
+        nt_dict = aqt.mw.col.models.get(prefs.nt_id)
+        nt_name = f"'{nt_dict['name']}'" if nt_dict else "this unknown note type"
+        if aqt.utils.askUser(f"Are you sure you want to delete the addon-specific config for {nt_name}?"):
             self._lst.remove(prefs)
             wdgt.hide()
             self._lo.removeWidget(wdgt)
@@ -443,7 +444,16 @@ class NoteTypeWidget(QFrame):
         delete_btn = QPushButton("Delete", self)
         delete_btn.clicked.connect(lambda: parent.remove(self, nt_prefs))
         top_lo.addWidget(delete_btn)
-        top_lo.addWidget(QLabel(aqt.mw.col.models.get(nt_prefs.nt_id)["name"]), 1)
+        nt_dict = aqt.mw.col.models.get(nt_prefs.nt_id)
+        if nt_dict:
+            lbl = QLabel(nt_dict["name"], self)
+        else:
+            lbl = QLabel("<i>Unknown note type</i>", self)
+            lbl.setToolTip("This note type was probably deleted through the Anki interface "
+                           "and it should also be safe to delete here.\n"
+                           "If necessary, you can recover it by manually editing your config file "
+                           "and changing the note type ID to an existing value.")
+        top_lo.addWidget(lbl, 1)
         style_btn = QPushButton("Edit Style", self)
         style_btn.clicked.connect(lambda: style_dialog.show())
         top_lo.addWidget(style_btn)
