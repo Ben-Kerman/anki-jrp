@@ -1,5 +1,6 @@
 import re
 from collections.abc import Callable, Sequence
+from enum import Enum, auto
 from typing import Any, Iterable, TypeVar
 
 import aqt.utils
@@ -10,6 +11,7 @@ from PyQt5.QtWidgets import QCheckBox, QColorDialog, QDialog, QFormLayout, QFram
 from aqt.notetypechooser import NotetypeChooser
 
 from . import ui_defs
+from .templates import remove_mia_migaku, update_script, update_style
 from .ui_defs import StyleTypes
 from ..pylib import overrides, util
 from ..pylib.overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
@@ -454,6 +456,49 @@ class NoteTypeWidget(QFrame):
                            "If necessary, you can recover it by manually editing your config file "
                            "and changing the note type ID to an existing value.")
         top_lo.addWidget(lbl, 1)
+
+        class UpdateType(Enum):
+            REMOVE_MI = auto()
+            SCRIPT = auto()
+            STYLE = auto()
+
+        def update(what: UpdateType):
+            nt = aqt.mw.col.models.get(nt_prefs.nt_id)
+            if not nt:
+                aqt.utils.showWarning(f"Could not find note type in collection")
+                return
+
+            if what == UpdateType.STYLE:
+                update_style(nt, nt_prefs.use_diamond_indicators, nt_prefs.style, force=True)
+            elif what == UpdateType.SCRIPT:
+                update_script(nt, force=True)
+            elif what == UpdateType.REMOVE_MI:
+                remove_mia_migaku(nt)
+
+            try:
+                aqt.mw.col.models.update_dict(nt)
+            except Exception as e:
+                aqt.utils.showWarning(f"Updating the note type failed:\n{e}")
+
+        remove_mi_btn = QPushButton("Remove MIA/Migaku", self)
+        remove_mi_btn.setToolTip("Remove any CSS or JavaScript managed by the Migaku (formerly MIA) Japanese add-on\n"
+                                 "from this note type's styling and templates")
+        remove_mi_btn.clicked.connect(lambda: update(UpdateType.REMOVE_MI))
+        top_lo.addWidget(remove_mi_btn)
+
+        tt_shared = " regardless of the checkboxes below, adding it if it isn't present.\n" \
+                    "Will overwrite any manual changes to the managed section immediately."
+
+        script_btn = QPushButton("Update Script", self)
+        script_btn.setToolTip("Update the script" + tt_shared)
+        script_btn.clicked.connect(lambda: update(UpdateType.SCRIPT))
+        top_lo.addWidget(script_btn)
+
+        style_btn = QPushButton("Update Style", self)
+        style_btn.setToolTip("Update the style according to the current (unsaved) preferences" + tt_shared)
+        style_btn.clicked.connect(lambda: update(UpdateType.STYLE))
+        top_lo.addWidget(style_btn)
+
         style_btn = QPushButton("Edit Style", self)
         style_btn.clicked.connect(lambda: style_dialog.show())
         top_lo.addWidget(style_btn)

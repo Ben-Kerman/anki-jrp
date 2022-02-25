@@ -39,7 +39,7 @@ _js_re = re.compile(rf"\n*<!--###((?:MIA|MIGAKU) JAPANESE SUPPORT) ((?:(?:KATAKA
                     rf"{_trail_str}-->.*?<!--###\1 \2 ENDS###-->\n*")
 
 
-def _remove_mia_migaku(nt: NotetypeDict):
+def remove_mia_migaku(nt: NotetypeDict):
     nt["css"] = _css_re.sub("", nt["css"])
     for tpl in nt["tmpls"]:
         for fmt_name in ("qfmt", "afmt"):
@@ -115,7 +115,7 @@ def update_note_type(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | N
     had_changes = False
 
     if prefs.remove_mia_migaku:
-        _remove_mia_migaku(nt)
+        remove_mia_migaku(nt)
 
     if prefs.manage_style:
         if with_style := update_style(nt, prefs.use_diamond_indicators, prefs.style):
@@ -143,7 +143,7 @@ def update_all_note_types(col: Collection, prefs: AddonPrefs) -> list[str] | Non
             try:
                 col.models.update_dict(nt)
             except Exception as e:
-                warnings.append(f"Failed to update note type with ID {nt_prefs.nt_id}")
+                warnings.append(f"Failed to update note type with ID {nt_prefs.nt_id}:\n{e}")
                 pass
 
     return warnings or None
