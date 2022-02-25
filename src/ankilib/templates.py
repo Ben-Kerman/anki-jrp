@@ -127,11 +127,12 @@ def update_templates(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | N
     return nt if had_changes else None
 
 
-def update_notetypes(col: Collection, prefs: AddonPrefs) -> None:
+def update_notetypes(col: Collection, prefs: AddonPrefs) -> list[str] | None:
+    warnings: list[str] = []
     for nt_prefs in prefs.note_types:
         nt = col.models.get(nt_prefs.nt_id)
         if not nt:
-            # TODO report error
+            warnings.append(f"Unknown note type ID: {nt_prefs.nt_id}")
             continue
 
         nt = update_templates(nt, nt_prefs)
@@ -139,5 +140,7 @@ def update_notetypes(col: Collection, prefs: AddonPrefs) -> None:
             try:
                 col.models.update_dict(nt)
             except Exception as e:
-                # TODO report error
+                warnings.append(f"Failed to update note type with ID {nt_prefs.nt_id}")
                 pass
+
+    return warnings or None
