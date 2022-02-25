@@ -354,7 +354,22 @@ def _add_style_row(prefs: StylePrefs, item: dict, form_lo: QFormLayout):
         raise Exception("invalid enum variant in UI definition")
     edit_wdgt.setToolTip(tt)
 
-    form_lo.addRow(lbl, edit_wdgt)
+    def reset_val():
+        default_val = getattr(_DEFAULT_NT_PREFS.style, item["name"])
+        set_val(default_val)
+        if isinstance(edit_wdgt, ColorWidget):
+            edit_wdgt.set_value(default_val)
+        else:
+            edit_wdgt.setText(default_val)
+
+    reset_btn = ResetButton()
+    reset_btn.clicked.connect(reset_val)
+
+    edit_lo = QHBoxLayout()
+    edit_lo.addWidget(reset_btn)
+    edit_lo.addWidget(edit_wdgt)
+
+    form_lo.addRow(lbl, edit_lo)
 
 
 class StyleDialog(QDialog):
