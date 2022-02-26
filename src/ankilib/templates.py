@@ -114,9 +114,6 @@ def update_script(nt: NotetypeDict, force: bool = False) -> NotetypeDict | None:
 def update_note_type(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
     had_changes = False
 
-    if prefs.remove_mia_migaku:
-        remove_mia_migaku(nt)
-
     if prefs.manage_style:
         if with_style := update_style(nt, prefs.use_diamond_indicators, prefs.style):
             had_changes = True

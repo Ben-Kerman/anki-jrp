@@ -72,13 +72,6 @@ nt_checkboxes = [
     {
         "path": ("use_diamond_indicators",),
         "desc": "Use diamond accent indicators"
-    },
-    {
-        "path": ("remove_mia_migaku",),
-        "desc": "Remove code managed by MIA/Migaku",
-        "tool": "Attempt to remove any scripts and stylesheets "
-                "from the Migaku (formerly MIA) Japanese addon "
-                "when managed code is inserted or updated"
     }
 ]
 
