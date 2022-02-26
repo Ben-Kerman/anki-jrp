@@ -440,6 +440,7 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
     edit_lo = QHBoxLayout()
     edit_lo.addWidget(reset_btn)
     edit_lo.addWidget(edit_wdgt)
+    edit_lo.setAlignment(Qt.AlignLeft)
 
     form_lo.addRow(lbl, edit_lo)
 
