@@ -386,7 +386,7 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
         form_lo.addRow(QLabel(item))
         return
 
-    lbl = QLabel(transform('desc', item['desc']), parent)
+    lbl = QLabel(transform("desc", item["desc"]), parent)
     tt = transform("tool", item["tool"])
     lbl.setToolTip(tt)
 
@@ -453,7 +453,7 @@ class StyleDialog(QDialog):
         lo = QFormLayout(self)
         for item in ui_defs.style_defs:
             _add_form_row(self, style_prefs, _DEFAULT_NT_PREFS.style, item, lo,
-                          lambda n, v: f"CSS variable: {v}" if n == "tool" else v)
+                          lambda n, v: f"CSS variable: {v}" if n == "tool" and v.startswith("--") else v)
 
 
 class NoteTypeWidget(QFrame):
@@ -493,7 +493,7 @@ class NoteTypeWidget(QFrame):
                 return
 
             if what == UpdateType.STYLE:
-                update_style(nt, nt_prefs.use_diamond_indicators, nt_prefs.style, force=True)
+                update_style(nt, nt_prefs.style, force=True)
             elif what == UpdateType.SCRIPT:
                 update_script(nt, force=True)
             elif what == UpdateType.REMOVE_MI:

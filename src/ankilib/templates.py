@@ -19,9 +19,9 @@ def _compress_spaces(data: str) -> str:
     return " ".join(line for line in (raw_line.strip() for raw_line in data.splitlines()) if line)
 
 
-def generate_css(use_diamonds: bool, prefs: StylePrefs) -> str:
+def generate_css(prefs: StylePrefs) -> str:
     filenames = (("variables", "fmt"), ("unit", "css"), ("pattern", "css"),
-                 ("indicator-diamond" if use_diamonds else "indicator-bar", "css"),
+                 ("indicator-diamond" if prefs.use_diamond_indicators else "indicator-bar", "css"),
                  ("graph", "css"))
     stylesheets: dict[str, str] = {name: _read_file("..", "style", f"{name}.{ext}") for name, ext in filenames}
     stylesheets["variables"] = stylesheets["variables"].format(**dataclasses.asdict(prefs))
@@ -76,11 +76,11 @@ def _split_managed_section(value: str, css: bool = False, force_update: bool = F
     return f"{value.rstrip()}\n\n", ""
 
 
-def update_style(nt: NotetypeDict, use_diamonds: bool, prefs: StylePrefs, force: bool = False) -> NotetypeDict | None:
+def update_style(nt: NotetypeDict, prefs: StylePrefs, force: bool = False) -> NotetypeDict | None:
     def update_css(css: str) -> str | None:
         if sects := _split_managed_section(css, css=True, force_update=force):
             before, after = sects
-            return f"{before}{_enclose_code(generate_css(use_diamonds, prefs), css=True)}{after}"
+            return f"{before}{_enclose_code(generate_css(prefs), css=True)}{after}"
         else:
             return None
 
@@ -115,7 +115,7 @@ def update_note_type(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | N
     had_changes = False
 
     if prefs.manage_style:
-        if with_style := update_style(nt, prefs.use_diamond_indicators, prefs.style):
+        if with_style := update_style(nt, prefs.style):
             had_changes = True
             nt = with_style
 

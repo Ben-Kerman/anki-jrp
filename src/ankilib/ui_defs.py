@@ -95,16 +95,17 @@ nt_checkboxes = [
         "desc": "Manage stylesheet",
         "tool": "Automatically insert and update the configured stylesheet "
                 "into this note type." + _shared_tt
-    },
-    {
-        "path": ("use_diamond_indicators",),
-        "desc": "Use diamonds",
-        "tool": "Use Migaku-style diamond accent indicators instead of bars."
     }
 ]
 
 style_defs = [
     "Values will be inserted into CSS as-is, without any verification",
+    {
+        "name": "use_diamond_indicators",
+        "desc": "Use diamond indicators",
+        "tool": "Use Migaku-style diamonds as accent indicators instead of bars.",
+        "type": WidgetType.Checkbox
+    },
     {
         "name": "ruby_font_size",
         "desc": "Ruby (furigana) font size",

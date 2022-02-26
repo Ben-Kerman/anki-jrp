@@ -11,6 +11,7 @@ from .util import from_json, get_path, to_json
 
 @dataclass
 class StylePrefs:
+    use_diamond_indicators: bool = False
     ruby_font_size: str = "40%"
     graph_font_size: str = "70%"
     heiban: str = "#7070ff"
@@ -39,7 +40,6 @@ class NoteTypePrefs:
     nt_id: int
     manage_script: bool = True
     manage_style: bool = True
-    use_diamond_indicators: bool = False
     style: StylePrefs = field(default_factory=StylePrefs)
 
 
