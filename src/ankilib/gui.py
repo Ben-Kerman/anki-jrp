@@ -12,7 +12,7 @@ from aqt.notetypechooser import NotetypeChooser
 
 from . import ui_defs
 from .templates import remove_mia_migaku, update_script, update_style
-from .ui_defs import StyleTypes
+from .ui_defs import WidgetType
 from ..pylib import overrides, util
 from ..pylib.overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
 from ..pylib.preferences import NoteTypePrefs, Prefs, StylePrefs
@@ -395,10 +395,10 @@ def _add_style_row(self: "StyleDialog", prefs: StylePrefs, item: dict, form_lo: 
         update_reset_btn(new_val)
 
     val = getattr(prefs, item["name"])
-    if item["type"] == StyleTypes.Any:
+    if item["type"] == WidgetType.Text:
         edit_wdgt = QLineEdit(val, self)
         edit_wdgt.textEdited.connect(set_val)
-    elif item["type"] == StyleTypes.Color:
+    elif item["type"] == WidgetType.Color:
         edit_wdgt = ColorWidget(val, self)
         edit_wdgt.value_changed.connect(set_val)
     else:
