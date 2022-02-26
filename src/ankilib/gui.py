@@ -544,9 +544,13 @@ class PreferencesWidget(QTabWidget):
         _insert_cbs(ui_defs.conv_checkboxes, conv_wdgt, conv_lo, prefs, _DEFAULT_PREFS)
         conv_lo.addStretch()
 
+        output_lo = QFormLayout()
+        for item in ui_defs.output_defs:
+            _add_form_row(self, prefs.output, _DEFAULT_PREFS.output, item, output_lo)
+
         default_ors = overrides.defaults()
         dor_lo = QVBoxLayout()
-        dor_lo.addWidget(QLabel("Words ignored by default:", conv_wdgt))
+        dor_lo.addWidget(QLabel("Default ignored words:", conv_wdgt))
         for dior in default_ors.ignore:
             dor_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.ignore, dior, conv_wdgt))
         dor_lo.addWidget(QLabel("Default word overrides:", conv_wdgt))
@@ -559,6 +563,7 @@ class PreferencesWidget(QTabWidget):
 
         conv_dor_lo = QHBoxLayout(conv_wdgt)
         conv_dor_lo.addLayout(conv_lo)
+        conv_dor_lo.addLayout(output_lo)
         conv_dor_lo.addLayout(dor_lo, 1)
 
         override_wdgt = QWidget(self)

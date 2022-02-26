@@ -63,6 +63,21 @@ conv_checkboxes = [
     }
 ]
 
+output_defs = [
+    {
+        "name": "min_accent_moras",
+        "desc": "Minimum accent moras",
+        "tool": "Never add accent information to hiragana-only words "
+                "with less than this amount of moras.",
+        "type": WidgetType.Number
+    }, {
+        "name": "katakana_min_accent",
+        "desc": "Ignore minimum accent katakana",
+        "tool": "Ignore any kana-only words below the minimum mora count, not just hiragana.",
+        "type": WidgetType.Checkbox
+    },
+]
+
 _shared_tt = "\nUpdates will happen when saving any relevant change to the preferences " \
              "and when opening Anki for the first time after an add-on update."
 
