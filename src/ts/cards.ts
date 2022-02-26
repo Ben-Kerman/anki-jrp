@@ -260,7 +260,7 @@ function parse_migaku_accents(val: string, reading: string): number[] {
 	return tags.map(t => convert(t, moras));
 }
 
-function parse_migaku(val: string): Unit[] {
+function parse_migaku(value: string): Unit[] {
 	enum State {
 		BASE_READING,
 		ACCENTS,
@@ -280,22 +280,38 @@ function parse_migaku(val: string): Unit[] {
 			}
 		}
 
+		read_text(stop: string[]): [string | null, string] {
+			const full_stop = stop.concat(["<"]);
+			const parts: string[] = [];
+			while(true) {
+				const [stop_pos, stop_c, txt] = read_until(this.val, this.pos, full_stop);
+				parts.push(txt);
+				if(stop_c === null || stop.includes(stop_c!)) {
+					this.pos = stop_pos + 1;
+					return [stop_c, parts.join("")];
+				} else {
+					const [tag_end_pos, tag_end_c, tag_cont] = read_until(this.val, stop_pos, [">"]);
+					if(tag_end_c === null) {
+						throw new ParsingError(`Unclosed HTML tag: ${tag_cont}`);
+					} else {
+						this.pos = tag_end_pos + 1;
+						parts.push(tag_cont);
+						parts.push(">");
+					}
+				}
+			}
+		}
+
 		parse_unit(): Unit {
 			let state: State;
 
-			const [prfx_end, prfx_c, prefix] = read_until(this.val, this.pos, ["[", " "]);
-			switch(prfx_c) {
-				case " ":
-				case null:
-					this.pos = prfx_end + 1;
-					return new Unit([new Segment(prefix)]);
-				case "[":
-					this.pos = prfx_end + 1;
-					break;
+			const [prfx_end_c, prefix] = this.read_text(["[", " "]);
+			if(prfx_end_c === " " || prfx_end_c === null) {
+				return new Unit([new Segment(prefix)]);
 			}
 
-			const [rdng_end, rdng_c, prefix_reading] = read_until(this.val, this.pos, [",", ";", "]"]);
-			switch(rdng_c) {
+			const [rdng_end_c, prefix_reading] = this.read_text([",", ";", "]"]);
+			switch(rdng_end_c) {
 				case ",":
 					state = State.BASE_READING;
 					break;
@@ -308,13 +324,12 @@ function parse_migaku(val: string): Unit[] {
 				default:
 					throw new ParsingError(`unclosed Migaku tag: ${this.val}`);
 			}
-			this.pos = rdng_end + 1;
 
 			let base_reading: string = "";
 			if(state === State.BASE_READING) {
-				let bsfm_end: number, bsfm_c: string | null;
-				[bsfm_end, bsfm_c, base_reading] = read_until(this.val, this.pos, [";", "]"]);
-				switch(bsfm_c) {
+				let bsfm_end_c: string | null;
+				[bsfm_end_c, base_reading] = this.read_text([";", "]"]);
+				switch(bsfm_end_c) {
 					case ";":
 						state = State.ACCENTS;
 						break;
@@ -324,7 +339,6 @@ function parse_migaku(val: string): Unit[] {
 					default:
 						throw new ParsingError(`unclosed Migaku tag: ${this.val}`);
 				}
-				this.pos = bsfm_end + 1;
 			}
 
 			let accent_str: string = "";
@@ -343,9 +357,7 @@ function parse_migaku(val: string): Unit[] {
 
 			let suffix: string = "";
 			if(state === State.SUFFIX) {
-				let sufx_end: number;
-				[sufx_end, , suffix] = read_until(this.val, this.pos, [" "]);
-				this.pos = sufx_end + 1;
+				[, suffix] = this.read_text([" "]);
 			}
 
 			// different from Python
@@ -372,7 +384,7 @@ function parse_migaku(val: string): Unit[] {
 		}
 	}
 
-	return new Parser(val).execute();
+	return new Parser(value).execute();
 }
 
 function parse_jrp(value: string): Unit[] {

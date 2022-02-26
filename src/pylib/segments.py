@@ -236,7 +236,7 @@ def _parse_migaku_accents(val: str, reading: str, has_base: bool) -> list[int]:
     return [convert(t, moras, has_base) for t in tags]
 
 
-def parse_migaku(val: str) -> list[Unit]:
+def parse_migaku(value: str) -> list[Unit]:
     class State(Enum):
         BASE_READING = auto()
         ACCENTS = auto()
@@ -255,21 +255,35 @@ def parse_migaku(val: str) -> list[Unit]:
             while self.pos < len(self.val) and self.val[self.pos] == " ":
                 self.pos += 1
 
+        def read_text(self, stop: tuple[str, ...]) -> tuple[str | None, str]:
+            full_stop = stop + ("<",)
+            parts = []
+            while True:
+                stop_pos, stop_c, txt = _read_until(self.val, self.pos, full_stop)
+                parts.append(txt)
+                if not stop_c or stop_c in stop:
+                    self.pos = stop_pos + 1
+                    return stop_c, "".join(parts)
+                else:
+                    tag_end_pos, tag_end_c, tag_cont = _read_until(self.val, stop_pos, (">",))
+                    if not tag_end_c:
+                        raise ParsingError(f"Unclosed HTML tag: {tag_cont}")
+                    else:
+                        self.pos = tag_end_pos + 1
+                        parts.append(tag_cont)
+                        parts.append(">")
+
         def parse_unit(self) -> Unit:
             state: State
             prefix: str
             prefix_reading: str
 
-            prfx_end, prfx_c, prefix = _read_until(self.val, self.pos, ("[", " "))
-            match prfx_c:
-                case " " | None:
-                    self.pos = prfx_end + 1
-                    return Unit([Segment(prefix)])
-                case "[":
-                    self.pos = prfx_end + 1
+            prfx_end_c, prefix = self.read_text(("[", " "))
+            if prfx_end_c == " " or not prfx_end_c:
+                return Unit([Segment(prefix)])
 
-            rdng_end, rdng_c, prefix_reading = _read_until(self.val, self.pos, (",", ";", "]"))
-            match rdng_c:
+            rdng_end_c, prefix_reading = self.read_text((",", ";", "]"))
+            match rdng_end_c:
                 case ",":
                     state = State.BASE_READING
                 case ";":
@@ -278,19 +292,17 @@ def parse_migaku(val: str) -> list[Unit]:
                     state = State.SUFFIX
                 case _:
                     raise ParsingError(f"unclosed Migaku tag: {self.val}")
-            self.pos = rdng_end + 1
 
             base_reading: str = ""
             if state == State.BASE_READING:
-                bsfm_end, bsfm_c, base_reading = _read_until(self.val, self.pos, (";", "]"))
-                match bsfm_c:
+                bsfm_end_c, base_reading = self.read_text((";", "]"))
+                match bsfm_end_c:
                     case ";":
                         state = State.ACCENTS
                     case "]":
                         state = State.SUFFIX
                     case _:
                         raise ParsingError(f"unclosed Migaku tag: {self.val}")
-                self.pos = bsfm_end + 1
 
             accent_str: str = ""
             if state == State.ACCENTS:
@@ -304,8 +316,7 @@ def parse_migaku(val: str) -> list[Unit]:
 
             suffix: str = ""
             if state == State.SUFFIX:
-                sufx_end, _, suffix = _read_until(self.val, self.pos, (" ",))
-                self.pos = sufx_end + 1
+                _, suffix = self.read_text((" ",))
 
             text = prefix + suffix
             reading = prefix_reading + suffix if prefix_reading else None
@@ -319,7 +330,7 @@ def parse_migaku(val: str) -> list[Unit]:
                 units.append(self.parse_unit())
             return units
 
-    return Parser(val).execute()
+    return Parser(value).execute()
 
 
 def parse_jrp(value: str) -> list[Unit]:
