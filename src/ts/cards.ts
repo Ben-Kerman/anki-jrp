@@ -192,14 +192,20 @@ class Unit {
 			}
 		});
 
+		const text_span = document.createElement("span");
+		text_span.append(...segment_nodes);
+
 		const unit_span = document.createElement("span");
 		unit_span.classList.add("jrp-unit");
-		unit_span.append(...segment_nodes);
+		unit_span.append(text_span);
 
 		if(this.accents.length > 0) {
 			const [pat_class, graph, indicators] = generate_accent_nodes(this.reading(), this.accents, this.is_yougen);
 
 			unit_span.classList.add(pat_class);
+			if(this.uncertain) {
+				unit_span.classList.add("jrp-uncertain");
+			}
 			unit_span.append(indicators, graph);
 		}
 		return unit_span;

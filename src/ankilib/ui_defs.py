@@ -141,6 +141,11 @@ style_defs = [
         "tool": "--jrp-nakadaka",
         "type": WidgetType.Color
     }, {
+        "name": "uncertain_opacity",
+        "desc": "Opacity of words with uncertain accent",
+        "tool": "--jrp-uncertain-opacity",
+        "type": WidgetType.Text
+    }, {
         "name": "graph_border_width",
         "desc": "Accent graph border width",
         "tool": "--jrp-graph-border-width",

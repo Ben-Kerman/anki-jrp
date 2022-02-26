@@ -12,3 +12,7 @@
 .jrp-unit rt:hover {
 	user-select: text;
 }
+
+.jrp-unit.jrp-uncertain > span {
+	opacity: var(--jrp-uncertain-opacity);
+}
