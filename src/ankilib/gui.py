@@ -443,8 +443,12 @@ class NoteTypeWidget(QFrame):
         style_dialog = StyleDialog(nt_prefs.style, self)
 
         top_lo = QHBoxLayout()
+
         delete_btn = QPushButton("Delete", self)
+        delete_btn.setToolTip("Deletes the addon-specific preferences for this note type.\n"
+                              "The actual note type will be unaffected.")
         delete_btn.clicked.connect(lambda: parent.remove(self, nt_prefs))
+
         top_lo.addWidget(delete_btn)
         nt_dict = aqt.mw.col.models.get(nt_prefs.nt_id)
         if nt_dict:
@@ -452,9 +456,9 @@ class NoteTypeWidget(QFrame):
         else:
             lbl = QLabel("<i>Unknown note type</i>", self)
             lbl.setToolTip("This note type was probably deleted through the Anki interface "
-                           "and it should also be safe to delete here.\n"
-                           "If necessary, you can recover it by manually editing your config file "
-                           "and changing the note type ID to an existing value.")
+                           "and you should also delete it here.\n"
+                           "You can recover these preferences for another note type by manually editing "
+                           "your config file and changing this entry's ID to an existing one.")
         top_lo.addWidget(lbl, 1)
 
         class UpdateType(Enum):

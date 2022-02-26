@@ -55,23 +55,27 @@ conv_checkboxes = [
     }
 ]
 
+_shared_tt = "\nUpdates will happen when saving any relevant change to the preferences " \
+             "and when opening Anki for the first time after an add-on update."
+
 nt_checkboxes = [
     {
         "path": ("manage_script",),
         "desc": "Manage script",
         "tool": "Automatically insert and update the script "
-                "that converts pitch accent syntax into HTML elements "
-                "into all card templates of this note type"
+                "that converts pitch accent syntax to HTML elements "
+                "into all card templates of this note type." + _shared_tt
     },
     {
         "path": ("manage_style",),
         "desc": "Manage stylesheet",
         "tool": "Automatically insert and update the configured stylesheet "
-                "into this note type."
+                "into this note type." + _shared_tt
     },
     {
         "path": ("use_diamond_indicators",),
-        "desc": "Use diamond accent indicators"
+        "desc": "Use diamonds",
+        "tool": "Use Migaku-style diamond accent indicators instead of bars."
     }
 ]
 
