@@ -88,103 +88,103 @@ nt_checkboxes = [
 style_widgets = [
     {
         "name": "ruby_font_size",
-        "vnme": "--jrp-ruby-font-size",
         "desc": "Ruby (furigana) font size",
+        "tool": "--jrp-ruby-font-size",
         "type": WidgetType.Text
     }, {
         "name": "graph_font_size",
-        "vnme": "--jrp-graph-font-size",
         "desc": "Accent graph font size",
+        "tool": "--jrp-graph-font-size",
         "type": WidgetType.Text
     }, {
         "name": "heiban",
-        "vnme": "--jrp-heiban",
         "desc": "Heiban color",
+        "tool": "--jrp-heiban",
         "type": WidgetType.Color
     }, {
         "name": "kifuku",
-        "vnme": "--jrp-kifuku",
         "desc": "Kifuku color",
+        "tool": "--jrp-kifuku",
         "type": WidgetType.Color
     }, {
         "name": "atamadaka",
-        "vnme": "--jrp-atamadaka",
         "desc": "Atamadaka color",
+        "tool": "--jrp-atamadaka",
         "type": WidgetType.Color
     }, {
         "name": "odaka",
-        "vnme": "--jrp-odaka",
         "desc": "Odaka color",
+        "tool": "--jrp-odaka",
         "type": WidgetType.Color
     }, {
         "name": "nakadaka",
-        "vnme": "--jrp-nakadaka",
         "desc": "Nakadaka color",
+        "tool": "--jrp-nakadaka",
         "type": WidgetType.Color
     }, {
         "name": "graph_border_width",
-        "vnme": "--jrp-graph-border-width",
         "desc": "Accent graph border width",
+        "tool": "--jrp-graph-border-width",
         "type": WidgetType.Text
     }, {
         "name": "graph_border_radius",
-        "vnme": "--jrp-graph-border-radius",
         "desc": "Accent graph border radius",
+        "tool": "--jrp-graph-border-radius",
         "type": WidgetType.Text
     }, {
         "name": "graph_bg_light",
-        "vnme": "--jrp-graph-bg-light",
         "desc": "Graph background color (light mode)",
+        "tool": "--jrp-graph-bg-light",
         "type": WidgetType.Color
     }, {
         "name": "graph_border_light",
-        "vnme": "--jrp-graph-border-light",
         "desc": "Graph border color (light mode)",
+        "tool": "--jrp-graph-border-light",
         "type": WidgetType.Color
     }, {
         "name": "graph_bg_dark",
-        "vnme": "--jrp-graph-bg-dark",
         "desc": "Graph background color (dark mode)",
+        "tool": "--jrp-graph-bg-dark",
         "type": WidgetType.Color
     }, {
         "name": "graph_border_dark",
-        "vnme": "--jrp-graph-border-dark",
         "desc": "Graph border color (dark mode)",
+        "tool": "--jrp-graph-border-dark",
         "type": WidgetType.Color
     }, {
         "name": "indicator_bar_width",
-        "vnme": "--jrp-indicator-bar-width",
         "desc": "Accent indicator bar width",
+        "tool": "--jrp-indicator-bar-width",
         "type": WidgetType.Text
     }, {
         "name": "indicator_bar_radius",
-        "vnme": "--jrp-indicator-bar-radius",
         "desc": "Accent indicator bar border radius",
+        "tool": "--jrp-indicator-bar-radius",
         "type": WidgetType.Text
     }, {
         "name": "indicator_bar_gap",
-        "vnme": "--jrp-indicator-bar-gap",
         "desc": "Gap between accent indicator bars",
+        "tool": "--jrp-indicator-bar-gap",
         "type": WidgetType.Text
     }, {
         "name": "indicator_bar_margin",
-        "vnme": "--jrp-indicator-bar-margin",
         "desc": "Margin at the side of indicator bars",
+        "tool": "--jrp-indicator-bar-margin",
         "type": WidgetType.Text
     }, {
         "name": "indicator_bar_offset",
-        "vnme": "--jrp-indicator-bar-offset",
         "desc": "Offset of bars in horizontal text (横書き)",
+        "tool": "--jrp-indicator-bar-offset",
         "type": WidgetType.Text
     }, {
         "name": "indicator_bar_offset_vert",
-        "vnme": "--jrp-indicator-bar-offset-vert",
         "desc": "Offset of bars in vertical text (縦書き)",
+        "tool": "--jrp-indicator-bar-offset-vert",
         "type": WidgetType.Text
     }, {
         "name": "indicator_diamond_size",
-        "vnme": "--jrp-indicator-diamond-size",
         "desc": "Size of accent indicator diamonds",
+        "tool": "--jrp-indicator-diamond-size",
         "type": WidgetType.Text
     }
 ]

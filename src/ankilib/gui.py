@@ -379,13 +379,15 @@ class NoteTypesWidget(QWidget):
             self._lo.removeWidget(wdgt)
 
 
-def _add_style_row(self: "StyleDialog", prefs: StylePrefs, item: dict, form_lo: QFormLayout):
-    lbl = QLabel(f"{item['desc']}:", self)
-    tt = f"CSS variable: {item['vnme']}"
+def _add_form_row(parent: QWidget, prefs: T, defaults: T,
+                  item: dict, form_lo: QFormLayout,
+                  transform: Callable[[str, str], str] = lambda _, v: v):
+    lbl = QLabel(f"{transform('desc', item['desc'])}:", parent)
+    tt = transform("tool", item["tool"])
     lbl.setToolTip(tt)
 
     def update_reset_btn(new_val: str):
-        if new_val == getattr(_DEFAULT_NT_PREFS.style, item["name"]):
+        if new_val == getattr(defaults, item["name"]):
             reset_btn.hide()
         else:
             reset_btn.show()
@@ -396,24 +398,26 @@ def _add_style_row(self: "StyleDialog", prefs: StylePrefs, item: dict, form_lo: 
 
     val = getattr(prefs, item["name"])
     if item["type"] == WidgetType.Text:
-        edit_wdgt = QLineEdit(val, self)
+        edit_wdgt = QLineEdit(val, parent)
         edit_wdgt.textEdited.connect(set_val)
     elif item["type"] == WidgetType.Color:
-        edit_wdgt = ColorWidget(val, self)
+        edit_wdgt = ColorWidget(val, parent)
         edit_wdgt.value_changed.connect(set_val)
     else:
         raise Exception("invalid enum variant in UI definition")
     edit_wdgt.setToolTip(tt)
 
     def reset_val():
-        default_val = getattr(_DEFAULT_NT_PREFS.style, item["name"])
+        default_val = getattr(defaults, item["name"])
         set_val(default_val)
-        if isinstance(edit_wdgt, ColorWidget):
+        if item["type"] == WidgetType.Color:
             edit_wdgt.set_value(default_val)
-        else:
+        elif item["type"] == WidgetType.Text:
             edit_wdgt.setText(default_val)
+        else:
+            raise Exception("invalid enum variant in UI definition")
 
-    reset_btn = ResetButton(self)
+    reset_btn = ResetButton(parent)
     reset_btn.clicked.connect(reset_val)
     update_reset_btn(val)
 
@@ -433,7 +437,8 @@ class StyleDialog(QDialog):
         lo = QFormLayout(self)
         lo.addRow(QLabel("Values will be inserted into CSS as-is, without any verification"))
         for item in ui_defs.style_widgets:
-            _add_style_row(self, style_prefs, item, lo)
+            _add_form_row(self, style_prefs, _DEFAULT_NT_PREFS.style, item, lo,
+                          lambda n, v: f"CSS variable: {v}" if n == "tool" else v)
 
 
 class NoteTypeWidget(QFrame):
