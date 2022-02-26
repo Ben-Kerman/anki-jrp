@@ -177,7 +177,7 @@ class Unit {
 		} else return this.base_reading;
 	}
 
-	generate_dom_node(): Node {
+	generate_dom_nodes(bare_empty: boolean = false): Node[] {
 		const segment_nodes: Node[] = this.segments.flatMap(s => {
 			if(s.reading === null) {
 				return parseHtml(s.text);
@@ -191,6 +191,10 @@ class Unit {
 				return [ruby];
 			}
 		});
+
+		if(bare_empty && this.accents.length == 0) {
+			return segment_nodes;
+		}
 
 		const text_span = document.createElement("span");
 		text_span.append(...segment_nodes);
@@ -208,7 +212,7 @@ class Unit {
 			}
 			unit_span.append(indicators, graph);
 		}
-		return unit_span;
+		return [unit_span];
 	}
 }
 
@@ -550,8 +554,10 @@ function generate() {
 			const settings = generator_settings(root.getAttribute("data-jrp-generate")!);
 
 			root.append(...lines.flatMap((line, index) => {
-				const parser = "migaku" in settings ? parse_migaku : parse_jrp;
-				const unit_nodes = parser(line).map(u => u.generate_dom_node());
+				const parser = settings["migaku"] ? parse_migaku : parse_jrp;
+				const unit_nodes = parser(line).flatMap(u => {
+					return u.generate_dom_nodes(settings["bare-empty-units"]);
+				});
 				return index > 0 ? [document.createElement("br"), ...unit_nodes] : unit_nodes;
 			}));
 			root.normalize();
