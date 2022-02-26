@@ -2,6 +2,8 @@ from enum import Enum, auto
 
 
 class WidgetType(Enum):
+    Checkbox = auto()
+    Number = auto()
     Color = auto()
     Text = auto()
 

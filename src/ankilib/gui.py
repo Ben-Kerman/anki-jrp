@@ -7,7 +7,7 @@ import aqt.utils
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QIcon
 from PyQt5.QtWidgets import QCheckBox, QColorDialog, QDialog, QFormLayout, QFrame, QHBoxLayout, QLabel, QLayout, \
-    QLineEdit, QPushButton, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+    QLineEdit, QPushButton, QSpinBox, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 from aqt.notetypechooser import NotetypeChooser
 
 from . import ui_defs
@@ -386,23 +386,31 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
     tt = transform("tool", item["tool"])
     lbl.setToolTip(tt)
 
-    def update_reset_btn(new_val: str):
+    def update_reset_btn(new_val: Any):
         if new_val == getattr(defaults, item["name"]):
             reset_btn.hide()
         else:
             reset_btn.show()
 
-    def set_val(new_val: str):
-        setattr(prefs, item["name"], new_val.strip())
+    def set_val(new_val: Any):
+        setattr(prefs, item["name"], new_val)
         update_reset_btn(new_val)
 
     val = getattr(prefs, item["name"])
-    if item["type"] == WidgetType.Text:
-        edit_wdgt = QLineEdit(val, parent)
-        edit_wdgt.textEdited.connect(set_val)
+    if item["type"] == WidgetType.Checkbox:
+        edit_wdgt = QCheckBox(parent)
+        edit_wdgt.setChecked(val)
+        edit_wdgt.clicked.connect(lambda s: set_val(bool(s)))
+    elif item["type"] == WidgetType.Number:
+        edit_wdgt = QSpinBox(parent)
+        edit_wdgt.setValue(val)
+        edit_wdgt.valueChanged.connect(lambda v: set_val(v))
     elif item["type"] == WidgetType.Color:
         edit_wdgt = ColorWidget(val, parent)
-        edit_wdgt.value_changed.connect(set_val)
+        edit_wdgt.value_changed.connect(lambda v: set_val(v.strip()))
+    elif item["type"] == WidgetType.Text:
+        edit_wdgt = QLineEdit(val, parent)
+        edit_wdgt.textEdited.connect(lambda v: set_val(v.strip()))
     else:
         raise Exception("invalid enum variant in UI definition")
     edit_wdgt.setToolTip(tt)
@@ -410,7 +418,11 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
     def reset_val():
         default_val = getattr(defaults, item["name"])
         set_val(default_val)
-        if item["type"] == WidgetType.Color:
+        if item["type"] == WidgetType.Checkbox:
+            edit_wdgt.setChecked(default_val)
+        elif item["type"] == WidgetType.Number:
+            edit_wdgt.setValue(default_val)
+        elif item["type"] == WidgetType.Color:
             edit_wdgt.set_value(default_val)
         elif item["type"] == WidgetType.Text:
             edit_wdgt.setText(default_val)
