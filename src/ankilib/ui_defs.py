@@ -103,7 +103,8 @@ nt_checkboxes = [
     }
 ]
 
-style_widgets = [
+style_defs = [
+    "Values will be inserted into CSS as-is, without any verification",
     {
         "name": "ruby_font_size",
         "desc": "Ruby (furigana) font size",

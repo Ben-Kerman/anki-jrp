@@ -451,8 +451,7 @@ class StyleDialog(QDialog):
         self.setWindowTitle("Note Type Style")
         self.setWindowModality(Qt.ApplicationModal)
         lo = QFormLayout(self)
-        lo.addRow(QLabel("Values will be inserted into CSS as-is, without any verification"))
-        for item in ui_defs.style_widgets:
+        for item in ui_defs.style_defs:
             _add_form_row(self, style_prefs, _DEFAULT_NT_PREFS.style, item, lo,
                           lambda n, v: f"CSS variable: {v}" if n == "tool" else v)
 
