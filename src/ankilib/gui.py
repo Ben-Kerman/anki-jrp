@@ -308,8 +308,8 @@ class ColorWidget(QWidget):
 
     value_changed = pyqtSignal(str)
 
-    def __init__(self, init_val: str):
-        super().__init__()
+    def __init__(self, init_val: str, parent: QWidget | None = None):
+        super().__init__(parent)
 
         self._picker = QColorDialog(self)
         self._picker.colorSelected.connect(lambda qc: self.set_value(qc.name().lower()))
@@ -379,8 +379,8 @@ class NoteTypesWidget(QWidget):
             self._lo.removeWidget(wdgt)
 
 
-def _add_style_row(prefs: StylePrefs, item: dict, form_lo: QFormLayout):
-    lbl = QLabel(f"{item['desc']}:")
+def _add_style_row(self: "StyleDialog", prefs: StylePrefs, item: dict, form_lo: QFormLayout):
+    lbl = QLabel(f"{item['desc']}:", self)
     tt = f"CSS variable: {item['vnme']}"
     lbl.setToolTip(tt)
 
@@ -396,10 +396,10 @@ def _add_style_row(prefs: StylePrefs, item: dict, form_lo: QFormLayout):
 
     val = getattr(prefs, item["name"])
     if item["type"] == StyleTypes.Any:
-        edit_wdgt = QLineEdit(val)
+        edit_wdgt = QLineEdit(val, self)
         edit_wdgt.textEdited.connect(set_val)
     elif item["type"] == StyleTypes.Color:
-        edit_wdgt = ColorWidget(val)
+        edit_wdgt = ColorWidget(val, self)
         edit_wdgt.value_changed.connect(set_val)
     else:
         raise Exception("invalid enum variant in UI definition")
@@ -413,7 +413,7 @@ def _add_style_row(prefs: StylePrefs, item: dict, form_lo: QFormLayout):
         else:
             edit_wdgt.setText(default_val)
 
-    reset_btn = ResetButton()
+    reset_btn = ResetButton(self)
     reset_btn.clicked.connect(reset_val)
     update_reset_btn(val)
 
@@ -433,7 +433,7 @@ class StyleDialog(QDialog):
         lo = QFormLayout(self)
         lo.addRow(QLabel("Values will be inserted into CSS as-is, without any verification"))
         for item in ui_defs.style_widgets:
-            _add_style_row(style_prefs, item, lo)
+            _add_style_row(self, style_prefs, item, lo)
 
 
 class NoteTypeWidget(QFrame):
