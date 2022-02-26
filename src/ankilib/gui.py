@@ -382,7 +382,11 @@ class NoteTypesWidget(QWidget):
 def _add_form_row(parent: QWidget, prefs: T, defaults: T,
                   item: dict, form_lo: QFormLayout,
                   transform: Callable[[str, str], str] = lambda _, v: v):
-    lbl = QLabel(f"{transform('desc', item['desc'])}:", parent)
+    if type(item) == str:
+        form_lo.addRow(QLabel(item))
+        return
+
+    lbl = QLabel(transform('desc', item['desc']), parent)
     tt = transform("tool", item["tool"])
     lbl.setToolTip(tt)
 

@@ -64,6 +64,7 @@ conv_checkboxes = [
 ]
 
 output_defs = [
+    "Output preferences",
     {
         "name": "min_accent_moras",
         "desc": "Minimum accent moras",
