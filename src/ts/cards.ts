@@ -527,6 +527,7 @@ function generator_settings(attr_val: string): object {
 			default:
 				throw new ParsingError(`invalid config attribute: ${attr_val}`);
 		}
+		++idx;
 	}
 	return res;
 }
