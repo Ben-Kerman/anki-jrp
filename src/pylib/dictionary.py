@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from typing import Generic, TextIO, Type, TypeVar
 
 from .normalize import is_kana, to_hiragana
-from .util import warn
 
 T = TypeVar("T")
 
@@ -28,7 +27,7 @@ class BasicDict(Generic[T]):
                     entry = entry_type.from_line(line)
                     entry_type.dict_insert(self, entry)
                 except ValueError:
-                    warn(f"skipping invalid dict entry: {line}")
+                    print(f"skipping invalid dict entry: {line}")
 
     def look_up_variant(self, val: str) -> list[T] | None:
         return self.variants.get(val)

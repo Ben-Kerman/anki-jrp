@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 
 from .normalize import comp_kana, has_kana, is_kana, split_moras, to_hiragana, to_katakana
-from .util import escape_text as esc, warn
+from .util import escape_text as esc
 
 
 @dataclass
@@ -222,19 +222,19 @@ def _parse_migaku_accents(val: str, reading: str, has_base: bool) -> list[int]:
                 return 0
             case "a":
                 if has_base:
-                    warn("atamadaka in non-yougen accent list")
+                    print("atamadaka in non-yougen accent list")
                 return 1
             case "k":
                 if not has_base:
-                    warn("kifuku in non-yougen accent list")
+                    print("kifuku in non-yougen accent list")
                 return int(tag[1:])
             case "n":
                 if has_base:
-                    warn("nakadaka in yougen accent list")
+                    print("nakadaka in yougen accent list")
                 return int(tag[1:])
             case "o":
                 if has_base:
-                    warn("odaka in yougen accent list")
+                    print("odaka in yougen accent list")
                 return moras
             case _:
                 raise ParsingError(f"invalid Migaku accent pattern: {tag}")

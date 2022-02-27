@@ -1,13 +1,13 @@
 import os.path
 from lzma import LZMAError
-from typing import Any, Type, TypeVar
+from typing import Type, TypeVar
 
 import aqt
 from aqt.operations import QueryOp
 
 from .util import get_path
-from ..pylib.preferences import Prefs
 from ..pylib.dictionary import AccentEntry, BasicDict, Dictionary, VariantEntry
+from ..pylib.preferences import Prefs
 
 T = TypeVar("T")
 
