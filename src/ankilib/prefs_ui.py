@@ -631,6 +631,15 @@ class PreferencesDialog(QDialog):
                 return
         self.closed.emit()
 
+    def reject(self) -> None:
+        if self.prefs != global_vars.prefs:
+            resp = aqt.utils.askUserDialog("Save changes to preferences?", ["Save", "Discard", "Cancel"], self).run()
+            if resp == "Cancel":
+                return
+            elif resp == "Save":
+                self.apply()
+        super().reject()
+
 
 def _remove_ui():
     aqt.mw.jrp_prefs_dialog.hide()
