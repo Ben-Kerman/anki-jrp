@@ -168,7 +168,14 @@ class Unit {
 		public accents: number[] = [],
 		public is_yougen: boolean = false,
 		public uncertain: boolean = false,
-		public base_reading: string | null = null) {
+		public base_reading: string | null = null,
+		public was_bare: boolean = false) {
+	}
+
+	static bare(segments: Segment[]): Unit {
+		const u = new Unit(segments);
+		u.was_bare = true;
+		return u;
 	}
 
 	reading(): string {
@@ -307,7 +314,7 @@ function parse_migaku(value: string): Unit[] {
 
 			const [prfx_end_c, prefix] = this.read_text(["[", " "]);
 			if(prfx_end_c === " " || prfx_end_c === null) {
-				return new Unit([new Segment(prefix)]);
+				return Unit.bare([new Segment(prefix)]);
 			}
 
 			const [rdng_end_c, prefix_reading] = this.read_text([",", ";", "]"]);
@@ -496,7 +503,7 @@ function parse_jrp(value: string): Unit[] {
 		switch(c) {
 			case "{":
 				if(free_segments.length > 0) {
-					units.push(new Unit(free_segments));
+					units.push(Unit.bare(free_segments));
 				}
 				free_segments = [];
 				let u: Unit;
@@ -515,7 +522,7 @@ function parse_jrp(value: string): Unit[] {
 	}
 
 	if(free_segments.length > 0) {
-		units.push(new Unit(free_segments));
+		units.push(Unit.bare(free_segments));
 	}
 
 	return units;

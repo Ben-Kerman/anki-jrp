@@ -98,6 +98,7 @@ class Unit:
     is_yougen: bool = False
     uncertain: bool = False
     special_base: str | None = None
+    was_bare: bool = False
 
     def __repr__(self) -> str:
         yougen = ",用言" if self.is_yougen else ""
@@ -148,7 +149,8 @@ class Unit:
 
     @classmethod
     def from_text(cls, text: str, reading: str | None = None, base: str | None = None,
-                  accents: list[int] | None = None, is_yougen: bool = False, uncertain: bool = False) -> "Unit":
+                  accents: list[int] | None = None, is_yougen: bool = False, uncertain: bool = False,
+                  was_bare: bool = False) -> "Unit":
         def base_segments(segments: list[Segment], base: str) -> list[Segment | BaseSegment] | str | None:
             new_segments = []
 
@@ -183,7 +185,7 @@ class Unit:
                 case str(special):
                     special_base = special
 
-        return cls(segments, accents or [], is_yougen, uncertain, special_base)
+        return cls(segments, accents or [], is_yougen, uncertain, special_base, was_bare)
 
 
 class ParsingError(ValueError):
@@ -280,7 +282,7 @@ def parse_migaku(value: str) -> list[Unit]:
 
             prfx_end_c, prefix = self.read_text(("[", " "))
             if prfx_end_c == " " or not prfx_end_c:
-                return Unit([Segment(prefix)])
+                return Unit([Segment(prefix)], was_bare=True)
 
             rdng_end_c, prefix_reading = self.read_text((",", ";", "]"))
             match rdng_end_c:
@@ -407,7 +409,7 @@ def parse_jrp(value: str) -> list[Unit]:
         match c:
             case "{":
                 if free_segments:
-                    units.append(Unit(free_segments))
+                    units.append(Unit(free_segments, was_bare=True))
                 free_segments = []
                 idx, u = parse_unit(value, idx)
                 units.append(u)
@@ -418,6 +420,6 @@ def parse_jrp(value: str) -> list[Unit]:
                 free_segments.append(segment)
 
     if free_segments:
-        units.append(Unit(free_segments))
+        units.append(Unit(free_segments, was_bare=True))
 
     return units
