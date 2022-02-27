@@ -579,9 +579,9 @@ class PreferencesWidget(QTabWidget):
 
         nt_wdgt = NoteTypesWidget(prefs.addon.note_types, self)
 
-        self.addTab(conv_wdgt, "Conversion")
-        self.addTab(override_wdgt, "Overrides")
-        self.addTab(nt_wdgt, "Note Types")
+        self.addTab(conv_wdgt, "&Conversion")
+        self.addTab(override_wdgt, "&Overrides")
+        self.addTab(nt_wdgt, "&Note Types")
 
 
 class PreferencesDialog(QDialog):
