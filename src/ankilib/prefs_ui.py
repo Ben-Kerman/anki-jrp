@@ -594,6 +594,7 @@ class PreferencesDialog(QDialog):
         self.prefs = prefs
 
         self.setWindowTitle("Japanese Readings & Pitch Accent Add-on Preferences")
+        self.setWindowModality(Qt.ApplicationModal)
 
         prefs_wdgt = PreferencesWidget(prefs, self)
 
