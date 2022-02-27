@@ -616,9 +616,8 @@ class PreferencesDialog(QDialog):
         main_lo.addLayout(btn_lo)
 
     def apply(self):
-        global_vars.prefs = self.prefs
+        global_vars.prefs = deepcopy(self.prefs)
         global_vars.save_prefs()
-        self.prefs = deepcopy(self.prefs)
 
     def save(self):
         self.apply()
