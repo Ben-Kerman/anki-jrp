@@ -3,10 +3,11 @@ import os.path
 from collections.abc import Generator
 from dataclasses import dataclass, field
 from itertools import chain
+from typing import Optional
 
 from . import overrides
 from .overrides import AccentOverride, IgnoreOverride, WordOverride
-from .util import from_json, get_path, to_json
+from .util import from_json, to_json
 
 
 @dataclass
@@ -128,10 +129,9 @@ class Prefs:
     addon: AddonPrefs = field(default_factory=AddonPrefs)
 
     @classmethod
-    def load_from_file(cls) -> "Prefs":
-        path = get_path(__file__, "user_files", "config.json")
+    def load_from_file(cls, path: str) -> Optional["Prefs"]:
         if not os.path.exists(path):
-            return cls()
+            return None
 
         with open(path) as cfd:
             raw = json.load(cfd)

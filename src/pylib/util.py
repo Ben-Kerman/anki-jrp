@@ -1,5 +1,4 @@
 import dataclasses
-import os.path
 import sys
 from dataclasses import MISSING, dataclass
 from types import GenericAlias, NoneType, UnionType
@@ -8,10 +7,6 @@ from typing import Any, Iterable, Type, TypeVar, get_args, get_origin
 
 def warn(*args):
     print(*args, file=sys.stderr)
-
-
-def get_path(file: str, *comps: str) -> str:
-    return os.path.join(os.path.dirname(file), *comps)
 
 
 @dataclass

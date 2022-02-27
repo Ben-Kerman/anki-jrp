@@ -1,10 +1,11 @@
 import json
+import os.path
 from collections.abc import Generator
 from dataclasses import dataclass
 from typing import Generic, Type, TypeVar, Union
 
 from .normalize import comp_kana
-from .util import ConfigError, from_json, get_path
+from .util import ConfigError, from_json
 
 
 @dataclass
@@ -75,6 +76,9 @@ class DefaultOverride(Generic[T]):
         return cls(obj["id"], from_json(obj, typ))
 
 
+_def_or_path = os.path.join(os.path.dirname(__file__), "default_overrides.json")
+
+
 @dataclass
 class DefaultOverrides:
     ignore: list[DefaultOverride[IgnoreOverride]]
@@ -83,7 +87,7 @@ class DefaultOverrides:
 
     @classmethod
     def load(cls):
-        with open(get_path(__file__, "default_overrides.json")) as fd:
+        with open(_def_or_path) as fd:
             obj = json.load(fd)
         ignore = [DefaultOverride.from_json(IgnoreOverride, e) for e in obj["ignore"]]
         word = [DefaultOverride.from_json(WordOverride, e) for e in obj["word"]]

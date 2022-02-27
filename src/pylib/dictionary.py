@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Generic, TextIO, Type, TypeVar
 
 from .normalize import is_kana, to_hiragana
-from .util import get_path, warn
+from .util import warn
 
 T = TypeVar("T")
 
@@ -116,13 +116,10 @@ class Lookup:
         return all(r.accents for r in self.results)
 
 
+@dataclass
 class Dictionary:
     accent: AccentDict
     variant: VariantDict
-
-    def __init__(self, adict: AccentDict | None = None, vdict: VariantDict | None = None):
-        self.accent = adict or BasicDict(AccentEntry, get_path(__file__, "user_files", "data", "accents.xz"))
-        self.variant = vdict or BasicDict(VariantEntry, get_path(__file__, "user_files", "data", "variants.xz"))
 
     def _variant_lookup(self, word: str, as_reading: bool = False) -> list[AccentEntry] | None:
         lu_fn = self.variant.look_up_reading if as_reading else self.variant.look_up_variant
