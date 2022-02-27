@@ -3,6 +3,7 @@ from collections.abc import Generator
 from .normalize import is_hiragana, is_kana, split_moras
 from .preferences import OutputPrefs
 from .segments import Unit
+from .util import escape_text as esc
 
 
 class OutputError(Exception):
@@ -44,20 +45,20 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
         tag_content = ""
         if _add_accent(p, unit):
             if unit.is_yougen:
-                tag_content += f",{unit.base_reading()}"
+                tag_content += f",{esc(';]', unit.base_reading())}"
             tag_content += f";{','.join(migaku_accents(unit))}"
 
         if len(segments) == 1 and (is_kana(segments[0].text) or not segments[0].reading):
             tag = f"[{tag_content}]" if tag_content else ""
-            return f"{segments[0].text}{tag}"
+            return f"{esc('[', segments[0].text)}{tag}"
         elif len(segments) > 1 and is_kana(segments[-1].text):
-            tag_content = unit.reading(-1) + tag_content
+            tag_content = esc(",;]", unit.reading(-1)) + tag_content
             tag = f"[{tag_content}]" if tag_content else ""
-            return f"{unit.text(-1)}{tag}{segments[-1].text}"
+            return f"{esc('[', unit.text(-1))}{tag}{segments[-1].text}"
         else:
-            tag_content = unit.reading() + tag_content
+            tag_content = esc(",;]", unit.reading()) + tag_content
             tag = f"[{tag_content}]" if tag_content else ""
-            return f"{unit.text()}{tag}"
+            return f"{esc('[', unit.text())}{tag}"
 
     if not prefs:
         prefs = OutputPrefs()
@@ -66,7 +67,7 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
 
 def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
     def fmt_unit(unit: Unit, p: OutputPrefs) -> str:
-        segment_str = "".join([s.fmt() for s in unit.segments])
+        segment_str = "".join([s.fmt(escape=True) for s in unit.segments])
         if _add_accent(p, unit):
             uncert = "!" if unit.uncertain else ""
             yougen = "Y" if unit.is_yougen else ""

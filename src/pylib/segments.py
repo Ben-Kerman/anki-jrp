@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 
 from .normalize import comp_kana, has_kana, is_kana, split_moras, to_hiragana, to_katakana
-from .util import warn
+from .util import escape_text as esc, warn
 
 
 @dataclass
@@ -20,8 +20,11 @@ class Segment:
     def __repr__(self) -> str:
         return f"S[{self.text}|{self.reading}]"
 
-    def fmt(self) -> str:
-        return f"[{self.text}|{self.reading}]" if self.reading else self.text
+    def fmt(self, escape: bool = False) -> str:
+        txt, rdng = self.text, self.reading
+        if escape:
+            txt, rdng = esc('|=]', txt) if rdng else esc("{[;}", txt), esc(']', rdng) if rdng else rdng
+        return f"[{txt}|{rdng}]" if rdng else txt
 
     @classmethod
     def generate(cls, word: str, reading: str | None) -> list["Segment"]:
@@ -87,8 +90,11 @@ class BaseSegment:
     def __repr__(self) -> str:
         return f"BS[{self.text}={self.base}]"
 
-    def fmt(self) -> str:
-        return f"[{self.text or ''}={self.base}]"
+    def fmt(self, escape: bool = False) -> str:
+        txt, base = self.text or "", self.base
+        if escape:
+            txt, base = (esc('|=]', txt) if txt else ""), esc(']', base)
+        return f"[{txt}={base}]"
 
 
 @dataclass

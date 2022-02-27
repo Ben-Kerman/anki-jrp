@@ -3,7 +3,7 @@ import os.path
 import sys
 from dataclasses import MISSING, dataclass
 from types import GenericAlias, NoneType, UnionType
-from typing import Any, Type, TypeVar, get_args, get_origin
+from typing import Any, Iterable, Type, TypeVar, get_args, get_origin
 
 
 def warn(*args):
@@ -21,6 +21,12 @@ class ConfigError:
 
 T = TypeVar("T")
 U = TypeVar("U")
+
+
+def escape_text(chrs: Iterable[str], txt: str) -> str:
+    dic = {c: f"\\{c}" for c in chrs}
+    dic["\\"] = r"\\"
+    return txt.translate(str.maketrans(dic))
 
 
 def from_json(json_val: Any, typ: Type[T], try_cls_method: bool = True) -> T | ConfigError:
