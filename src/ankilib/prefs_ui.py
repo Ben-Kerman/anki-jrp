@@ -584,11 +584,33 @@ class PreferencesWidget(QTabWidget):
         self.addTab(nt_wdgt, "Note Types")
 
 
+class PreferencesDialog(QDialog):
+    def __init__(self, prefs: Prefs, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self.setWindowTitle("Japanese Readings & Pitch Accent Add-on Preferences")
+
+        prefs_wdgt = PreferencesWidget(prefs, self)
+
+        save_btn = QPushButton("Save", self)
+        save_btn.clicked.connect(lambda: None)
+        apply_btn = QPushButton("Apply", self)
+        apply_btn.clicked.connect(lambda: None)
+        cancel_btn = QPushButton("Cancel", self)
+        cancel_btn.clicked.connect(lambda: None)
+
+        btn_lo = QHBoxLayout()
+        btn_lo.addStretch()
+        btn_lo.addWidget(save_btn)
+        btn_lo.addWidget(apply_btn)
+        btn_lo.addWidget(cancel_btn)
+
+        main_lo = QVBoxLayout(self)
+        main_lo.addWidget(prefs_wdgt)
+        main_lo.addLayout(btn_lo)
+
+
 def show_ui():
     prefs_copy = copy(global_vars.prefs)
-    prefs_dialog = QDialog(aqt.mw)
-    lo = QVBoxLayout(prefs_dialog)
-    lo.addWidget(PreferencesWidget(prefs_copy, prefs_dialog))
-
-    aqt.mw.jrp_prefs_dialog = prefs_dialog
+    aqt.mw.jrp_prefs_dialog = PreferencesDialog(prefs_copy, aqt.mw)
     aqt.mw.jrp_prefs_dialog.show()
