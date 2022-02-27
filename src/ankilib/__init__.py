@@ -1,1 +1,1 @@
-from . import editor, global_vars
+from . import hooks

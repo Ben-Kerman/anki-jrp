@@ -90,6 +90,3 @@ def inject_buttons(buttons: list[str], edit: Editor):
         tip="[Ctrl+F3] Restore original text from Migaku syntax.",
         keys="Ctrl+F3")
     )
-
-
-aqt.gui_hooks.editor_did_init_buttons.append(inject_buttons)
