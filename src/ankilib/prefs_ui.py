@@ -1,6 +1,6 @@
 import re
 from collections.abc import Callable, Sequence
-from copy import copy
+from copy import deepcopy
 from enum import Enum, auto
 from typing import Any, Iterable, TypeVar
 
@@ -585,19 +585,24 @@ class PreferencesWidget(QTabWidget):
 
 
 class PreferencesDialog(QDialog):
+    prefs: Prefs
+
+    closed = pyqtSignal()
+
     def __init__(self, prefs: Prefs, parent: QWidget | None = None):
         super().__init__(parent)
+        self.prefs = prefs
 
         self.setWindowTitle("Japanese Readings & Pitch Accent Add-on Preferences")
 
         prefs_wdgt = PreferencesWidget(prefs, self)
 
         save_btn = QPushButton("Save", self)
-        save_btn.clicked.connect(lambda: None)
+        save_btn.clicked.connect(self.save)
         apply_btn = QPushButton("Apply", self)
-        apply_btn.clicked.connect(lambda: None)
+        apply_btn.clicked.connect(self.apply)
         cancel_btn = QPushButton("Cancel", self)
-        cancel_btn.clicked.connect(lambda: None)
+        cancel_btn.clicked.connect(self.cancel)
 
         btn_lo = QHBoxLayout()
         btn_lo.addStretch()
@@ -609,8 +614,30 @@ class PreferencesDialog(QDialog):
         main_lo.addWidget(prefs_wdgt)
         main_lo.addLayout(btn_lo)
 
+    def apply(self):
+        global_vars.prefs = self.prefs
+        self.prefs = deepcopy(self.prefs)
+
+    def save(self):
+        self.apply()
+        self.closed.emit()
+
+    def cancel(self):
+        if self.prefs != global_vars.prefs:
+            resp = aqt.utils.askUser("Do you really want to close the preferences menu?\n"
+                                     "All changes will be lost.", self)
+            if not resp:
+                return
+        self.closed.emit()
+
+
+def _remove_ui():
+    aqt.mw.jrp_prefs_dialog.hide()
+    del aqt.mw.jrp_prefs_dialog
+
 
 def show_ui():
-    prefs_copy = copy(global_vars.prefs)
+    prefs_copy = deepcopy(global_vars.prefs)
     aqt.mw.jrp_prefs_dialog = PreferencesDialog(prefs_copy, aqt.mw)
+    aqt.mw.jrp_prefs_dialog.closed.connect(_remove_ui)
     aqt.mw.jrp_prefs_dialog.show()
