@@ -34,9 +34,9 @@ def generate_js() -> str:
 
 _trail_str = "Do Not Edit If Using Automatic CSS and JS Management"
 _css_re = re.compile(rf"\n*/\*###((?:MIA|MIGAKU) JAPANESE SUPPORT) CSS STARTS###\n"
-                     rf"{_trail_str}\*/\n.*?\n/\*###\1 CSS ENDS###\*/\n*")
+                     rf"{_trail_str}\*/.*?/\*###\1 CSS ENDS###\*/\n*", re.S)
 _js_re = re.compile(rf"\n*<!--###((?:MIA|MIGAKU) JAPANESE SUPPORT) ((?:(?:KATAKANA )?CONVERTER )?JS) START###\n"
-                    rf"{_trail_str}-->.*?<!--###\1 \2 ENDS###-->\n*")
+                    rf"{_trail_str}-->.*?<!--###\1 \2 ENDS###-->\n*", re.S)
 
 
 def remove_mia_migaku(nt: NotetypeDict):
