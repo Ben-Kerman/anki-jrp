@@ -3,11 +3,12 @@ import os.path
 from collections.abc import Generator
 from dataclasses import dataclass, field
 from itertools import chain
-from typing import Optional
+from json import JSONDecodeError
+from typing import Union
 
 from . import overrides
 from .overrides import AccentOverride, IgnoreOverride, WordOverride
-from .util import from_json, to_json
+from .util import ConfigError, from_json, to_json
 
 
 @dataclass
@@ -134,12 +135,15 @@ class Prefs:
     addon: AddonPrefs = field(default_factory=AddonPrefs)
 
     @classmethod
-    def load_from_file(cls, path: str) -> Optional["Prefs"]:
+    def load_from_file(cls, path: str) -> Union["Prefs", ConfigError, None]:
         if not os.path.exists(path):
             return None
 
         with open(path) as cfd:
-            raw = json.load(cfd)
+            try:
+                raw = json.load(cfd)
+            except JSONDecodeError as e:
+                return ConfigError(f"JSON error at line {e.lineno}, column {e.colno}: {e.msg}")
         return from_json(raw, cls)
 
     def write_to_file(self, path: str):

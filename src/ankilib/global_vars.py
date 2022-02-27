@@ -8,17 +8,22 @@ from aqt.operations import QueryOp
 from .util import get_path
 from ..pylib.dictionary import AccentEntry, BasicDict, Dictionary, VariantEntry
 from ..pylib.preferences import Prefs
+from ..pylib.util import ConfigError
 
 T = TypeVar("T")
 
 _prefs_path = get_path("user_files", "config.json")
 
 
-def load_prefs():
+def load_prefs() -> Prefs:
     if os.path.exists(_prefs_path):
-        return Prefs.load_from_file(_prefs_path)
-    else:
-        return Prefs()
+        load_res = Prefs.load_from_file(_prefs_path)
+        if isinstance(load_res, ConfigError):
+            aqt.utils.showWarning(f"Failed to load config, falling back on defaults.\n"
+                                  f"Error: {load_res.msg}")
+        elif load_res:
+            return load_res
+    return Prefs()
 
 
 def save_prefs():
