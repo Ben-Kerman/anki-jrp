@@ -10,9 +10,9 @@ from PyQt5.QtWidgets import QCheckBox, QColorDialog, QDialog, QFormLayout, QFram
     QLineEdit, QPushButton, QSpinBox, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 from aqt.notetypechooser import NotetypeChooser
 
-from . import ui_defs, util
+from . import prefs_ui_defs as ui_defs, util
+from .prefs_ui_defs import WidgetType
 from .templates import remove_mia_migaku, update_script, update_style
-from .ui_defs import WidgetType
 from ..pylib import overrides
 from ..pylib.overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
 from ..pylib.preferences import NoteTypePrefs, Prefs, StylePrefs
