@@ -1,5 +1,6 @@
 import re
 from collections.abc import Callable, Sequence
+from copy import copy
 from enum import Enum, auto
 from typing import Any, Iterable, TypeVar
 
@@ -10,7 +11,7 @@ from PyQt5.QtWidgets import QCheckBox, QColorDialog, QDialog, QFormLayout, QFram
     QLineEdit, QPushButton, QSpinBox, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 from aqt.notetypechooser import NotetypeChooser
 
-from . import prefs_ui_defs as ui_defs, util
+from . import global_vars, prefs_ui_defs as ui_defs, util
 from .prefs_ui_defs import WidgetType
 from .templates import remove_mia_migaku, update_script, update_style
 from ..pylib import overrides
@@ -581,3 +582,13 @@ class PreferencesWidget(QTabWidget):
         self.addTab(conv_wdgt, "Conversion")
         self.addTab(override_wdgt, "Overrides")
         self.addTab(nt_wdgt, "Note Types")
+
+
+def show_ui():
+    prefs_copy = copy(global_vars.prefs)
+    prefs_dialog = QDialog(aqt.mw)
+    lo = QVBoxLayout(prefs_dialog)
+    lo.addWidget(PreferencesWidget(prefs_copy, prefs_dialog))
+
+    aqt.mw.jrp_prefs_dialog = prefs_dialog
+    aqt.mw.jrp_prefs_dialog.show()
