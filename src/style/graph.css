@@ -48,7 +48,7 @@
 }
 
 .jrp-graph-bar-accented {
-	border-image-source: url("./jrp-downstep-light.svg");
+	border-image-source: url("_jrp-downstep-light.svg");
 	border-image-slice: 10%;
 	border-image-width: 0.1em;
 	border-top-style: solid;
@@ -58,11 +58,11 @@
 }
 
 .night-mode .jrp-graph-bar-accented {
-	border-image-source: url("./jrp-downstep-dark.svg");
+	border-image-source: url("_jrp-downstep-dark.svg");
 }
 
 .jrp-vertical .jrp-graph-bar-accented {
-	border-image-source: url("./jrp-downstep-light-vert.svg");
+	border-image-source: url("_jrp-downstep-light-vert.svg");
 	border-top-style: none;
 	border-bottom-style: solid;
 
@@ -71,5 +71,5 @@
 }
 
 .night-mode .jrp-vertical .jrp-graph-bar-accented {
-	border-image-source: url("./jrp-downstep-dark-vert.svg");
+	border-image-source: url("_jrp-downstep-dark-vert.svg");
 }
