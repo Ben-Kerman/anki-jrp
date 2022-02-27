@@ -616,6 +616,7 @@ class PreferencesDialog(QDialog):
 
     def apply(self):
         global_vars.prefs = self.prefs
+        global_vars.save_prefs()
         self.prefs = deepcopy(self.prefs)
 
     def save(self):

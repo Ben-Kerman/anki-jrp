@@ -136,3 +136,7 @@ class Prefs:
         with open(path) as cfd:
             raw = json.load(cfd)
         return from_json(raw, cls)
+
+    def write_to_file(self, path: str):
+        with open(path, "w") as cfd:
+            json.dump(to_json(self, type(self)()), cfd, ensure_ascii=False)

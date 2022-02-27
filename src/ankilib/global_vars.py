@@ -11,13 +11,18 @@ from ..pylib.preferences import Prefs
 
 T = TypeVar("T")
 
+_prefs_path = get_path("user_files", "config.json")
+
 
 def load_prefs():
-    prefs_path = get_path("user_files", "config.json")
-    if os.path.exists(prefs_path):
-        return Prefs.load_from_file(prefs_path)
+    if os.path.exists(_prefs_path):
+        return Prefs.load_from_file(_prefs_path)
     else:
         return Prefs()
+
+
+def save_prefs():
+    prefs.write_to_file(_prefs_path)
 
 
 def load_dict():
