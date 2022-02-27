@@ -1,6 +1,6 @@
 import dataclasses
 import sys
-from dataclasses import MISSING, dataclass
+from dataclasses import MISSING, dataclass, is_dataclass
 from types import GenericAlias, NoneType, UnionType
 from typing import Any, Iterable, Type, TypeVar, get_args, get_origin
 
@@ -104,7 +104,16 @@ def to_json(value: T, default: T | None = None, try_cls_method: bool = True) -> 
     elif typ in (str, bool, int, float):
         return value
     elif typ in (list, set):
-        return [to_json(e) for e in value]
+        def conv_val(val: Any) -> Any:
+            if hasattr(val, "default"):
+                if val.default:
+                    return to_json(val, val.default())
+            elif is_dataclass(val):
+                return to_json(val, type(val)())
+
+            return to_json(val)
+
+        return [conv_val(e) for e in value]
     else:
         if try_cls_method:
             try:

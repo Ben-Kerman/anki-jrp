@@ -43,6 +43,10 @@ class NoteTypePrefs:
     manage_style: bool = True
     style: StylePrefs = field(default_factory=StylePrefs)
 
+    @classmethod
+    def default(cls) -> "NoteTypePrefs":
+        return cls(0)
+
 
 @dataclass
 class AddonPrefs:

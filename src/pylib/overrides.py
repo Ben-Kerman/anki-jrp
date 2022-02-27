@@ -19,6 +19,10 @@ class IgnoreOverride:
     def match(self, variant: str, reading: str | None) -> bool:
         return variant in self.variants and (not self.reading or not reading or comp_kana(reading, self.reading))
 
+    @classmethod
+    def default(cls) -> "IgnoreOverride":
+        return cls([])
+
 
 @dataclass
 class WordOverride:
@@ -49,6 +53,10 @@ class WordOverride:
             return ConfigError("either new variant list or new reading is required")
         return val
 
+    @classmethod
+    def default(cls) -> "WordOverride":
+        return cls([])
+
 
 @dataclass
 class AccentOverride:
@@ -61,6 +69,8 @@ class AccentOverride:
 
     def match(self, variant: str, reading: str) -> bool:
         return variant in self.variants and comp_kana(reading, self.reading)
+
+    default = None
 
 
 T = TypeVar("T", IgnoreOverride, WordOverride, AccentOverride)
