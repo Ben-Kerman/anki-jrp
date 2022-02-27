@@ -281,8 +281,7 @@ def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: 
             pu = cast(MecabUnit, punits[i - 1])
             if pu.hinsi == "動詞" and mu.comp_hinsi("動詞", "非自立") and mu.base_form == "てる":
                 return True
-        else:
-            return mu.hinsi_type() in (HinsiType.ZYOSI, HinsiType.SYMBOL)
+        return mu.hinsi_type() in (HinsiType.ZYOSI, HinsiType.SYMBOL)
 
     m = find_longest_match(p, dic, idx, punits, stop_cond)
     if m:
