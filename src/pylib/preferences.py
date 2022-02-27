@@ -84,7 +84,8 @@ class DisabledOverrideIds:
     def to_json(self, default: "DisabledOverrideIds") -> dict:
         val: dict = to_json(self, default, False)
         for field_name in ("ignore", "word", "accent"):
-            val[field_name].sort()
+            if field_name in val:
+                val[field_name].sort()
         return val
 
 
