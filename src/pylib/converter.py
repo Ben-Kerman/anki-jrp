@@ -36,7 +36,7 @@ def base_for_potential(word: str, reading: str | None) -> tuple[str, str] | None
 
 
 def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list[ParserUnit],
-                       stop_cond: Callable[[MecabUnit], bool] = _dsc) -> Match | None:
+                       stop_cond: Callable[[int, MecabUnit], bool] = _dsc) -> Match | None:
     def lookup_variants(p: ConvPrefs, word: str, reading_guess: str | None,
                         base_word: str | None = None) -> Generator[tuple[str, str | None, str | None]]:
         def pot(word: str, reading: str | None) -> tuple[str, str, str] | None:
@@ -64,7 +64,7 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list
     plain_match: Match | None = None
     for i in range(idx, len(punits)):
         pu = punits[i]
-        if not isinstance(pu, MecabUnit) or stop_cond(pu):
+        if not isinstance(pu, MecabUnit) or stop_cond(i, pu):
             break
 
         if all(isinstance(u, MecabUnit) and u.hinsi != "未知語" for u in punits[idx:i + 1]):
@@ -215,10 +215,6 @@ def _yougen_join(p: JoinPrefs, punits: list[ParserUnit], bmu: MecabUnit,
     return idx, prev, None
 
 
-def _stop_cond(mu: MecabUnit) -> bool:
-    return mu.hinsi_type() in (HinsiType.ZYOSI, HinsiType.SYMBOL)
-
-
 def _finalize_yougen(p: ConvPrefs, punits: list[ParserUnit], tail_mu: MecabUnit,
                      m: Match) -> tuple[int, Unit, Unit | None]:
     def find_reading(word: str, base_word: str, base_reading: str) -> str:
@@ -280,7 +276,15 @@ def _finalize_other(p: ConvPrefs, m: Match) -> tuple[int, Unit, Unit | None]:
 
 
 def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
-    m = find_longest_match(p, dic, idx, punits, _stop_cond)
+    def stop_cond(i: int, mu: MecabUnit) -> bool:
+        if i > 0 and isinstance(punits[i - 1], MecabUnit):
+            pu = cast(MecabUnit, punits[i - 1])
+            if pu.hinsi == "動詞" and mu.comp_hinsi("動詞", "非自立") and mu.base_form == "てる":
+                return True
+        else:
+            return mu.hinsi_type() in (HinsiType.ZYOSI, HinsiType.SYMBOL)
+
+    m = find_longest_match(p, dic, idx, punits, stop_cond)
     if m:
         tail_mu = cast(MecabUnit, punits[m.last_idx])
         if tail_mu.hinsi_type() == HinsiType.YOUGEN:
