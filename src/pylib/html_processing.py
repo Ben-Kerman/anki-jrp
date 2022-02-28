@@ -81,3 +81,9 @@ class JrpHTMLParser(HTMLParser):
         super().close()
         self._insert_line()
         return self.lines
+
+
+def strip_html(val: str) -> list[str]:
+    parser = JrpHTMLParser()
+    parser.feed(val)
+    return parser.close()

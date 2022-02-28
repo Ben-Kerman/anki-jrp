@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from enum import Enum, auto
 
 import aqt.utils
@@ -6,6 +6,7 @@ from aqt.editor import Editor
 
 from . import global_vars
 from ..pylib.converter import convert
+from ..pylib.html_processing import strip_html
 from ..pylib.mecab import Mecab
 from ..pylib.output import fmt_jrp, fmt_migaku
 from ..pylib.segments import parse_jrp, parse_migaku
@@ -40,23 +41,23 @@ def _replace(edit: Editor, transform: Callable[[str], str]):
 
 
 def _convert(edit: Editor, out_type: OutputType, conv_type: ConversionType):
+    parser = parse_migaku if out_type == OutputType.MIGAKU else parse_jrp
+    formatter = fmt_migaku if out_type == OutputType.MIGAKU else fmt_jrp
+
+    def gen_lines(val: str) -> Generator[str]:
+        lines = strip_html(val)
+        yield from ("".join(u.text() for u in parser(line)) for line in lines)
+
     def transform(val: str) -> str:
-        parser = parse_migaku if out_type == OutputType.MIGAKU else parse_jrp
-        units = parser(val)
-
-        text = "".join(u.text() for u in units)
         if conv_type == ConversionType.REMOVE:
-            return text
+            return "<br>".join(gen_lines(val))
+        else:
+            prefs = global_vars.prefs
+            dic = global_vars.dictionary
+            if not dic:
+                aqt.utils.showWarning("Dictionary is not (yet) loaded, can't convert.")
 
-        prefs = global_vars.prefs
-        dic = global_vars.dictionary
-        if not dic:
-            aqt.utils.showWarning("Dictionary is not (yet) loaded, can't convert")
-
-        converted = convert(text, prefs.convert, Mecab(), dic)
-
-        formatter = fmt_migaku if out_type == OutputType.MIGAKU else fmt_jrp
-        return formatter(converted)
+            return "<br>".join(formatter(convert(line, prefs.convert, Mecab(), dic)) for line in gen_lines(val))
 
     _replace(edit, transform)
 
