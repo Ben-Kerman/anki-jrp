@@ -313,6 +313,7 @@ function parse_migaku(value: string): Unit[] {
 			let state: State;
 
 			const [prfx_end_c, prefix] = this.read_text(["[", " "]);
+			// The Python version en space conversion here
 			if(prfx_end_c === " " || prfx_end_c === null) {
 				return Unit.bare([new Segment(prefix)]);
 			}

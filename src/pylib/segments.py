@@ -244,7 +244,7 @@ def _parse_migaku_accents(val: str, reading: str, has_base: bool) -> list[int]:
     return [convert(t, moras, has_base) for t in tags]
 
 
-def parse_migaku(value: str) -> list[Unit]:
+def parse_migaku(value: str, conv_en_spaces: bool = True) -> list[Unit]:
     class State(Enum):
         BASE_READING = auto()
         ACCENTS = auto()
@@ -287,6 +287,8 @@ def parse_migaku(value: str) -> list[Unit]:
             prefix_reading: str
 
             prfx_end_c, prefix = self.read_text(("[", " "))
+            if conv_en_spaces:
+                prefix = prefix.replace(chr(0x2002), " ")
             if prfx_end_c == " " or not prfx_end_c:
                 return Unit([Segment(prefix)], was_bare=True)
 
