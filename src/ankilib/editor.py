@@ -32,9 +32,13 @@ class ConversionType(Enum):
 
 def _replace(edit: Editor, transform: Callable[[str], str]):
     def inject_html(new_html: str):
+        transformed = transform(new_html)
+        if transformed is None:
+            return
+
         edit.web.page().runJavaScript(f"""
         editable = getCurrentField().activeInput
-        editable.fieldHTML = \"{transform(new_html).translate(_js_esc)}\"
+        editable.fieldHTML = \"{transformed.translate(_js_esc)}\"
         editable.caretToEnd()""")
 
     edit.web.page().runJavaScript("getCurrentField().activeInput.fieldHTML", lambda html: inject_html(html))
@@ -45,7 +49,7 @@ def _convert(edit: Editor, out_type: OutputType, conv_type: ConversionType):
         parser = parse_migaku if out_type == OutputType.MIGAKU else parse_jrp
         yield from ("".join(u.text() for u in parser(line)) for line in strip_html(val))
 
-    def transform(val: str) -> str:
+    def transform(val: str) -> str | None:
         if conv_type == ConversionType.REMOVE:
             return "<br>".join(gen_lines(val))
         else:
@@ -53,13 +57,14 @@ def _convert(edit: Editor, out_type: OutputType, conv_type: ConversionType):
             dic = global_vars.dictionary
             if not dic:
                 aqt.utils.showWarning("Dictionary is not (yet) loaded, can't convert.")
+                return None
 
             try:
                 formatter = fmt_migaku if out_type == OutputType.MIGAKU else fmt_jrp
                 return "<br>".join(formatter(convert(line, prefs.convert, Mecab(), dic)) for line in gen_lines(val))
             except ParsingError as e:
                 aqt.utils.showWarning(f"Conversion failed. Error: {e}")
-                return val
+                return None
 
     _replace(edit, transform)
 
