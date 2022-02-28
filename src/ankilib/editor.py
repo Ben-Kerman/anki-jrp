@@ -47,11 +47,33 @@ def _replace(edit: Editor, transform: Callable[[str], str]):
 
 _nl_re = re.compile(r"[^\S\r\n]*[\r\n]+[^\S\r\n]*")
 
+_brace_re = re.compile(r"[^\\]{")
+_tag_re = re.compile(r"[^\\]\[(.+?)[^\\]]")
+
+
+def _detect_syntax(val: str) -> OutputType | None:
+    if _brace_re.search(val):
+        return OutputType.DEFAULT
+    elif m := _tag_re.search(val):
+        g = m.group(1)
+        if "|" in g or "=" in g:
+            return OutputType.DEFAULT
+        else:
+            return OutputType.MIGAKU
+    else:
+        if len(val) and val.count(" ") / len(val) > 0.2:
+            return OutputType.MIGAKU
+    return None
+
 
 def _convert(edit: Editor, out_type: OutputType, conv_type: ConversionType):
     def gen_lines(val: str) -> Generator[str]:
-        parser = parse_migaku if out_type == OutputType.MIGAKU else parse_jrp
-        yield from ("".join(u.text() for u in parser(line)) for line in strip_html(val))
+        lines = strip_html(val)
+        if t := _detect_syntax(val):
+            parser = parse_migaku if t == OutputType.MIGAKU else parse_jrp
+            yield from ("".join(u.text() for u in parser(line)) for line in lines)
+        else:
+            yield from lines
 
     def transform(val: str) -> str | None:
         val = _nl_re.sub(" ", val)
