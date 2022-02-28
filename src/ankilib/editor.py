@@ -66,7 +66,7 @@ def _detect_syntax(val: str) -> OutputType | None:
     return None
 
 
-def _convert(edit: Editor, out_type: OutputType, conv_type: ConversionType):
+def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | None = None):
     def gen_lines(val: str) -> Generator[str]:
         lines = strip_html(val)
         if t := _detect_syntax(val):
@@ -80,6 +80,9 @@ def _convert(edit: Editor, out_type: OutputType, conv_type: ConversionType):
         if conv_type == ConversionType.REMOVE:
             return "<br>".join(gen_lines(val))
         else:
+            if not out_type:
+                raise ValueError("missing output type")
+
             prefs = global_vars.prefs
             dic = global_vars.dictionary
             if not dic:
@@ -100,28 +103,21 @@ def inject_buttons(buttons: list[str], edit: Editor):
     buttons.append(edit.addButton(
         icon=None,
         cmd="jrp_generate_default",
-        func=lambda e: _convert(e, OutputType.DEFAULT, ConversionType.GENERATE),
-        tip="[F2] (Re)generate readings and accents with default syntax.",
+        func=lambda e: _convert(e, ConversionType.GENERATE, OutputType.DEFAULT),
+        tip="(Re)generate readings and accents with default syntax (F2)",
         keys="F2")
     )
     buttons.append(edit.addButton(
         icon=None,
-        cmd="jrp_remove_default",
-        func=lambda e: _convert(e, OutputType.DEFAULT, ConversionType.REMOVE),
-        tip="[Ctrl+F2] Restore original text from default syntax.",
+        cmd="jrp_generate_migaku",
+        func=lambda e: _convert(e, ConversionType.GENERATE, OutputType.MIGAKU),
+        tip="(Re)generate readings and accents with Migaku syntax (Ctrl+F2)",
         keys="Ctrl+F2")
     )
     buttons.append(edit.addButton(
         icon=None,
-        cmd="jrp_generate_migaku",
-        func=lambda e: _convert(e, OutputType.MIGAKU, ConversionType.GENERATE),
-        tip="[F3] (re)generate readings and accents with Migaku syntax.",
-        keys="F3")
-    )
-    buttons.append(edit.addButton(
-        icon=None,
-        cmd="jrp_remove_migaku",
-        func=lambda e: _convert(e, OutputType.MIGAKU, ConversionType.REMOVE),
-        tip="[Ctrl+F3] Restore original text from Migaku syntax.",
-        keys="Ctrl+F3")
+        cmd="jrp_remove",
+        func=lambda e: _convert(e, ConversionType.REMOVE),
+        tip="Restore original text (F4)",
+        keys="F4")
     )
