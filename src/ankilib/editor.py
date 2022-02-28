@@ -32,17 +32,16 @@ class ConversionType(Enum):
 
 
 def _replace(edit: Editor, transform: Callable[[str], str]):
-    def inject_html(new_html: str):
+    def update_field_html(new_html: str):
         transformed = transform(new_html)
         if transformed is None:
             return
 
         edit.web.page().runJavaScript(f"""
-        editable = getCurrentField().activeInput
-        editable.fieldHTML = \"{transformed.translate(_js_esc)}\"
-        editable.caretToEnd()""")
+        document.execCommand("selectAll")
+        document.execCommand("insertHTML", false, "{transformed.translate(_js_esc)}")""")
 
-    edit.web.page().runJavaScript("getCurrentField().activeInput.fieldHTML", lambda html: inject_html(html))
+    edit.web.page().runJavaScript("getCurrentField().editable.fieldHTML", lambda html: update_field_html(html))
 
 
 _nl_re = re.compile(r"[^\S\r\n]*[\r\n]+[^\S\r\n]*")
