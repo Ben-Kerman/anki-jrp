@@ -1,3 +1,4 @@
+import re
 from collections.abc import Callable, Generator
 from enum import Enum, auto
 
@@ -44,12 +45,16 @@ def _replace(edit: Editor, transform: Callable[[str], str]):
     edit.web.page().runJavaScript("getCurrentField().activeInput.fieldHTML", lambda html: inject_html(html))
 
 
+_nl_re = re.compile(r"[^\S\r\n]*[\r\n]+[^\S\r\n]*")
+
+
 def _convert(edit: Editor, out_type: OutputType, conv_type: ConversionType):
     def gen_lines(val: str) -> Generator[str]:
         parser = parse_migaku if out_type == OutputType.MIGAKU else parse_jrp
         yield from ("".join(u.text() for u in parser(line)) for line in strip_html(val))
 
     def transform(val: str) -> str | None:
+        val = _nl_re.sub(" ", val)
         if conv_type == ConversionType.REMOVE:
             return "<br>".join(gen_lines(val))
         else:
