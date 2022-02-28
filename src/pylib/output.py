@@ -6,10 +6,6 @@ from .segments import Unit
 from .util import escape_text as esc
 
 
-class OutputError(Exception):
-    pass
-
-
 def _add_accent(p: OutputPrefs, unit: Unit) -> bool:
     if not unit.accents:
         return False

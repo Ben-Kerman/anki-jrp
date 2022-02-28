@@ -105,8 +105,7 @@ style_defs = [
         "desc": "Use diamond indicators",
         "tool": "Use Migaku-style diamonds as accent indicators instead of bars.",
         "type": WidgetType.Checkbox
-    },
-    {
+    }, {
         "name": "ruby_font_size",
         "desc": "Ruby (furigana) font size",
         "tool": "--jrp-ruby-font-size",
