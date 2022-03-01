@@ -102,7 +102,7 @@ class BaseSegment:
 @dataclass
 class Unit:
     segments: list[Segment | BaseSegment]
-    accents: list[Accent | None] = field(default_factory=list)
+    accents: list[Accent] = field(default_factory=list)
     is_yougen: bool = False
     uncertain: bool = False
     special_base: str | None = None
@@ -157,7 +157,7 @@ class Unit:
 
     @classmethod
     def from_text(cls, text: str, reading: str | None = None, base: str | None = None,
-                  accents: list[Accent | None] | None = None, is_yougen: bool = False, uncertain: bool = False,
+                  accents: list[Accent] | None = None, is_yougen: bool = False, uncertain: bool = False,
                   was_bare: bool = False) -> "Unit":
         def base_segments(segments: list[Segment], base: str) -> list[Segment | BaseSegment] | str | None:
             new_segments = []
@@ -220,11 +220,11 @@ def _read_until(val: str, idx: int, stop: tuple[str, ...]) -> tuple[int, str | N
 _mi_acc_re = re.compile(r"([hkano])(\d*)")
 
 
-def _parse_migaku_accents(val: str, reading: str) -> list[Accent | None]:
-    def convert(tag: str) -> Accent | None:
+def _parse_migaku_accents(val: str, reading: str) -> list[Accent]:
+    def convert(tag: str) -> Accent:
         m = _mi_acc_re.fullmatch(tag)
         if not m:
-            return None
+            return Accent(None)
 
         pat_c = m.group(1)
         if pat_c == "h":
@@ -372,7 +372,7 @@ def parse_jrp(value: str) -> list[Unit]:
         else:
             raise ParsingError(f"unclosed unit: {val}")
 
-        accents: list[Accent | None] = []
+        accents: list[Accent] = []
         special_base: str | None = None
         uncertain = False
         is_yougen = False

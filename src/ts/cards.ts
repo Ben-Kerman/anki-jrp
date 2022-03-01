@@ -101,7 +101,7 @@ function split_moras(reading: string, as_hira: boolean = false): string[] {
 }
 
 // TODO adapt for compound accents
-function generate_accent_nodes(reading: string, accents: (Accent | null)[], is_yougen: boolean): [string, Node, Node] {
+function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: boolean): [string, Node, Node] {
 	function acc_span(text: string, flat: boolean = false): Node {
 		const span = document.createElement("span");
 		span.classList.add(flat ? "jrp-graph-bar-unaccented" : "jrp-graph-bar-accented");
@@ -136,19 +136,19 @@ function generate_accent_nodes(reading: string, accents: (Accent | null)[], is_y
 
 	let first_pat: string | null = null;
 	for(const acc of accents) {
-		const pat_class = pattern_class(<number>acc!.value, moras.length, is_yougen);
+		const pat_class = pattern_class(<number>acc.value, moras.length, is_yougen);
 		if(first_pat === null) {
 			first_pat = pat_class;
 		}
 
 		const acc_div = document.createElement("div");
 		acc_div.classList.add(pat_class);
-		if(acc!.value === 1) {
+		if(acc.value === 1) {
 			acc_div.append(acc_span(moras[0]), mora_slice(1));
-		} else if(acc!.value === 0) {
+		} else if(acc.value === 0) {
 			acc_div.append(moras[0], acc_span(mora_slice(1), true));
 		} else {
-			acc_div.append(moras[0], acc_span(mora_slice(1, <number>acc!.value)), mora_slice(<number>acc!.value));
+			acc_div.append(moras[0], acc_span(mora_slice(1, <number>acc.value)), mora_slice(<number>acc.value));
 		}
 		graph_div.appendChild(acc_div);
 
@@ -160,10 +160,10 @@ function generate_accent_nodes(reading: string, accents: (Accent | null)[], is_y
 }
 
 class Accent {
-	constructor(public value: number | [number, number | null][]) {
+	constructor(public value: number | [number, number | null][] | null) {
 	}
 
-	static from_str(val: string): Accent | null {
+	static from_str(val: string): Accent {
 		function parse_part(v: string): [number, number | null] {
 			const split = v.split("@");
 			if(split.length === 1) {
@@ -176,7 +176,7 @@ class Accent {
 		}
 
 		if(val === "?") {
-			return null;
+			return new Accent(null);
 		}
 
 		const parts = val.split("-");
@@ -207,7 +207,7 @@ class Segment {
 class Unit {
 	constructor(
 		public segments: Segment[],
-		public accents: (Accent | null)[] = [],
+		public accents: Accent[] = [],
 		public is_yougen: boolean = false,
 		public uncertain: boolean = false,
 		public base_reading: string | null = null,
@@ -289,11 +289,11 @@ function read_until(val: string, idx: number, stop: string[]): [number, string |
 
 const mi_acc_re = /^([hkano])(\d*)$/;
 
-function parse_migaku_accents(val: string, reading: string): (Accent | null)[] {
-	function convert(tag: string, moras: number): Accent | null {
+function parse_migaku_accents(val: string, reading: string): Accent[] {
+	function convert(tag: string, moras: number): Accent {
 		const m = tag.match(mi_acc_re);
 		if(m === null) {
-			return null;
+			return new Accent(null);
 		}
 
 		const pat_c = m[1];
@@ -426,7 +426,7 @@ function parse_migaku(value: string): Unit[] {
 				segments.push(new Segment(suffix));
 			}
 			const is_yougen = base_reading.length > 0;
-			let accents: (Accent | null)[];
+			let accents: Accent[];
 			if(accent_str.length > 0) {
 				const reading = is_yougen ? base_reading : (prefix_reading + (suffix.length > 0 ? suffix : ""));
 				accents = parse_migaku_accents(accent_str, reading);
@@ -496,7 +496,7 @@ function parse_jrp(value: string): Unit[] {
 			throw new ParsingError(`unclosed unit: ${val}`);
 		}
 
-		let accents: (Accent | null)[] = [];
+		let accents: Accent[] = [];
 		let special_base: string | null = null;
 		let uncertain = false;
 		let is_yougen = false;

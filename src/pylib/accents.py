@@ -1,15 +1,14 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from src.pylib.normalize import split_moras
 
 
 @dataclass
 class Accent:
-    value: int | list[tuple[int, int | None]]
+    value: int | list[tuple[int, int | None]] | None
 
     @classmethod
-    def from_str(cls, val: str) -> Optional["Accent"]:
+    def from_str(cls, val: str) -> "Accent":
         def parse_part(v: str) -> tuple[int, int | None]:
             split = v.split("@")
             if len(split) == 1:
@@ -20,7 +19,7 @@ class Accent:
                 raise ValueError
 
         if val == "?":
-            return None
+            return Accent(None)
 
         parts = val.split("-")
         if len(parts) > 1:
@@ -34,12 +33,17 @@ class Accent:
     from_json = from_str
 
     def __str__(self) -> str:
-        if type(self.value) is int:
+        if self.value is None:
+            return "?"
+        elif type(self.value) is int:
             return str(self.value)
         else:
             return "-".join(f"{acc}@{moras}" for acc, moras in self.value)
 
     def fmt_migaku(self, reading: str, is_yougen: bool) -> str:
+        if self.value is None:
+            return "?"
+
         moras = split_moras(reading)
 
         def fmt_part(downstep: int, mora_count: int) -> str:
