@@ -127,26 +127,17 @@ function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: bo
 		const acc_indicator = document.createElement("div");
 		acc_indicator.classList.add("jrp-indicator");
 
-		let mora_sum = 0;
-		const iter: [number | null, number | null][] = Array.isArray(acc.value) ? acc.value : [[acc.value, mora_count]];
-		for(const [i, [ds_mora, mc]] of iter.entries()) {
+		if(acc.value === null) {
+			const unk_div = document.createElement("div");
+			unk_div.classList.add("jrp-unknown");
+			acc_indicator.append(unk_div);
+			return acc_indicator;
+		}
+
+		const iter: AccPart[] = Array.isArray(acc.value) ? acc.value : [[acc.value, mora_count]];
+		for(const [ds_mora, mc] of iter) {
 			const acc_div = document.createElement("div");
-			const cl = acc_div.classList;
-
-			if(ds_mora === null) {
-				cl.add("jrp-unknown");
-				continue;
-			}
-
-			let real_mc = mc;
-			if(real_mc === null) {
-				if(i < iter.length - 1) {
-					throw new ParsingError("@ can only be omitted for last part of split accent.");
-				} else {
-					real_mc = mora_count - mora_sum;
-				}
-			}
-			cl.add(pattern_class(ds_mora, real_mc, is_yougen));
+			acc_div.classList.add(pattern_class(ds_mora, mc, is_yougen));
 			acc_indicator.append(acc_div);
 		}
 		return acc_indicator;
