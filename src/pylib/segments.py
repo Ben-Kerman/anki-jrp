@@ -155,6 +155,9 @@ class Unit:
         else:
             return None
 
+    def accent_reading(self) -> str:
+        return self.base_reading() or self.reading()
+
     @classmethod
     def from_text(cls, text: str, reading: str | None = None, base: str | None = None,
                   accents: list[Accent] | None = None, is_yougen: bool = False, uncertain: bool = False,
@@ -330,8 +333,9 @@ def parse_migaku(value: str, conv_en_spaces: bool = True) -> list[Unit]:
 
             text = prefix + suffix
             reading = prefix_reading + suffix if prefix_reading else None
-            accents = _parse_migaku_accents(accent_str, reading or text) if accent_str else None
-            return Unit.from_text(text, reading, base_reading or None, accents, bool(base_reading))
+            unit = Unit.from_text(text, reading, base_reading or None, [], bool(base_reading))
+            unit.accents = _parse_migaku_accents(accent_str, unit.accent_reading()) if accent_str else None
+            return unit
 
         def execute(self) -> list[Unit]:
             units = []
@@ -401,7 +405,7 @@ def parse_jrp(value: str) -> list[Unit]:
         unit = Unit(segments, [], is_yougen, uncertain, special_base)
         if accent_str:
             try:
-                mora_count = len(split_moras(unit.reading()))
+                mora_count = len(split_moras(unit.accent_reading()))
                 unit.accents = [Accent.from_str(acc.strip(), mora_count) for acc in accent_str.split(",")]
             except ValueError:
                 raise ParsingError(f"invalid accent: {val}")

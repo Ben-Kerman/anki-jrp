@@ -259,7 +259,7 @@ class Unit {
 		return u;
 	}
 
-	reading(): string {
+	accent_reading(): string {
 		if(this.base_reading === null) {
 			return this.segments.map(s => s.get_reading()).join("");
 		} else return this.base_reading;
@@ -292,7 +292,7 @@ class Unit {
 		unit_span.append(text_span);
 
 		if(this.accents.length > 0) {
-			const [pat_class, graph, indicators] = generate_accent_nodes(this.reading(), this.accents, this.is_yougen);
+			const [pat_class, graph, indicators] = generate_accent_nodes(this.accent_reading(), this.accents, this.is_yougen);
 
 			unit_span.classList.add(pat_class);
 			if(this.uncertain) {
@@ -575,7 +575,7 @@ function parse_jrp(value: string): Unit[] {
 
 		const unit = new Unit(segments, [], is_yougen, uncertain, base_reading);
 		try {
-			const mora_count = split_moras(unit.reading()).length;
+			const mora_count = split_moras(unit.accent_reading()).length;
 			unit.accents = accent_str.split(",").map(acc => {
 				return Accent.from_str(acc.trim(), mora_count);
 			});

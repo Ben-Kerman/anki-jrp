@@ -26,7 +26,7 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
         if _add_accent(p, unit):
             if unit.is_yougen:
                 tag_content += f",{esc(';]', unit.base_reading())}"
-            rdng = unit.reading()
+            rdng = unit.accent_reading()
             tag_content += f";{','.join(acc.fmt_migaku(rdng, unit.is_yougen) for acc in unit.accents)}"
 
         if len(segments) == 1 and (is_kana(segments[0].text) or not segments[0].reading):
