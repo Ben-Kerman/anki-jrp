@@ -123,6 +123,35 @@ function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: bo
 		}
 	}
 
+	function indicator_for(acc: Accent, mora_count: number, is_yougen: boolean): Node {
+		const acc_indicator = document.createElement("div");
+		acc_indicator.classList.add("jrp-indicator");
+
+		let mora_sum = 0;
+		const iter: [number | null, number | null][] = Array.isArray(acc.value) ? acc.value : [[acc.value, mora_count]];
+		for(const [i, [ds_mora, mc]] of iter.entries()) {
+			const acc_div = document.createElement("div");
+			const cl = acc_div.classList;
+
+			if(ds_mora === null) {
+				cl.add("jrp-unknown");
+				continue;
+			}
+
+			let real_mc = mc;
+			if(real_mc === null) {
+				if(i < iter.length - 1) {
+					throw new ParsingError("@ can only be omitted for last part of split accent.");
+				} else {
+					real_mc = mora_count - mora_sum;
+				}
+			}
+			cl.add(pattern_class(ds_mora, real_mc, is_yougen));
+			acc_indicator.append(acc_div);
+		}
+		return acc_indicator;
+	}
+
 	const moras = split_moras(reading);
 	const graph_div = document.createElement("div");
 	graph_div.classList.add("jrp-graph");
@@ -152,9 +181,7 @@ function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: bo
 		}
 		graph_div.appendChild(acc_div);
 
-		const acc_indicator = document.createElement("div");
-		acc_indicator.classList.add("jrp-indicator", pat_class);
-		indicator_div.append(acc_indicator);
+		indicator_div.append(indicator_for(acc, moras.length, is_yougen));
 	}
 	return [first_pat!, graph_div, indicator_div];
 }
