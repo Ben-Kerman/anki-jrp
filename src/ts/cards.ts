@@ -100,8 +100,7 @@ function split_moras(reading: string, as_hira: boolean = false): string[] {
 	return moras;
 }
 
-// TODO adapt for compound accents
-function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: boolean): [string, Node, Node] {
+function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: boolean): [string[], Node, Node] {
 	function graph_span(text: string, flat: boolean = false): Node {
 		const span = document.createElement("span");
 		span.classList.add(flat ? "jrp-graph-bar-unaccented" : "jrp-graph-bar-accented");
@@ -120,6 +119,15 @@ function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: bo
 			return "jrp-odaka";
 		} else {
 			return "jrp-nakadaka";
+		}
+	}
+
+	function patterns_for(acc: Accent, mora_count: number, is_yougen: boolean): string[] {
+		if(acc.value === null) {
+			return ["jrp-unknown"];
+		} else {
+			const iter: AccPart[] = Array.isArray(acc.value) ? acc.value : [[acc.value, mora_count]];
+			return iter.map(([ds_mora, mc]) => pattern_class(ds_mora, mc, is_yougen));
 		}
 	}
 
@@ -194,7 +202,7 @@ function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: bo
 		graph_div.appendChild(graph_for(acc, moras, is_yougen));
 		indicator_div.append(indicator_for(acc, moras.length, is_yougen));
 	}
-	return ["jrp-unknown", graph_div, indicator_div]; // TODO
+	return [patterns_for(accents[0], moras.length, is_yougen), graph_div, indicator_div];
 }
 
 type AccPart = [number, number]
@@ -303,9 +311,12 @@ class Unit {
 		unit_span.append(text_span);
 
 		if(this.accents.length > 0) {
-			const [pat_class, graph, indicators] = generate_accent_nodes(this.accent_reading(), this.accents, this.is_yougen);
+			const [pat_classes, graph, indicators] = generate_accent_nodes(this.accent_reading(), this.accents, this.is_yougen);
 
-			unit_span.classList.add(pat_class);
+			unit_span.classList.add(pat_classes[0]);
+			for(const [i, pc] of pat_classes.slice(1).entries()) {
+				unit_span.classList.add(`${pc}-${i + 2}`);
+			}
 			if(this.uncertain) {
 				unit_span.classList.add("jrp-uncertain");
 			}
