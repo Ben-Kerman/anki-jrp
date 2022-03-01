@@ -186,8 +186,10 @@ function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: bo
 	return [first_pat!, graph_div, indicator_div];
 }
 
+type AccPart = [number, (number | null)][]
+
 class Accent {
-	constructor(public value: number | [number, number | null][] | null) {
+	constructor(public value: number | AccPart | null) {
 	}
 
 	static from_str(val: string): Accent {
@@ -209,7 +211,7 @@ class Accent {
 		const parts = val.split("-");
 		if(parts.length > 1) {
 			const acc = new Accent(parts.map(parse_part));
-			if(some(<[number, number | null][]>acc.value, ([_, mc]) => mc === null)) {
+			if(some((<AccPart>acc.value).slice(0, -1), ([_, mc]) => mc === null)) {
 				throw new ParsingError(`only the last part of a compound accent can have no @: ${val}`);
 			}
 			return acc;

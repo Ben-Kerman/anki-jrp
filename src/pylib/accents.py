@@ -24,7 +24,7 @@ class Accent:
         parts = val.split("-")
         if len(parts) > 1:
             acc = Accent([parse_part(p) for p in parts])
-            if any(not mc for _, mc in acc.value):
+            if any(not mc for _, mc in acc.value[:-1]):
                 raise ValueError
             return acc
         else:
