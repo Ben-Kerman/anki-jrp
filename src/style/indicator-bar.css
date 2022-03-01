@@ -25,10 +25,17 @@
 }
 
 .jrp-indicator {
+	display: flex;
 	width: calc(100% - var(--jrp-indicator-bar-margin) * 2);
 	height: var(--jrp-indicator-bar-width);
 
+	column-gap: 2px;
+
 	border-radius: var(--jrp-indicator-bar-radius);
+}
+
+.jrp-indicator > div {
+	flex-grow: 1;
 }
 
 .jrp-vertical .jrp-indicator {
