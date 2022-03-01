@@ -30,8 +30,30 @@
 	height: var(--jrp-indicator-bar-width);
 
 	column-gap: 2px;
+}
 
-	border-radius: var(--jrp-indicator-bar-radius);
+.jrp-indicator > div:first-child {
+	border-top-left-radius: var(--jrp-indicator-bar-radius);
+	border-bottom-left-radius: var(--jrp-indicator-bar-radius);
+}
+
+.jrp-indicator > div:last-child {
+	border-top-right-radius: var(--jrp-indicator-bar-radius);
+	border-bottom-right-radius: var(--jrp-indicator-bar-radius);
+}
+
+.jrp-vertical .jrp-indicator > div {
+	border-radius: 0;
+}
+
+.jrp-vertical .jrp-indicator > div:first-child {
+	border-top-left-radius: var(--jrp-indicator-bar-radius);
+	border-top-right-radius: var(--jrp-indicator-bar-radius);
+}
+
+.jrp-vertical .jrp-indicator > div:last-child {
+	border-bottom-right-radius: var(--jrp-indicator-bar-radius);
+	border-bottom-left-radius: var(--jrp-indicator-bar-radius);
 }
 
 .jrp-indicator > div {
