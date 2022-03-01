@@ -22,6 +22,7 @@ class StylePrefs:
     atamadaka: str = "#00a000"
     odaka: str = "#ff77ff"
     nakadaka: str = "#c75000"
+    unknown: str = "#808080"
     uncertain_opacity: str = "40%"
     graph_border_width: str = "0.08em"
     graph_border_radius: str = "0.25em"

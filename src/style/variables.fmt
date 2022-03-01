@@ -6,6 +6,7 @@
 	--jrp-atamadaka: {atamadaka};
 	--jrp-odaka: {odaka};
 	--jrp-nakadaka: {nakadaka};
+	--jrp-unknown: {unknown};
 	--jrp-uncertain-opacity: {uncertain_opacity};
 	--jrp-graph-border-width: {graph_border_width};
 	--jrp-graph-border-radius: {graph_border_radius};

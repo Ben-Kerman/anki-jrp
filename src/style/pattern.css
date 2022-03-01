@@ -18,6 +18,10 @@
 	color: var(--jrp-nakadaka);
 }
 
+.jrp-unit.jrp-unknown > span, .jrp-graph .jrp-unknown {
+	color: var(--jrp-unknown);
+}
+
 .jrp-indicator > .jrp-heiban {
 	background-color: var(--jrp-heiban);
 }
@@ -36,4 +40,8 @@
 
 .jrp-indicator > .jrp-nakadaka {
 	background-color: var(--jrp-nakadaka);
+}
+
+.jrp-indicator > .jrp-unknown {
+	background-color: var(--jrp-unknown);
 }

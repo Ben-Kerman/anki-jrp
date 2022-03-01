@@ -141,6 +141,11 @@ style_defs = [
         "tool": "--jrp-nakadaka",
         "type": WidgetType.Color
     }, {
+        "name": "unknown",
+        "desc": "Unknown accent color",
+        "tool": "--jrp-unknown",
+        "type": WidgetType.Color
+    }, {
         "name": "uncertain_opacity",
         "desc": "Opacity of words with uncertain accent",
         "tool": "--jrp-uncertain-opacity",
