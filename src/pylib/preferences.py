@@ -7,6 +7,7 @@ from json import JSONDecodeError
 from typing import Union
 
 from . import overrides
+from .accents import Accent
 from .overrides import AccentOverride, IgnoreOverride, WordOverride
 from .util import ConfigError, from_json, to_json
 
@@ -114,7 +115,7 @@ class ConvPrefs:
                     return gen
         return None
 
-    def apply_accent_or(self, variant: str, reading: str) -> list[int] | None:
+    def apply_accent_or(self, variant: str, reading: str) -> list[Accent] | None:
         defaults = (ao.value for ao in overrides.defaults().accent if ao.id not in self.disabled_override_ids.accent)
         for ao in chain(self.overrides.accent, defaults):
             if ao.match(variant, reading):

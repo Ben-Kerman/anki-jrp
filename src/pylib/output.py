@@ -1,5 +1,3 @@
-from collections.abc import Generator
-
 from .normalize import is_hiragana, is_kana, split_moras
 from .preferences import OutputPrefs
 from .segments import Unit
@@ -19,20 +17,6 @@ def _add_accent(p: OutputPrefs, unit: Unit) -> bool:
 
 
 def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
-    def migaku_accents(unit: Unit) -> Generator[str]:
-        moras = split_moras(unit.reading())
-        for acc in unit.accents:
-            if acc == 0:
-                yield "h"
-            elif unit.is_yougen:
-                yield f"k{acc}"
-            elif acc == 1:
-                yield "a"
-            elif acc == len(moras):
-                yield "o"
-            else:
-                yield f"n{acc}"
-
     def fmt_unit(unit: Unit, p: OutputPrefs) -> str:
         segments = unit.non_base_segments()
         if len(segments) == 1 and all(c == " " for c in segments[0].text):
@@ -42,7 +26,8 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
         if _add_accent(p, unit):
             if unit.is_yougen:
                 tag_content += f",{esc(';]', unit.base_reading())}"
-            tag_content += f";{','.join(migaku_accents(unit))}"
+            rdng = unit.reading()
+            tag_content += f";{','.join(acc.fmt_migaku(rdng, unit.is_yougen) for acc in unit.accents)}"
 
         if len(segments) == 1 and (is_kana(segments[0].text) or not segments[0].reading):
             tag = f"[{tag_content}]" if tag_content else ""

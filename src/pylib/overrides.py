@@ -4,6 +4,7 @@ from collections.abc import Generator
 from dataclasses import dataclass
 from typing import Generic, Type, TypeVar, Union
 
+from .accents import Accent
 from .normalize import comp_kana
 from .util import ConfigError, from_json
 
@@ -62,7 +63,7 @@ class WordOverride:
 class AccentOverride:
     variants: list[str]
     reading: str
-    accents: list[int]
+    accents: list[Accent]
 
     def fmt(self) -> str:
         return f"{self.reading}【{'・'.join(self.variants)}】→ [{']['.join(map(str, self.accents))}]"

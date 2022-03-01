@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
+from .accents import Accent
 from .normalize import comp_kana, has_kana, is_kana, split_moras, to_hiragana, to_katakana
 from .util import escape_text as esc
 
@@ -100,7 +101,7 @@ class BaseSegment:
 @dataclass
 class Unit:
     segments: list[Segment | BaseSegment]
-    accents: list[int] = field(default_factory=list)
+    accents: list[Accent] = field(default_factory=list)
     is_yougen: bool = False
     uncertain: bool = False
     special_base: str | None = None
@@ -155,7 +156,7 @@ class Unit:
 
     @classmethod
     def from_text(cls, text: str, reading: str | None = None, base: str | None = None,
-                  accents: list[int] | None = None, is_yougen: bool = False, uncertain: bool = False,
+                  accents: list[Accent] | None = None, is_yougen: bool = False, uncertain: bool = False,
                   was_bare: bool = False) -> "Unit":
         def base_segments(segments: list[Segment], base: str) -> list[Segment | BaseSegment] | str | None:
             new_segments = []

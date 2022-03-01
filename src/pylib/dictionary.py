@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Generic, TextIO, Type, TypeVar
 
+from .accents import Accent
 from .normalize import is_kana, to_hiragana
 
 T = TypeVar("T")
@@ -39,10 +40,10 @@ class BasicDict(Generic[T]):
 class AccentEntry:
     reading: str
     variants: list[str]
-    accents: list[int]
+    accents: list[Accent]
     source: str
 
-    def __init__(self, reading: str, variants: list[str], accents: list[int], source: str):
+    def __init__(self, reading: str, variants: list[str], accents: list[Accent], source: str):
         self.reading = sys.intern(reading)
         self.variants = [sys.intern(v) for v in variants]
         self.accents = accents
@@ -53,7 +54,7 @@ class AccentEntry:
         vals = line.split("\t")
         if len(vals) != 4:
             raise ValueError
-        accents = [int(acc) for acc in vals[2].split(",")]
+        accents = [Accent.from_str(acc_str) for acc_str in vals[2].split(",")]
         return cls(vals[0], vals[1].split(","), accents, vals[3])
 
     @classmethod
@@ -93,7 +94,7 @@ Entry = TypeVar("Entry", AccentEntry, VariantEntry)
 @dataclass
 class LookupResult:
     reading: str
-    accents: list[int] | None = None
+    accents: list[Accent] | None = None
 
     def __repr__(self):
         return f"R[{self.reading},{self.accents}]"
