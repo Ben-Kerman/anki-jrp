@@ -8,6 +8,14 @@ function some<T>(itr: Iterable<T>, pre: (e: T) => boolean): boolean {
 	return false;
 }
 
+function parse_int_exc(value: string): number {
+	const res = parseInt(value);
+	if(isNaN(res)) {
+		throw new ParsingError(`not a valid integer: ${value}`);
+	}
+	return res;
+}
+
 function maketrans(src: string, tgt: string): (c: string) => string {
 	// TODO improve efficiency
 	return (chr: string) => {
@@ -92,7 +100,8 @@ function split_moras(reading: string, as_hira: boolean = false): string[] {
 	return moras;
 }
 
-function generate_accent_nodes(reading: string, accents: number[], is_yougen: boolean): [string, Node, Node] {
+// TODO adapt for compound accents
+function generate_accent_nodes(reading: string, accents: (Accent | null)[], is_yougen: boolean): [string, Node, Node] {
 	function acc_span(text: string, flat: boolean = false): Node {
 		const span = document.createElement("span");
 		span.classList.add(flat ? "jrp-graph-bar-unaccented" : "jrp-graph-bar-accented");
@@ -127,19 +136,19 @@ function generate_accent_nodes(reading: string, accents: number[], is_yougen: bo
 
 	let first_pat: string | null = null;
 	for(const acc of accents) {
-		const pat_class = pattern_class(acc, moras.length, is_yougen);
+		const pat_class = pattern_class(<number>acc!.value, moras.length, is_yougen);
 		if(first_pat === null) {
 			first_pat = pat_class;
 		}
 
 		const acc_div = document.createElement("div");
 		acc_div.classList.add(pat_class);
-		if(acc === 1) {
+		if(acc!.value === 1) {
 			acc_div.append(acc_span(moras[0]), mora_slice(1));
-		} else if(acc === 0) {
+		} else if(acc!.value === 0) {
 			acc_div.append(moras[0], acc_span(mora_slice(1), true));
 		} else {
-			acc_div.append(moras[0], acc_span(mora_slice(1, acc)), mora_slice(acc));
+			acc_div.append(moras[0], acc_span(mora_slice(1, <number>acc!.value)), mora_slice(<number>acc!.value));
 		}
 		graph_div.appendChild(acc_div);
 
@@ -148,6 +157,39 @@ function generate_accent_nodes(reading: string, accents: number[], is_yougen: bo
 		indicator_div.append(acc_indicator);
 	}
 	return [first_pat!, graph_div, indicator_div];
+}
+
+class Accent {
+	constructor(public value: number | [number, number | null][]) {
+	}
+
+	static from_str(val: string): Accent | null {
+		function parse_part(v: string): [number, number | null] {
+			const split = v.split("@");
+			if(split.length === 1) {
+				return [parse_int_exc(v), null];
+			} else if(split.length === 2) {
+				return [parse_int_exc(split[0]), parse_int_exc(split[1])];
+			} else {
+				throw new ParsingError(`invalid accent tag: ${val}`);
+			}
+		}
+
+		if(val === "?") {
+			return null;
+		}
+
+		const parts = val.split("-");
+		if(parts.length > 1) {
+			const acc = new Accent(parts.map(parse_part));
+			if(some(<[number, number | null][]>acc.value, ([_, mc]) => mc === null)) {
+				throw new ParsingError(`only the last part of a compound accent can have no @: ${val}`);
+			}
+			return acc;
+		} else {
+			return new Accent(parse_int_exc(val));
+		}
+	}
 }
 
 class Segment {
@@ -165,7 +207,7 @@ class Segment {
 class Unit {
 	constructor(
 		public segments: Segment[],
-		public accents: number[] = [],
+		public accents: (Accent | null)[] = [],
 		public is_yougen: boolean = false,
 		public uncertain: boolean = false,
 		public base_reading: string | null = null,
@@ -245,26 +287,36 @@ function read_until(val: string, idx: number, stop: string[]): [number, string |
 	return [val.length, null, chars.join("")];
 }
 
-function parse_migaku_accents(val: string, reading: string): number[] {
-	function convert(tag: string, moras: number): number {
-		switch(tag[0]) {
+const mi_acc_re = /^([hkano])(\d*)$/;
+
+function parse_migaku_accents(val: string, reading: string): (Accent | null)[] {
+	function convert(tag: string, moras: number): Accent | null {
+		const m = tag.match(mi_acc_re);
+		if(m === null) {
+			return null;
+		}
+
+		const pat_c = m[1];
+		switch(pat_c) {
 			case "h":
-				return 0;
+				return new Accent(0);
 			case "a":
-				return 1;
+				return new Accent(1);
 			case "k":
 			case "n":
-				return parseInt(tag.slice(1));
+				if(m[2].length === 0) {
+					throw new ParsingError(`missing downstep number: ${tag}`);
+				}
+				return new Accent(parse_int_exc(m[2]));
 			case "o":
-				return moras;
+				return new Accent(moras);
 			default:
 				throw new ParsingError(`invalid Migaku accent pattern: ${tag}`);
 		}
 	}
 
 	const moras = split_moras(reading).length;
-	const tags = val.split(",");
-	return tags.map(t => convert(t, moras));
+	return val.split(",").map(t => convert(t, moras));
 }
 
 function parse_migaku(value: string): Unit[] {
@@ -374,7 +426,7 @@ function parse_migaku(value: string): Unit[] {
 				segments.push(new Segment(suffix));
 			}
 			const is_yougen = base_reading.length > 0;
-			let accents: number[];
+			let accents: (Accent | null)[];
 			if(accent_str.length > 0) {
 				const reading = is_yougen ? base_reading : (prefix_reading + (suffix.length > 0 ? suffix : ""));
 				accents = parse_migaku_accents(accent_str, reading);
@@ -444,7 +496,7 @@ function parse_jrp(value: string): Unit[] {
 			throw new ParsingError(`unclosed unit: ${val}`);
 		}
 
-		let accents: number[] = [];
+		let accents: (Accent | null)[] = [];
 		let special_base: string | null = null;
 		let uncertain = false;
 		let is_yougen = false;
@@ -462,13 +514,13 @@ function parse_jrp(value: string): Unit[] {
 
 			const [end_idx, end_c, accent_str] = read_until(val, pos, ["|", "}"]);
 			if(end_c !== null) {
-				// implementation differs from Python
-				accents = accent_str.split(",").map(acc => {
-					const val = parseInt(acc);
-					if(isNaN(val)) {
-						throw new ParsingError(`invalid accent: ${val}`);
-					} else return val;
-				});
+				try {
+					accents = accent_str.split(",").map(acc => {
+						return Accent.from_str(acc.trim());
+					});
+				} catch(e) {
+					throw new ParsingError(`invalid accent: ${val}`);
+				}
 			} else throw new ParsingError(`unclosed unit: ${val}`);
 
 			if(end_c === "|") {
