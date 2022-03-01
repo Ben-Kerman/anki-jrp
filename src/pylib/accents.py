@@ -40,6 +40,9 @@ class Accent:
         else:
             return "-".join(f"{acc}@{moras}" for acc, moras in self.value)
 
+    def __repr__(self) -> str:
+        return f"A[{self}]"
+
     def fmt_migaku(self, reading: str, is_yougen: bool) -> str:
         if self.value is None:
             return "?"
