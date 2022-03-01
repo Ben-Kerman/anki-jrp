@@ -110,13 +110,13 @@ function generate_accent_nodes(reading: string, accents: (Accent | null)[], is_y
 	}
 
 	function pattern_class(acc: number, mora_count: number, is_yougen: boolean): string {
-		if(acc == 0) {
+		if(acc === 0) {
 			return "jrp-heiban";
 		} else if(is_yougen) {
 			return "jrp-kifuku";
-		} else if(acc == 1) {
+		} else if(acc === 1) {
 			return "jrp-atamadaka";
-		} else if(acc == mora_count) {
+		} else if(acc === mora_count) {
 			return "jrp-odaka";
 		} else {
 			return "jrp-nakadaka";
@@ -241,7 +241,7 @@ class Unit {
 			}
 		});
 
-		if(bare_empty && this.accents.length == 0) {
+		if(bare_empty && this.accents.length === 0) {
 			return segment_nodes;
 		}
 
@@ -609,7 +609,7 @@ function generate() {
 	for(const e of document.querySelectorAll("[data-jrp-generate]")) {
 		if(e.parentElement!.closest("[data-jrp-generate]") === null) {
 			let deepest_parent = e;
-			while(deepest_parent.childNodes.length == 1 && deepest_parent.firstElementChild !== null) {
+			while(deepest_parent.childNodes.length === 1 && deepest_parent.firstElementChild !== null) {
 				deepest_parent = deepest_parent.firstElementChild;
 			}
 			root_elements.push(deepest_parent);
