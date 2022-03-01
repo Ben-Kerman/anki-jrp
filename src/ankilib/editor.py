@@ -37,9 +37,12 @@ def _replace(edit: Editor, transform: Callable[[str], str]):
         if transformed is None:
             return
 
-        edit.web.page().runJavaScript(f"""
-        document.execCommand("selectAll")
-        document.execCommand("insertHTML", false, "{transformed.translate(_js_esc)}")""")
+        edit.web.page().runJavaScript(f"""(function() {{
+            if(getCurrentField().codable && getCurrentField().codable.active)
+                return;
+            document.execCommand("selectAll");
+            document.execCommand("insertHTML", false, "{transformed.translate(_js_esc)}");
+        }})();""")
 
     edit.web.page().runJavaScript("getCurrentField().editable.fieldHTML", lambda html: update_field_html(html))
 
