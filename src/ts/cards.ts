@@ -102,7 +102,7 @@ function split_moras(reading: string, as_hira: boolean = false): string[] {
 
 // TODO adapt for compound accents
 function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: boolean): [string, Node, Node] {
-	function acc_span(text: string, flat: boolean = false): Node {
+	function graph_span(text: string, flat: boolean = false): Node {
 		const span = document.createElement("span");
 		span.classList.add(flat ? "jrp-graph-bar-unaccented" : "jrp-graph-bar-accented");
 		span.append(text);
@@ -121,6 +121,46 @@ function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: bo
 		} else {
 			return "jrp-nakadaka";
 		}
+	}
+
+	function graph_for(acc: Accent, moras: string[], is_yougen: boolean): Node {
+		const graph_div = document.createElement("div");
+
+		if(acc.value === null) {
+			const unk_span = document.createElement("span");
+			unk_span.classList.add("jrp-unknown");
+			unk_span.append(moras.join(""));
+			graph_div.append(unk_span);
+			return graph_div;
+		}
+
+		let last_mora = 0;
+		const iter: AccPart[] = Array.isArray(acc.value) ? acc.value : [[acc.value, moras.length]];
+		for(const [i, [ds_mora, mc]] of iter.entries()) {
+			const part_moras = moras.slice(last_mora, last_mora + mc);
+			last_mora += mc;
+
+			function mora_slice(start: number, end?: number): string {
+				return part_moras.slice(start, end).join("");
+			}
+
+			const acc_span = document.createElement("span");
+			acc_span.classList.add(pattern_class(ds_mora, mc, is_yougen));
+
+			if(ds_mora === 1) {
+				acc_span.append(graph_span(part_moras[0]), mora_slice(1));
+			} else if(ds_mora === 0) {
+				acc_span.append(part_moras[0], graph_span(mora_slice(1), true));
+			} else {
+				acc_span.append(part_moras[0], graph_span(mora_slice(1, ds_mora)), mora_slice(ds_mora));
+			}
+
+			graph_div.append(acc_span);
+			if(i < iter.length - 1) {
+				graph_div.append("・");
+			}
+		}
+		return graph_div;
 	}
 
 	function indicator_for(acc: Accent, mora_count: number, is_yougen: boolean): Node {
@@ -150,31 +190,11 @@ function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: bo
 	const indicator_div = document.createElement("div");
 	indicator_div.classList.add("jrp-indicator-container");
 
-	function mora_slice(start: number, end?: number): string {
-		return moras.slice(start, end).join("");
-	}
-
-	let first_pat: string | null = null;
 	for(const acc of accents) {
-		const pat_class = pattern_class(<number>acc.value, moras.length, is_yougen);
-		if(first_pat === null) {
-			first_pat = pat_class;
-		}
-
-		const acc_div = document.createElement("div");
-		acc_div.classList.add(pat_class);
-		if(acc.value === 1) {
-			acc_div.append(acc_span(moras[0]), mora_slice(1));
-		} else if(acc.value === 0) {
-			acc_div.append(moras[0], acc_span(mora_slice(1), true));
-		} else {
-			acc_div.append(moras[0], acc_span(mora_slice(1, <number>acc.value)), mora_slice(<number>acc.value));
-		}
-		graph_div.appendChild(acc_div);
-
+		graph_div.appendChild(graph_for(acc, moras, is_yougen));
 		indicator_div.append(indicator_for(acc, moras.length, is_yougen));
 	}
-	return [first_pat!, graph_div, indicator_div];
+	return ["jrp-unknown", graph_div, indicator_div]; // TODO
 }
 
 type AccPart = [number, number]
