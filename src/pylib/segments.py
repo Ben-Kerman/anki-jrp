@@ -372,7 +372,7 @@ def parse_jrp(value: str) -> list[Unit]:
         else:
             raise ParsingError(f"unclosed unit: {val}")
 
-        accents: list[Accent] = []
+        accent_str: str = ""
         special_base: str | None = None
         uncertain = False
         is_yougen = False
@@ -386,12 +386,7 @@ def parse_jrp(value: str) -> list[Unit]:
                 pos += 1
 
             end_idx, end_c, accent_str = _read_until(val, pos, ("|", "}"))
-            if end_c:
-                try:
-                    accents = [Accent.from_str(acc.strip()) for acc in accent_str.split(",")]
-                except ValueError:
-                    raise ParsingError(f"invalid accent: {val}")
-            else:
+            if not end_c:
                 raise ParsingError(f"unclosed unit: {val}")
 
             if end_c == "|":
@@ -403,7 +398,15 @@ def parse_jrp(value: str) -> list[Unit]:
             else:
                 pos = end_idx
 
-        return pos + 1, Unit(segments, accents, is_yougen, uncertain, special_base)
+        unit = Unit(segments, [], is_yougen, uncertain, special_base)
+        if accent_str:
+            try:
+                mora_count = len(split_moras(unit.reading()))
+                unit.accents = [Accent.from_str(acc.strip(), mora_count) for acc in accent_str.split(",")]
+            except ValueError:
+                raise ParsingError(f"invalid accent: {val}")
+
+        return pos + 1, unit
 
     units: list[Unit] = []
     free_segments: list[Segment] = []

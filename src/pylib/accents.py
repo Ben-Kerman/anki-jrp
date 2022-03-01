@@ -5,10 +5,10 @@ from src.pylib.normalize import split_moras
 
 @dataclass
 class Accent:
-    value: int | list[tuple[int, int | None]] | None
+    value: int | list[tuple[int, int]] | None
 
     @classmethod
-    def from_str(cls, val: str) -> "Accent":
+    def from_str(cls, val: str, mora_count: int | None = None) -> "Accent":
         def parse_part(v: str) -> tuple[int, int | None]:
             split = v.split("@")
             if len(split) == 1:
@@ -21,12 +21,21 @@ class Accent:
         if val == "?":
             return Accent(None)
 
-        parts = val.split("-")
-        if len(parts) > 1:
-            acc = Accent([parse_part(p) for p in parts])
-            if any(not mc for _, mc in acc.value[:-1]):
+        part_strs = val.split("-")
+        if len(part_strs) > 1:
+            parts = [parse_part(p) for p in part_strs]
+            if any(not mc for _, mc in parts[:-1]):
                 raise ValueError
-            return acc
+
+            [ds_mora, raw_mc] = parts[-1]
+            if raw_mc is None:
+                if mora_count is None:
+                    raise ValueError
+                else:
+                    calc_count = mora_count - sum(mc for _, mc in parts[:-1])
+                    parts[-1] = (ds_mora, calc_count)
+
+            return Accent(parts)
         else:
             return Accent(int(val))
 

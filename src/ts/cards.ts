@@ -186,13 +186,13 @@ function generate_accent_nodes(reading: string, accents: Accent[], is_yougen: bo
 	return [first_pat!, graph_div, indicator_div];
 }
 
-type AccPart = [number, (number | null)][]
+type AccPart = [number, number]
 
 class Accent {
-	constructor(public value: number | AccPart | null) {
+	constructor(public value: number | AccPart[] | null) {
 	}
 
-	static from_str(val: string): Accent {
+	static from_str(val: string, mora_count: number | null = null): Accent {
 		function parse_part(v: string): [number, number | null] {
 			const split = v.split("@");
 			if(split.length === 1) {
@@ -208,13 +208,23 @@ class Accent {
 			return new Accent(null);
 		}
 
-		const parts = val.split("-");
-		if(parts.length > 1) {
-			const acc = new Accent(parts.map(parse_part));
-			if(some((<AccPart>acc.value).slice(0, -1), ([_, mc]) => mc === null)) {
+		const part_strs = val.split("-");
+		if(part_strs.length > 1) {
+			const parts = part_strs.map(parse_part);
+			if(some(parts.slice(0, -1), ([_, mc]) => mc === null)) {
 				throw new ParsingError(`only the last part of a compound accent can have no @: ${val}`);
 			}
-			return acc;
+
+			const [ds_mora, raw_mc] = parts[parts.length - 1];
+			if(raw_mc === null) {
+				if(mora_count === null) {
+					throw new ParsingError("mora_count missing in Accent#from_str");
+				} else {
+					const calc_count = mora_count - parts.slice(0, -1).map(p => p[0]).reduce((p, c) => p + c);
+					parts[parts.length - 1] = [ds_mora, calc_count];
+				}
+			}
+			return new Accent(<AccPart[]>parts);
 		} else {
 			return new Accent(parse_int_exc(val));
 		}
@@ -525,7 +535,7 @@ function parse_jrp(value: string): Unit[] {
 			throw new ParsingError(`unclosed unit: ${val}`);
 		}
 
-		let accents: Accent[] = [];
+		let accent_str: string = "";
 		let special_base: string | null = null;
 		let uncertain = false;
 		let is_yougen = false;
@@ -540,17 +550,11 @@ function parse_jrp(value: string): Unit[] {
 				++pos;
 			}
 
-
-			const [end_idx, end_c, accent_str] = read_until(val, pos, ["|", "}"]);
-			if(end_c !== null) {
-				try {
-					accents = accent_str.split(",").map(acc => {
-						return Accent.from_str(acc.trim());
-					});
-				} catch(e) {
-					throw new ParsingError(`invalid accent: ${val}`);
-				}
-			} else throw new ParsingError(`unclosed unit: ${val}`);
+			let end_idx: number, end_c: string | null;
+			[end_idx, end_c, accent_str] = read_until(val, pos, ["|", "}"]);
+			if(end_c === null) {
+				throw new ParsingError(`unclosed unit: ${val}`);
+			}
 
 			if(end_c === "|") {
 				let unit_end_idx: number, ec: string | null;
@@ -568,7 +572,18 @@ function parse_jrp(value: string): Unit[] {
 		if(special_base !== null) {
 			base_reading = special_base;
 		}
-		return [pos + 1, new Unit(segments, accents, is_yougen, uncertain, base_reading)];
+
+		const unit = new Unit(segments, [], is_yougen, uncertain, base_reading);
+		try {
+			const mora_count = split_moras(unit.reading()).length;
+			unit.accents = accent_str.split(",").map(acc => {
+				return Accent.from_str(acc.trim(), mora_count);
+			});
+		} catch(e) {
+			throw new ParsingError(`invalid accent: ${val}`);
+		}
+
+		return [pos + 1, unit];
 	}
 
 	const units: Unit[] = [];
