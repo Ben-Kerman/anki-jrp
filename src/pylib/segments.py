@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
@@ -101,7 +102,7 @@ class BaseSegment:
 @dataclass
 class Unit:
     segments: list[Segment | BaseSegment]
-    accents: list[Accent] = field(default_factory=list)
+    accents: list[Accent | None] = field(default_factory=list)
     is_yougen: bool = False
     uncertain: bool = False
     special_base: str | None = None
@@ -156,7 +157,7 @@ class Unit:
 
     @classmethod
     def from_text(cls, text: str, reading: str | None = None, base: str | None = None,
-                  accents: list[Accent] | None = None, is_yougen: bool = False, uncertain: bool = False,
+                  accents: list[Accent | None] | None = None, is_yougen: bool = False, uncertain: bool = False,
                   was_bare: bool = False) -> "Unit":
         def base_segments(segments: list[Segment], base: str) -> list[Segment | BaseSegment] | str | None:
             new_segments = []
@@ -216,33 +217,31 @@ def _read_until(val: str, idx: int, stop: tuple[str, ...]) -> tuple[int, str | N
     return len(val), None, "".join(chars)
 
 
-def _parse_migaku_accents(val: str, reading: str, has_base: bool) -> list[int]:
-    def convert(tag: str, moras: int, has_base: bool) -> int:
-        match tag[0]:
-            case "h":
-                return 0
-            case "a":
-                if has_base:
-                    print("atamadaka in non-yougen accent list")
-                return 1
-            case "k":
-                if not has_base:
-                    print("kifuku in non-yougen accent list")
-                return int(tag[1:])
-            case "n":
-                if has_base:
-                    print("nakadaka in yougen accent list")
-                return int(tag[1:])
-            case "o":
-                if has_base:
-                    print("odaka in yougen accent list")
-                return moras
-            case _:
-                raise ParsingError(f"invalid Migaku accent pattern: {tag}")
+_mi_acc_re = re.compile(r"([hkano])(\d*)")
+
+
+def _parse_migaku_accents(val: str, reading: str) -> list[Accent | None]:
+    def convert(tag: str) -> Accent | None:
+        m = _mi_acc_re.fullmatch(tag)
+        if not m:
+            return None
+
+        pat_c = m.group(1)
+        if pat_c == "h":
+            return Accent(0)
+        elif pat_c == "a":
+            return Accent(1)
+        elif pat_c == "k" or pat_c == "n":
+            if not m.group(2):
+                raise ParsingError(f"missing downstep number: {tag}")
+            return Accent(int(m.group(2)))
+        elif pat_c == "o":
+            return Accent(moras)
+        else:
+            raise ParsingError(f"invalid Migaku accent pattern: {tag}")
 
     moras = len(split_moras(reading))
-    tags = val.split(",")
-    return [convert(t, moras, has_base) for t in tags]
+    return [convert(t) for t in val.split(",")]
 
 
 def parse_migaku(value: str, conv_en_spaces: bool = True) -> list[Unit]:
@@ -331,7 +330,7 @@ def parse_migaku(value: str, conv_en_spaces: bool = True) -> list[Unit]:
 
             text = prefix + suffix
             reading = prefix_reading + suffix if prefix_reading else None
-            accents = _parse_migaku_accents(accent_str, reading or text, bool(base_reading)) if accent_str else None
+            accents = _parse_migaku_accents(accent_str, reading or text) if accent_str else None
             return Unit.from_text(text, reading, base_reading or None, accents, bool(base_reading))
 
         def execute(self) -> list[Unit]:
@@ -373,7 +372,7 @@ def parse_jrp(value: str) -> list[Unit]:
         else:
             raise ParsingError(f"unclosed unit: {val}")
 
-        accents: list[int] = []
+        accents: list[Accent | None] = []
         special_base: str | None = None
         uncertain = False
         is_yougen = False
@@ -389,7 +388,7 @@ def parse_jrp(value: str) -> list[Unit]:
             end_idx, end_c, accent_str = _read_until(val, pos, ("|", "}"))
             if end_c:
                 try:
-                    accents = [int(acc) for acc in accent_str.split(",")]
+                    accents = [Accent.from_str(acc.strip()) for acc in accent_str.split(",")]
                 except ValueError:
                     raise ParsingError(f"invalid accent: {val}")
             else:

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from src.pylib.normalize import split_moras
 
@@ -8,8 +9,27 @@ class Accent:
     value: int | list[tuple[int, int | None]]
 
     @classmethod
-    def from_str(cls, val: str) -> "Accent":
-        return Accent(int(val))  # TODO support compounds
+    def from_str(cls, val: str) -> Optional["Accent"]:
+        def parse_part(v: str) -> tuple[int, int | None]:
+            split = v.split("@")
+            if len(split) == 1:
+                return int(v), None
+            elif len(split) == 2:
+                return int(split[0]), int(split[1])
+            else:
+                raise ValueError
+
+        if val == "?":
+            return None
+
+        parts = val.split("-")
+        if len(parts) > 1:
+            acc = Accent([parse_part(p) for p in parts])
+            if any(not mc for _, mc in acc.value):
+                raise ValueError
+            return acc
+        else:
+            return Accent(int(val))
 
     from_json = from_str
 
