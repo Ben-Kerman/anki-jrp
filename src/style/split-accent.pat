@@ -1,8 +1,5 @@
 .jrp-unit.jrp-{pattern}-2 > span {{
-	text-shadow:  1px  1px 0 var(--jrp-{pattern}),
-	             -1px  1px 0 var(--jrp-{pattern}),
-	              1px -1px 0 var(--jrp-{pattern}),
-	             -1px -1px 0 var(--jrp-{pattern});
+	text-shadow: 0.06em 0.03em 0 var(--jrp-{pattern});
 }}
 
 .jrp-unit.jrp-{pattern}-3 > span {{

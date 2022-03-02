@@ -109,9 +109,10 @@ style_defs = [
         "name": "highlight_split_accents",
         "desc": "Highlight split accents",
         "tool": "Highlight split accents (e.g. ゼ↓ンダイ・ミ→モン) "
-                "by outlining the word in the second accent pattern's color.\n"
+                "by adding a text shadow in the second accent pattern's color.\n"
                 "If disabled, words with split accent will appear as though their accent is unknown. "
-                "The indicator will still work properly (unless using diamonds).",
+                "The indicator will still work properly, "
+                "except for the first accent of a word when using diamonds.",
         "type": WidgetType.Checkbox
     }, {
         "name": "ruby_font_size",
