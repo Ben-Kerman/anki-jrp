@@ -58,15 +58,15 @@ def from_json(json_val: Any, typ: Type[T], try_cls_method: bool = True) -> T | C
             return ConfigError(f"[{i}]: {err.msg}")
         return set(new_lst) if get_origin(typ) is set else new_lst
     else:
+        if try_cls_method:
+            try:
+                return typ.from_json(json_val)
+            except AttributeError:
+                pass
+
         dic = check_type(json_val, dict)
         if isinstance(dic, ConfigError):
             return ConfigError("impossible JSON value")
-
-        if try_cls_method:
-            try:
-                return typ.from_json(dic)
-            except AttributeError:
-                pass
 
         init = {}
         for field in dataclasses.fields(typ):
