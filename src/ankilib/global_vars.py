@@ -1,5 +1,6 @@
 import os.path
 from lzma import LZMAError
+from os.path import dirname
 from typing import Type, TypeVar
 
 import aqt
@@ -12,23 +13,31 @@ from ..pylib.util import ConfigError
 
 T = TypeVar("T")
 
-_prefs_path = get_path("user_files", "config.json")
+
+def _prefs_path() -> str:
+    return os.path.join(dirname(aqt.mw.col.path), "jrp-config.json")
 
 
-def load_prefs() -> Prefs:
-    if os.path.exists(_prefs_path):
-        load_res = Prefs.load_from_file(_prefs_path)
+def load_prefs() -> None:
+    loaded_prefs = None
+    if os.path.exists(_prefs_path()):
+        load_res = Prefs.load_from_file(_prefs_path())
         if isinstance(load_res, ConfigError):
             aqt.utils.showWarning(f"Failed to load config, falling back on defaults.\n"
                                   f"Error: {load_res.msg}")
         elif load_res:
-            return load_res
-    return Prefs()
+            loaded_prefs = load_res
+
+    global prefs
+    prefs = loaded_prefs or Prefs()
 
 
 def save_prefs():
+    if prefs is None:
+        return
+
     try:
-        prefs.write_to_file(_prefs_path)
+        prefs.write_to_file(_prefs_path())
     except Exception as e:
         aqt.utils.showWarning(f"Failed to update config file.\nError: {e}")
 
@@ -61,7 +70,7 @@ def load_dict():
         dictionary = Dictionary(acc_dic, var_dic)
 
 
-prefs = load_prefs()
+prefs: Prefs | None = None
 dictionary: Dictionary | None = None
 
 QueryOp(parent=aqt.mw, op=lambda col: load_dict(), success=lambda _: print("JRP data loaded")).run_in_background()
