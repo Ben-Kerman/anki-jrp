@@ -2,7 +2,7 @@ import json
 import os.path
 from collections.abc import Generator
 from dataclasses import dataclass
-from typing import Generic, Type, TypeVar, Union
+from typing import Any, Generic, Type, TypeVar, Union
 
 from .accents import Accent
 from .normalize import comp_kana
@@ -48,8 +48,10 @@ class WordOverride:
             return None
 
     @classmethod
-    def from_json(cls, obj: dict) -> Union["WordOverride", ConfigError]:
+    def from_json(cls, obj: Any) -> Union["WordOverride", ConfigError]:
         val = from_json(obj, cls, False)
+        if isinstance(val, ConfigError):
+            return val
         if not val.new_variants and not val.new_reading:
             return ConfigError("either new variant list or new reading is required")
         return val
@@ -83,8 +85,13 @@ class DefaultOverride(Generic[T]):
     value: T
 
     @classmethod
-    def from_json(cls, typ: Type[T], obj: dict) -> "DefaultOverride":
-        return cls(obj["id"], from_json(obj, typ))
+    def from_json(cls, typ: Type[T], obj: Any) -> "DefaultOverride":
+        if not type(obj) is dict:
+            raise ValueError("invalid JSON type for default override")
+        ovrd = from_json(obj, typ)
+        if isinstance(ovrd, ConfigError):
+            raise ValueError(ovrd.msg)
+        return cls(obj["id"], ovrd)
 
 
 _def_or_path = os.path.join(os.path.dirname(__file__), "default_overrides.json")
@@ -97,7 +104,7 @@ class DefaultOverrides:
     accent: list[DefaultOverride[AccentOverride]]
 
     @classmethod
-    def load(cls):
+    def load(cls) -> "DefaultOverrides":
         with open(_def_or_path) as fd:
             obj = json.load(fd)
         ignore = [DefaultOverride.from_json(IgnoreOverride, e) for e in obj["ignore"]]
