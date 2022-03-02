@@ -117,7 +117,10 @@ def to_json(value: T, default: T | None = None, try_cls_method: bool = True) -> 
     else:
         if try_cls_method:
             try:
-                return value.to_json(default)
+                if default is None:
+                    return value.to_json()
+                else:
+                    return value.to_json(default)
             except AttributeError:
                 pass
 

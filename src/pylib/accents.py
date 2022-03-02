@@ -9,6 +9,8 @@ from .util import ConfigError
 class Accent:
     value: int | list[tuple[int, int]] | None
 
+    default = False
+
     @classmethod
     def from_str(cls, val: str, mora_count: int | None = None) -> "Accent":
         def parse_part(v: str) -> tuple[int, int | None]:
@@ -64,6 +66,11 @@ class Accent:
                 return ConfigError("invalid split accent value")
         else:
             return ConfigError(f"invalid JSON type for accent")
+
+    def to_json(self) -> int | list[tuple[int, int]]:
+        if self.value is None:
+            raise ValueError("None value in config accent")
+        return self.value
 
     def __str__(self) -> str:
         if self.value is None:
