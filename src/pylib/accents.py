@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+from typing import Any, Union
 
 from .normalize import split_moras
+from .util import ConfigError
 
 
 @dataclass
@@ -39,7 +41,29 @@ class Accent:
         else:
             return Accent(int(val))
 
-    from_json = from_str
+    @classmethod
+    def from_list(cls, lst: list) -> "Accent":
+        items = []
+        for item in (tuple(i) if type(i) is list else i for i in lst):
+            if type(item) is tuple and len(item) == 2 and all(type(v) is int for v in item):
+                items.append(item)
+            else:
+                raise ValueError
+        return Accent(items)
+
+    @classmethod
+    def from_json(cls, json_val: Any) -> Union["Accent", ConfigError]:
+        if json_val is None:
+            return ConfigError("accents in config files must not be None")
+        if type(json_val) is int:
+            return Accent(json_val)
+        elif type(json_val) is list:
+            try:
+                return cls.from_list(json_val)
+            except ValueError:
+                return ConfigError("invalid split accent value")
+        else:
+            return ConfigError(f"invalid JSON type for accent")
 
     def __str__(self) -> str:
         if self.value is None:
