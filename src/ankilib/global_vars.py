@@ -4,6 +4,7 @@ from os.path import dirname
 from typing import Type, TypeVar
 
 import aqt
+from anki.collection import Collection
 from aqt.operations import QueryOp
 
 from .util import get_path
@@ -14,14 +15,14 @@ from ..pylib.util import ConfigError
 T = TypeVar("T")
 
 
-def _prefs_path() -> str:
-    return os.path.join(dirname(aqt.mw.col.path), "jrp-config.json")
+def _prefs_path(col: Collection) -> str:
+    return os.path.join(dirname(col.path), "jrp-config.json")
 
 
-def load_prefs() -> None:
+def load_prefs(col: Collection) -> None:
     loaded_prefs = None
-    if os.path.exists(_prefs_path()):
-        load_res = Prefs.load_from_file(_prefs_path())
+    if os.path.exists(_prefs_path(col)):
+        load_res = Prefs.load_from_file(_prefs_path(col))
         if isinstance(load_res, ConfigError):
             aqt.utils.showWarning(f"Failed to load config, falling back on defaults.\n"
                                   f"Error: {load_res.msg}")
@@ -37,7 +38,7 @@ def save_prefs():
         return
 
     try:
-        prefs.write_to_file(_prefs_path())
+        prefs.write_to_file(_prefs_path(aqt.mw.col))
     except Exception as e:
         aqt.utils.showWarning(f"Failed to update config file.\nError: {e}")
 
