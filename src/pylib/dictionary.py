@@ -41,13 +41,11 @@ class AccentEntry:
     reading: str
     variants: list[str]
     accents: list[Accent]
-    source: str
 
-    def __init__(self, reading: str, variants: list[str], accents: list[Accent], source: str):
+    def __init__(self, reading: str, variants: list[str], accents: list[Accent]):
         self.reading = sys.intern(reading)
         self.variants = [sys.intern(v) for v in variants]
         self.accents = accents
-        self.source = sys.intern(source)
 
     @classmethod
     def from_line(cls, line: str) -> "AccentEntry":
@@ -55,7 +53,7 @@ class AccentEntry:
         if len(vals) != 4:
             raise ValueError
         accents = [Accent.from_str(acc_str) for acc_str in vals[2].split(",")]
-        return cls(vals[0], vals[1].split(","), accents, vals[3])
+        return cls(vals[0], vals[1].split(","), accents)
 
     @classmethod
     def dict_insert(cls, bdict, entry):
