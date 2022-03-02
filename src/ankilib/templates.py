@@ -19,9 +19,12 @@ def _compress_spaces(data: str) -> str:
     return " ".join(line for line in (raw_line.strip() for raw_line in data.splitlines()) if line)
 
 
-def _gen_split_accent_css(fmt: str) -> str:
-    comp_fmt = _compress_spaces(fmt).strip()
-    return " ".join(comp_fmt.format(pattern=pat) for pat in ("heiban", "kifuku", "atamadaka", "odaka", "nakadaka"))
+_patterns = ("heiban", "kifuku", "atamadaka", "odaka", "nakadaka")
+_patterns_unk = _patterns + ("unknown",)
+
+
+def _gen_pattern_css(fmt: str, unknown: bool = False) -> str:
+    return " ".join(fmt.format(pattern=pat) for pat in (_patterns_unk if unknown else _patterns))
 
 
 def generate_css(prefs: StylePrefs) -> str:
@@ -29,7 +32,8 @@ def generate_css(prefs: StylePrefs) -> str:
                  ("indicator-diamond" if prefs.use_diamond_indicators else "indicator-bar", "css"),
                  ("graph", "css"))
     stylesheets: dict[str, str] = {name: _read_file("..", "style", f"{name}.{ext}") for name, ext in filenames}
-    stylesheets["split-accent"] = _gen_split_accent_css(stylesheets["split-accent"])
+    stylesheets["pattern"] = _gen_pattern_css(stylesheets["pattern"], unknown=True)
+    stylesheets["split-accent"] = _gen_pattern_css(stylesheets["split-accent"])
     stylesheets["variables"] = stylesheets["variables"].format(**dataclasses.asdict(prefs))
     return _compress_spaces("".join(stylesheets[fn] for fn, _ in filenames))
 

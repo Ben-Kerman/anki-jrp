@@ -1,47 +1,7 @@
-.jrp-unit.jrp-heiban > span, .jrp-graph .jrp-heiban {
-	color: var(--jrp-heiban);
-}
+.jrp-unit.jrp-{pattern} > span, .jrp-graph .jrp-{pattern} {{
+	color: var(--jrp-{pattern});
+}}
 
-.jrp-unit.jrp-kifuku > span, .jrp-graph .jrp-kifuku {
-	color: var(--jrp-kifuku);
-}
-
-.jrp-unit.jrp-atamadaka > span, .jrp-graph .jrp-atamadaka {
-	color: var(--jrp-atamadaka);
-}
-
-.jrp-unit.jrp-odaka > span, .jrp-graph .jrp-odaka {
-	color: var(--jrp-odaka);
-}
-
-.jrp-unit.jrp-nakadaka > span, .jrp-graph .jrp-nakadaka {
-	color: var(--jrp-nakadaka);
-}
-
-.jrp-unit.jrp-unknown > span, .jrp-graph .jrp-unknown {
-	color: var(--jrp-unknown);
-}
-
-.jrp-indicator > .jrp-heiban {
-	background-color: var(--jrp-heiban);
-}
-
-.jrp-indicator > .jrp-kifuku {
-	background-color: var(--jrp-kifuku);
-}
-
-.jrp-indicator > .jrp-atamadaka {
-	background-color: var(--jrp-atamadaka);
-}
-
-.jrp-indicator > .jrp-odaka {
-	background-color: var(--jrp-odaka);
-}
-
-.jrp-indicator > .jrp-nakadaka {
-	background-color: var(--jrp-nakadaka);
-}
-
-.jrp-indicator > .jrp-unknown {
-	background-color: var(--jrp-unknown);
-}
+.jrp-indicator > .jrp-{pattern} {{
+	background-color: var(--jrp-{pattern});
+}}
