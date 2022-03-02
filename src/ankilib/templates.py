@@ -48,7 +48,7 @@ def generate_css(prefs: StylePrefs) -> str:
             "type": "pat",
             "pats": _patterns_unk
         }, {
-            "name": "split-accent",
+            "name": "split-accent" if prefs.highlight_split_accents else "split-accent-unknown",
             "type": "pat",
             "pats": _patterns
         }, {

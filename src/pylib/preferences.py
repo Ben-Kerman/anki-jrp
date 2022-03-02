@@ -15,6 +15,7 @@ from .util import ConfigError, from_json, to_json
 @dataclass
 class StylePrefs:
     use_diamond_indicators: bool = False
+    highlight_split_accents: bool = True
     ruby_font_size: str = "40%"
     graph_font_size: str = "70%"
     heiban: str = "#7070ff"
