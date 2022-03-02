@@ -52,6 +52,12 @@ class Accent:
     def __repr__(self) -> str:
         return f"A[{self}]"
 
+    def __hash__(self) -> int:
+        if type(self.value) is not list:
+            return hash(self.value)
+        else:
+            return hash(tuple(self.value))
+
     def fmt_migaku(self, reading: str, is_yougen: bool) -> str:
         if self.value is None:
             return "?"
