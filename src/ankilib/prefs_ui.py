@@ -15,6 +15,7 @@ from . import global_vars, prefs_ui_defs as ui_defs, util
 from .prefs_ui_defs import WidgetType
 from .templates import remove_mia_migaku, update_script, update_style
 from ..pylib import overrides
+from ..pylib.accents import Accent
 from ..pylib.overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
 from ..pylib.preferences import NoteTypePrefs, Prefs, StylePrefs
 
@@ -270,7 +271,7 @@ class AccentOverrideWidget(QWidget):
 
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("Accent Overrides", self))
-        layout.addLayout(_setup_btns(self, lambda: AccentOverride(["漢字"], "よみ", [0])))
+        layout.addLayout(_setup_btns(self, lambda: AccentOverride(["漢字"], "よみ", [Accent(0)])))
         layout.addWidget(self._tbl, 1)
 
     def insert_row(self, r: int, ovrd: AccentOverride):
@@ -296,11 +297,18 @@ class AccentOverrideWidget(QWidget):
             else:
                 override.reading = txt
         else:
+            def reset_acc():
+                item.setText(", ".join(map(str, override.accents)))
+
             if not txt:
                 aqt.utils.showWarning("At least one accent is required")
-                item.setText(", ".join(map(str, override.accents)))
+                reset_acc()
             else:
-                override.accents = _split(txt, ",", int)
+                try:
+                    override.accents = _split(txt, ",", Accent.from_str)
+                except ValueError:
+                    aqt.utils.showWarning("Invalid accent syntax")
+                    reset_acc()
 
 
 class ColorWidget(QWidget):
