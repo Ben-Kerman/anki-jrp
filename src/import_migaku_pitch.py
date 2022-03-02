@@ -3,21 +3,20 @@
 import json
 import lzma
 import sys
+from dataclasses import dataclass
 
+from pylib.accents import Accent
+from pylib.dictionary import AccentEntry
 from pylib.normalize import to_hiragana
 from pylib.util import warn
 
 
-class Entry:
-    reading: str
-    variants: list[str]
-    accents: list[int]
+@dataclass
+class ImportEntry(AccentEntry):
     sources: list[str]
 
-    def __init__(self, reading: str, variant: str, accents: list[list[int]], source: str):
-        self.reading = to_hiragana(reading)
-        self.variants = [variant]
-        self.accents = [a for inner in accents for a in inner]
+    def __init__(self, reading: str, variant: str, accents: list[Accent], source: str):
+        super().__init__(to_hiragana(reading), [variant], accents)
         match source:
             case "nhk":
                 self.sources = ["日"]
@@ -30,17 +29,18 @@ class Entry:
             case "shin":
                 self.sources = ["新"]
             case _:
+                self.sources = []
                 warn(f"unknown source: {source}")
 
-    def fmt_line(self):
+    def fmt_line(self) -> str:
         return f"{self.reading}\t" \
                f"{','.join(self.variants)}\t" \
                f"{','.join(map(str, self.accents))}\t" \
                f"{''.join(self.sources)}\n"
 
 
-entries: list[Entry] = []
-readings: dict[str, list[Entry]] = {}
+entries: list[ImportEntry] = []
+readings: dict[str, list[ImportEntry]] = {}
 sources: set[str] = set()
 
 for src_path in sys.argv[2:]:
@@ -53,7 +53,7 @@ for src_path in sys.argv[2:]:
             continue
 
         sources.add(src_entry[7])
-        entry = Entry(src_entry[1], src_entry[0], src_entry[5], src_entry[7])
+        entry = ImportEntry(src_entry[1], src_entry[0], [Accent(n) for o in src_entry[5] for n in o], src_entry[7])
         same_reading = readings.setdefault(entry.reading, [])
         if same_accent := next((e for e in same_reading if set(entry.accents) == set(e.accents)), None):
             if entry.variants not in same_accent.variants:
