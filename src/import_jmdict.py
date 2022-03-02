@@ -5,7 +5,7 @@ import lzma
 import sys
 import xml.etree.ElementTree
 
-from .normalize import itr_to_hira, to_hiragana
+from pylib.normalize import itr_to_hira, to_hiragana
 
 with gzip.open(sys.argv[2], "rt", encoding="utf-8") as sfd:
     jmd_root = xml.etree.ElementTree.parse(sfd).getroot()
