@@ -6,7 +6,7 @@ from itertools import chain
 from json import JSONDecodeError
 from typing import Union
 
-from . import overrides
+from . import overrides, version
 from .accents import Accent
 from .overrides import AccentOverride, IgnoreOverride, WordOverride
 from .util import ConfigError, from_json, to_json
@@ -150,6 +150,8 @@ class Prefs:
         return from_json(raw, cls)
 
     def write_to_file(self, path: str):
-        json_str = json.dumps(to_json(self, type(self)()), ensure_ascii=False)
+        json_obj = to_json(self, type(self)())
+        json_obj["version"] = version.config
+        json_str = json.dumps(json_obj, ensure_ascii=False)
         with open(path, "w") as cfd:
             cfd.write(json_str)
