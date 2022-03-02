@@ -27,7 +27,10 @@ def load_prefs() -> Prefs:
 
 
 def save_prefs():
-    prefs.write_to_file(_prefs_path)
+    try:
+        prefs.write_to_file(_prefs_path)
+    except Exception as e:
+        aqt.utils.showWarning(f"Failed to update config file.\nError: {e}")
 
 
 def load_dict():
