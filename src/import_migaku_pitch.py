@@ -93,7 +93,7 @@ for src_path in sys.argv[2:]:
         entry = ImportEntry(src_entry[1], src_entry[0], accents, src_entry[7])
         same_reading = readings.setdefault(entry.reading, [])
         if same_accent := next((e for e in same_reading if set(entry.accents) == set(e.accents)), None):
-            if entry.variants not in same_accent.variants:
+            if entry.variants[0] not in same_accent.variants:
                 same_accent.variants.extend(entry.variants)
                 same_accent.variants.sort()
             same_accent.sources.extend(set(entry.sources) - set(same_accent.sources))
