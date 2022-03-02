@@ -2,6 +2,7 @@
 
 import json
 import lzma
+import re
 import sys
 from dataclasses import dataclass
 
@@ -39,7 +40,18 @@ class ImportEntry(AccentEntry):
                f"{''.join(self.sources)}\n"
 
 
-def convert_accents(src_entry: dict) -> list[Accent]:
+fix_re = re.compile(r"[⁎⁑∘。]")
+
+
+def fix_src_entry(src_entry: list) -> list | None:
+    if "…" in src_entry[1]:
+        return None
+    src_entry[0] = fix_re.sub("", src_entry[0])
+    src_entry[1] = fix_re.sub("", src_entry[1])
+    return src_entry
+
+
+def convert_accents(src_entry: list) -> list[Accent]:
     def convert(acc_nums: list[int], nhk_reading: str | None = None) -> Accent | None:
         if len(acc_nums) < 1:
             warn(f"zero length accent list: {src_entry[0]}")
@@ -80,6 +92,10 @@ for src_path in sys.argv[2:]:
         src_dict = json.load(sfd)
 
     for src_entry in src_dict:
+        src_entry = fix_src_entry(src_entry)
+        if not src_entry:
+            continue
+
         if "," in src_entry[0]:
             warn(f"skipping variant containing comma: {src_entry[0]}")
             continue
