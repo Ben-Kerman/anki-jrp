@@ -2,6 +2,7 @@ import dataclasses
 import os.path
 import re
 from re import Pattern
+from typing import Any
 
 from anki.collection import Collection
 from anki.models import NotetypeDict
@@ -23,19 +24,42 @@ _patterns = ("heiban", "kifuku", "atamadaka", "odaka", "nakadaka")
 _patterns_unk = _patterns + ("unknown",)
 
 
-def _gen_pattern_css(fmt: str, unknown: bool = False) -> str:
-    return " ".join(fmt.format(pattern=pat) for pat in (_patterns_unk if unknown else _patterns))
+def _fmt_css(fmt_def: dict[str, Any]) -> str:
+    fmt = _read_file("..", "style", f"{fmt_def['name']}.{fmt_def['type']}")
+    if fmt_def["type"] == "var":
+        return fmt.format(**fmt_def["vars"])
+    elif fmt_def["type"] == "pat":
+        return "".join(fmt.format(pattern=pat) for pat in fmt_def["pats"])
+    else:
+        return fmt
 
 
 def generate_css(prefs: StylePrefs) -> str:
-    filenames = (("variables", "fmt"), ("unit", "css"), ("pattern", "css"), ("split-accent", "fmt"),
-                 ("indicator-diamond" if prefs.use_diamond_indicators else "indicator-bar", "css"),
-                 ("graph", "css"))
-    stylesheets: dict[str, str] = {name: _read_file("..", "style", f"{name}.{ext}") for name, ext in filenames}
-    stylesheets["pattern"] = _gen_pattern_css(stylesheets["pattern"], unknown=True)
-    stylesheets["split-accent"] = _gen_pattern_css(stylesheets["split-accent"])
-    stylesheets["variables"] = stylesheets["variables"].format(**dataclasses.asdict(prefs))
-    return _compress_spaces("".join(stylesheets[fn] for fn, _ in filenames))
+    files = (
+        {
+            "name": "variables",
+            "type": "var",
+            "vars": dataclasses.asdict(prefs)
+        }, {
+            "name": "unit",
+            "type": "css"
+        }, {
+            "name": "pattern",
+            "type": "pat",
+            "pats": _patterns_unk
+        }, {
+            "name": "split-accent",
+            "type": "pat",
+            "pats": _patterns
+        }, {
+            "name": "indicator-diamond" if prefs.use_diamond_indicators else "indicator-bar",
+            "type": "css"
+        }, {
+            "name": "graph",
+            "type": "css"
+        }
+    )
+    return _compress_spaces("".join(_fmt_css(fmt_def) for fmt_def in files))
 
 
 def generate_js() -> str:
