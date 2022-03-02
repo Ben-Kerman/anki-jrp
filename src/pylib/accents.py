@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.pylib.normalize import split_moras
+from .normalize import split_moras
 
 
 @dataclass
