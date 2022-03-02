@@ -100,7 +100,6 @@ def to_json(value: T, default: T | None = None, try_cls_method: bool = True) -> 
 
     if value == default or value is None:
         return ConvIgnore
-
     elif typ in (str, bool, int, float):
         return value
     elif typ in (list, set):
@@ -117,10 +116,7 @@ def to_json(value: T, default: T | None = None, try_cls_method: bool = True) -> 
     else:
         if try_cls_method:
             try:
-                if default is None:
-                    return value.to_json()
-                else:
-                    return value.to_json(default)
+                return value.to_json(default)
             except AttributeError:
                 pass
 

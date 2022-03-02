@@ -67,7 +67,7 @@ class Accent:
         else:
             return ConfigError(f"invalid JSON type for accent")
 
-    def to_json(self) -> int | list[tuple[int, int]]:
+    def to_json(self, _) -> int | list[tuple[int, int]]:
         if self.value is None:
             raise ValueError("None value in config accent")
         return self.value
