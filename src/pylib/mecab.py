@@ -1,11 +1,11 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 from subprocess import PIPE, Popen
 
 from .normalize import is_kana, to_hiragana
 
 
-class MecabException(Exception):
+class MecabError(Exception):
     pass
 
 
@@ -91,7 +91,7 @@ class MecabUnit(ParserUnit):
     def from_line(cls, line: str) -> tuple["MecabUnit", int, int]:
         def raise_on_ast(val: str) -> str:
             if val == "*":
-                raise MecabException("unexpected empty value in unit")
+                raise MecabError("unexpected empty value in unit")
             else:
                 return val
 
@@ -118,21 +118,25 @@ class MecabUnit(ParserUnit):
         return obj, int(fields[0]), int(fields[1])
 
 
+@dataclass
 class Mecab:
-    _inst: Popen | None
-
-    def __init__(self):
-        self._inst = None
+    exe_path: str | None = None
+    dic_dir: str | None = None
+    _inst: Popen | None = field(default=None, init=False)
 
     def _init(self):
-        self._inst = Popen(["mecab", "--unk-feature=未知語", "--node-format=%m\\t%ps,%pe,%H\\n"], stdin=PIPE, stdout=PIPE)
+        args = [self.exe_path] if self.exe_path else ["mecab"]
+        args.extend(("--unk-feature=未知語", "--node-format=%m\\t%ps,%pe,%H\\n"))
+        if self.dic_dir:
+            args.append(f"--dicdir={self.dic_dir}")
+        self._inst = Popen(args, stdin=PIPE, stdout=PIPE)
 
     def _instance(self) -> Popen:
         if self._inst is None or self._inst.poll() is not None:
             try:
                 self._init()
             except FileNotFoundError:
-                raise MecabException("executable not found")
+                raise MecabError("executable not found")
         return self._inst
 
     def analyze(self, txt: str) -> list[ParserUnit]:
