@@ -101,8 +101,15 @@ class MecabUnit(ParserUnit):
         # format: %m(表層形)\t%ps,%pe,%H(品詞,品詞細分類1,品詞細分類2,品詞細分類3,活用型,活用形,原形,読み,発音)
         orig: str
         data: str
-        orig, data = line.split("\t", 1)
+        try:
+            orig, data = line.split("\t", 1)
+        except ValueError:
+            raise MecabError(f"invalid line: {line}")
+
         fields = data.split(",")
+        if len(fields) != 11:
+            raise MecabError(f"invalid number of fields: {line}")
+
         if fields[2] != "未知語":
             obj = cls(orig, fields[2],
                       ast_to_none(fields[3]),
