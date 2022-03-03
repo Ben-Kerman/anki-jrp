@@ -7,6 +7,7 @@ import aqt
 from anki.collection import Collection
 from aqt.operations import QueryOp
 
+from .templates import update_all_note_types
 from .util import get_path
 from ..pylib.dictionary import AccentEntry, BasicDict, Dictionary, VariantEntry
 from ..pylib.mecab import Mecab
@@ -37,6 +38,7 @@ def update_prefs(new_prefs: Prefs):
     global prefs
     prefs = new_prefs
 
+    update_all_note_types(aqt.mw.col, prefs.addon)
     init_mecab()
 
 
