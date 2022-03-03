@@ -61,7 +61,7 @@ def init_mecab():
 
 def load_dict():
     def load_data(desc: str, filename: str, entry_t: Type[T]) -> BasicDict[T]:
-        path = get_path("user_files", "data", filename)
+        path = get_path("data", filename)
         if not os.path.exists(path):
             aqt.mw.taskman.run_on_main(
                 lambda: aqt.utils.showWarning(
