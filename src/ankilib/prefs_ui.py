@@ -325,15 +325,16 @@ class ColorWidget(QWidget):
         self._picker = QColorDialog(self)
         self._picker.colorSelected.connect(lambda qc: self.set_value(qc.name().lower()))
 
-        lo = QHBoxLayout(self)
-        self._le = QLineEdit()
+        self._le = QLineEdit(self)
         self._le.textEdited.connect(lambda txt: self.set_value(txt, True))
-        lo.addWidget(self._le, 1)
-        col_btn = QPushButton("Pick")
+
+        col_btn = QPushButton("Pick", self)
         col_btn.setMaximumWidth(col_btn.fontMetrics().boundingRect("Pick").width() + 16)
         col_btn.clicked.connect(lambda: self._picker.show())
-        lo.addWidget(col_btn)
 
+        lo = QHBoxLayout(self)
+        lo.addWidget(self._le, 1)
+        lo.addWidget(col_btn)
         lo.setContentsMargins(0, 0, 0, 0)
 
         self.set_value(init_val)
@@ -466,7 +467,7 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
     elif item["type"] == WidgetType.Number:
         edit_wdgt = QSpinBox(parent)
         edit_wdgt.setValue(val)
-        edit_wdgt.valueChanged.connect(lambda v: set_val(v))
+        edit_wdgt.valueChanged.connect(set_val)
     elif item["type"] == WidgetType.Color:
         edit_wdgt = ColorWidget(val, parent)
         edit_wdgt.value_changed.connect(lambda v: set_val(v.strip()))
