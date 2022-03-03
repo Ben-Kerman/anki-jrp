@@ -330,6 +330,7 @@ class ColorWidget(QWidget):
         self._le.textEdited.connect(lambda txt: self.set_value(txt, True))
         lo.addWidget(self._le, 1)
         col_btn = QPushButton("Pick")
+        col_btn.setMaximumWidth(col_btn.fontMetrics().boundingRect("Pick").width() + 16)
         col_btn.clicked.connect(lambda: self._picker.show())
         lo.addWidget(col_btn)
 
@@ -368,6 +369,7 @@ class FileWidget(QWidget):
         self._le.textEdited.connect(lambda txt: self.set_value(txt, True))
 
         pick_btn = QPushButton("…", self)
+        pick_btn.setMaximumWidth(pick_btn.fontMetrics().boundingRect("…").width() + 16)
         pick_btn.clicked.connect(lambda: self._fd.show())
 
         lo = QHBoxLayout(self)
