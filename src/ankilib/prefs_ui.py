@@ -313,31 +313,45 @@ class AccentOverrideWidget(QWidget):
                     reset_acc()
 
 
-class ColorWidget(QWidget):
+class PickerWidget(QWidget):
     _le: QLineEdit
-    _picker: QColorDialog
+    _picker: QDialog
 
     value_changed = pyqtSignal(str)
 
     def __init__(self, init_val: str, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self._picker = QColorDialog(self)
-        self._picker.colorSelected.connect(lambda qc: self.set_value(qc.name().lower()))
+        self._picker = self.setup_picker()
 
         self._le = QLineEdit(self)
         self._le.textEdited.connect(lambda txt: self.set_value(txt, True))
 
-        col_btn = QPushButton("Pick", self)
-        col_btn.setMaximumWidth(col_btn.fontMetrics().boundingRect("Pick").width() + 16)
-        col_btn.clicked.connect(lambda: self._picker.show())
+        btn = QPushButton("…", self)
+        btn.setMaximumWidth(btn.fontMetrics().boundingRect("…").width() + 16)
+        btn.clicked.connect(lambda: self._picker.show())
 
         lo = QHBoxLayout(self)
         lo.addWidget(self._le, 1)
-        lo.addWidget(col_btn)
+        lo.addWidget(btn)
         lo.setContentsMargins(0, 0, 0, 0)
 
         self.set_value(init_val)
+
+    def setup_picker(self) -> QDialog:
+        raise NotImplementedError
+
+    def set_value(self, val: str, from_text: bool = False) -> QDialog:
+        raise NotImplementedError
+
+
+class ColorWidget(PickerWidget):
+    _picker: QColorDialog
+
+    def setup_picker(self) -> QColorDialog:
+        picker = QColorDialog(self)
+        picker.colorSelected.connect(lambda qc: self.set_value(qc.name().lower()))
+        return picker
 
     def set_value(self, val: str, from_text: bool = False):
         if not from_text:
@@ -350,42 +364,20 @@ class ColorWidget(QWidget):
         self.value_changed.emit(val.strip())
 
 
-class FileWidget(QWidget):
-    _le: QLineEdit
-    _fd: QFileDialog
+class AnyFileWidget(PickerWidget):
+    _picker: QFileDialog
 
-    value_changed = pyqtSignal(str)
-
-    def __init__(self, init_val: str, pick_dir: bool = False, parent: QWidget | None = None):
-        super().__init__(parent)
-
-        self._fd = QFileDialog(self)
-        if pick_dir:
-            self._fd.setFileMode(QFileDialog.Directory)
-        else:
-            self._fd.setFileMode(QFileDialog.ExistingFile)
-        self._fd.fileSelected.connect(lambda path: self.set_value(path))
-
-        self._le = QLineEdit(self)
-        self._le.textEdited.connect(lambda txt: self.set_value(txt, True))
-
-        pick_btn = QPushButton("…", self)
-        pick_btn.setMaximumWidth(pick_btn.fontMetrics().boundingRect("…").width() + 16)
-        pick_btn.clicked.connect(lambda: self._fd.show())
-
-        lo = QHBoxLayout(self)
-        lo.addWidget(self._le, 1)
-        lo.addWidget(pick_btn)
-        lo.setContentsMargins(0, 0, 0, 0)
-
-        self.set_value(init_val)
+    def setup_picker(self) -> QFileDialog:
+        picker = QFileDialog(self)
+        picker.fileSelected.connect(lambda path: self.set_value(path))
+        return picker
 
     def set_value(self, val: str, from_text: bool = False):
         if not val:
             return
 
         new_val = get_path(val)
-        self._fd.setDirectory(os.path.dirname(new_val))
+        self._picker.setDirectory(os.path.dirname(new_val))
 
         addon_dir = get_path()
         addon_drv, _ = os.path.splitdrive(addon_dir)
@@ -398,6 +390,20 @@ class FileWidget(QWidget):
         if not from_text:
             self._le.setText(new_val)
         self.value_changed.emit(new_val)
+
+
+class DirectoryWidget(AnyFileWidget):
+    def setup_picker(self) -> QFileDialog:
+        picker = super().setup_picker()
+        picker.setFileMode(QFileDialog.Directory)
+        return picker
+
+
+class FileWidget(AnyFileWidget):
+    def setup_picker(self) -> QFileDialog:
+        picker = super().setup_picker()
+        picker.setFileMode(QFileDialog.ExistingFile)
+        return picker
 
 
 class NoteTypesWidget(QWidget):
@@ -468,11 +474,13 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
         edit_wdgt = QSpinBox(parent)
         edit_wdgt.setValue(val)
         edit_wdgt.valueChanged.connect(set_val)
-    elif item["type"] == WidgetType.Color:
-        edit_wdgt = ColorWidget(val, parent)
-        edit_wdgt.value_changed.connect(lambda v: set_val(v.strip()))
-    elif item["type"] in [WidgetType.Directory, WidgetType.File]:
-        edit_wdgt = FileWidget(val, item["type"] == WidgetType.Directory, parent)
+    elif item["type"] in [WidgetType.Color, WidgetType.Directory, WidgetType.File]:
+        if item["type"] == WidgetType.Color:
+            edit_wdgt = ColorWidget(val, parent)
+        elif item["type"] == WidgetType.Directory:
+            edit_wdgt = DirectoryWidget(val, parent)
+        else:
+            edit_wdgt = FileWidget(val, parent)
         edit_wdgt.value_changed.connect(set_val)
     elif item["type"] == WidgetType.Text:
         edit_wdgt = QLineEdit(val, parent)
@@ -487,9 +495,7 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
             edit_wdgt.setChecked(default_val)
         elif item["type"] == WidgetType.Number:
             edit_wdgt.setValue(default_val)
-        elif item["type"] == WidgetType.Color:
-            edit_wdgt.set_value(default_val)
-        elif item["type"] in [WidgetType.Directory, WidgetType.File]:
+        elif item["type"] in [WidgetType.Color, WidgetType.Directory, WidgetType.File]:
             edit_wdgt.set_value(default_val)
         elif item["type"] == WidgetType.Text:
             edit_wdgt.setText(default_val)
