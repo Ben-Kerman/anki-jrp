@@ -52,8 +52,8 @@ def save_prefs():
 
 def init_mecab():
     global mecab_handle
-    exe_path = get_path(prefs.addon.mecab_path)
-    dir_path = get_path(prefs.addon.mecab_dict_dir)
+    exe_path = None if prefs.addon.mecab_use_system_exe else get_path(prefs.addon.mecab_path)
+    dir_path = None if prefs.addon.mecab_use_system_dict else get_path(prefs.addon.mecab_dict_dir)
     mecab_handle = Mecab(exe_path, dir_path)
 
 
