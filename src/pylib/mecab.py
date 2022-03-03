@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from subprocess import PIPE, Popen
@@ -135,6 +136,8 @@ class Mecab:
         if self._inst is None or self._inst.poll() is not None:
             args = [self.exe_path] if self.exe_path else ["mecab"]
             args.extend(("--unk-feature=未知語", "--node-format=%m\\t%ps,%pe,%H\\n"))
+            if self.exe_path:
+                args.append(f"--rcfile={os.path.join(os.path.dirname(self.exe_path), 'mecabrc')}")
             if self.dic_dir:
                 args.append(f"--dicdir={self.dic_dir}")
 
