@@ -56,7 +56,7 @@ class NoteTypePrefs:
 @dataclass
 class AddonPrefs:
     mecab_path: str = os.path.join("bin", "mecab.exe")
-    mecab_dict_dir: str = os.path.join("data", "ipadict")
+    mecab_dict_dir: str = os.path.join("data", "ipadic")
     mecab_use_system_exe: bool = platform.system() != "Windows"
     mecab_use_system_dict: bool = False
     note_types: list[NoteTypePrefs] = field(default_factory=list)
