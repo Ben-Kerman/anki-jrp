@@ -9,7 +9,11 @@ _filenames = ("jrp-downstep-dark.svg", "jrp-downstep-dark-vert.svg",
 
 
 def get_path(*comps: str) -> str:
-    return join(dirname(dirname(__file__)), *comps)
+    addon_dir = dirname(dirname(__file__))
+    if not comps:
+        return addon_dir
+    else:
+        return join(addon_dir, *comps)
 
 
 def get_asset_path(filename: str) -> str:
