@@ -395,10 +395,6 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
         form_lo.addRow(QLabel(item))
         return
 
-    lbl = QLabel(transform("desc", item["desc"]), parent)
-    tt = transform("tool", item["tool"])
-    lbl.setToolTip(tt)
-
     def update_reset_btn(new_val: Any):
         if new_val == getattr(defaults, item["name"]):
             reset_btn.hide()
@@ -426,7 +422,6 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
         edit_wdgt.textEdited.connect(lambda v: set_val(v.strip()))
     else:
         raise Exception("invalid enum variant in UI definition")
-    edit_wdgt.setToolTip(tt)
 
     def reset_val():
         default_val = getattr(defaults, item["name"])
@@ -450,6 +445,12 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
     edit_lo.addWidget(reset_btn)
     edit_lo.addWidget(edit_wdgt)
     edit_lo.setAlignment(Qt.AlignLeft)
+
+    lbl = QLabel(transform("desc", item["desc"]), parent)
+    if "tool" in item:
+        tt = transform("tool", item["tool"])
+        lbl.setToolTip(tt)
+        edit_wdgt.setToolTip(tt)
 
     form_lo.addRow(lbl, edit_lo)
 
