@@ -5,6 +5,8 @@ class WidgetType(Enum):
     Checkbox = auto()
     Number = auto()
     Color = auto()
+    Directory = auto()
+    File = auto()
     Text = auto()
 
 
@@ -76,7 +78,32 @@ output_defs = [
         "desc": "Ignore minimum accent katakana",
         "tool": "Ignore any kana-only words below the minimum mora count, not just hiragana.",
         "type": WidgetType.Checkbox
-    },
+    }
+]
+
+_path_tt = "Relative paths are resolved with the addon's install directory as the base."
+
+addon_defs = [
+    "Add-on preferences",
+    {
+        "name": "mecab_path",
+        "desc": "MeCab executable path",
+        "tool": _path_tt,
+        "type": WidgetType.File
+    }, {
+        "name": "mecab_dict_dir",
+        "desc": "MeCab dictionary directory",
+        "tool": _path_tt,
+        "type": WidgetType.Directory
+    }, {
+        "name": "mecab_use_system_exe",
+        "desc": "Use system-wide MeCab executable",
+        "type": WidgetType.Checkbox
+    }, {
+        "name": "mecab_use_system_dict",
+        "desc": "Use MeCab system dictionary",
+        "type": WidgetType.Checkbox
+    }
 ]
 
 _shared_tt = "\nUpdates will happen when saving any relevant change to the preferences " \

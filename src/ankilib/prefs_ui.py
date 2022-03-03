@@ -1,3 +1,4 @@
+import os.path
 import re
 from collections.abc import Callable, Sequence
 from copy import deepcopy
@@ -7,13 +8,14 @@ from typing import Any, Iterable, TypeVar
 import aqt.utils
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QIcon
-from PyQt5.QtWidgets import QCheckBox, QColorDialog, QDialog, QFormLayout, QFrame, QHBoxLayout, QLabel, QLayout, \
-    QLineEdit, QPushButton, QSpinBox, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QCheckBox, QColorDialog, QDialog, QFileDialog, QFormLayout, QFrame, QHBoxLayout, QLabel, \
+    QLayout, QLineEdit, QPushButton, QSpinBox, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 from aqt.notetypechooser import NotetypeChooser
 
 from . import global_vars, prefs_ui_defs as ui_defs, util
 from .prefs_ui_defs import WidgetType
 from .templates import remove_mia_migaku, update_script, update_style
+from .util import get_path
 from ..pylib import overrides
 from ..pylib.accents import Accent
 from ..pylib.overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
@@ -346,6 +348,55 @@ class ColorWidget(QWidget):
         self.value_changed.emit(val.strip())
 
 
+class FileWidget(QWidget):
+    _le: QLineEdit
+    _fd: QFileDialog
+
+    value_changed = pyqtSignal(str)
+
+    def __init__(self, init_val: str, pick_dir: bool = False, parent: QWidget | None = None):
+        super().__init__(parent)
+
+        self._fd = QFileDialog(self)
+        if pick_dir:
+            self._fd.setFileMode(QFileDialog.Directory)
+        else:
+            self._fd.setFileMode(QFileDialog.ExistingFile)
+        self._fd.fileSelected.connect(lambda path: self.set_value(path))
+
+        self._le = QLineEdit(self)
+        self._le.textEdited.connect(lambda txt: self.set_value(txt, True))
+
+        pick_btn = QPushButton("…", self)
+        pick_btn.clicked.connect(lambda: self._fd.show())
+
+        lo = QHBoxLayout(self)
+        lo.addWidget(self._le, 1)
+        lo.addWidget(pick_btn)
+        lo.setContentsMargins(0, 0, 0, 0)
+
+        self.set_value(init_val)
+
+    def set_value(self, val: str, from_text: bool = False):
+        if not val:
+            return
+
+        new_val = get_path(val)
+        self._fd.setDirectory(os.path.dirname(new_val))
+
+        addon_dir = get_path()
+        addon_drv, _ = os.path.splitdrive(addon_dir)
+        val_drv, _ = os.path.splitdrive(new_val)
+        if addon_drv.lower() == val_drv.lower():
+            rel_path = os.path.relpath(new_val, addon_dir)
+            if not rel_path.startswith(".."):
+                new_val = rel_path
+
+        if not from_text:
+            self._le.setText(new_val)
+        self.value_changed.emit(new_val)
+
+
 class NoteTypesWidget(QWidget):
     _ntc: NotetypeChooser
     _lst: list[NoteTypePrefs]
@@ -417,6 +468,9 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
     elif item["type"] == WidgetType.Color:
         edit_wdgt = ColorWidget(val, parent)
         edit_wdgt.value_changed.connect(lambda v: set_val(v.strip()))
+    elif item["type"] in [WidgetType.Directory, WidgetType.File]:
+        edit_wdgt = FileWidget(val, item["type"] == WidgetType.Directory, parent)
+        edit_wdgt.value_changed.connect(set_val)
     elif item["type"] == WidgetType.Text:
         edit_wdgt = QLineEdit(val, parent)
         edit_wdgt.textEdited.connect(lambda v: set_val(v.strip()))
@@ -431,6 +485,8 @@ def _add_form_row(parent: QWidget, prefs: T, defaults: T,
         elif item["type"] == WidgetType.Number:
             edit_wdgt.setValue(default_val)
         elif item["type"] == WidgetType.Color:
+            edit_wdgt.set_value(default_val)
+        elif item["type"] in [WidgetType.Directory, WidgetType.File]:
             edit_wdgt.set_value(default_val)
         elif item["type"] == WidgetType.Text:
             edit_wdgt.setText(default_val)
@@ -562,6 +618,14 @@ class PreferencesWidget(QTabWidget):
         for item in ui_defs.output_defs:
             _add_form_row(self, prefs.output, _DEFAULT_PREFS.output, item, output_lo)
 
+        addon_lo = QFormLayout()
+        for item in ui_defs.addon_defs:
+            _add_form_row(self, prefs.addon, _DEFAULT_PREFS.addon, item, addon_lo)
+
+        output_addon_lo = QVBoxLayout()
+        output_addon_lo.addLayout(output_lo)
+        output_addon_lo.addLayout(addon_lo)
+
         default_ors = overrides.defaults()
         dor_lo = QVBoxLayout()
         dor_lo.addWidget(QLabel("Default ignored words:", conv_wdgt))
@@ -577,8 +641,8 @@ class PreferencesWidget(QTabWidget):
 
         conv_dor_lo = QHBoxLayout(conv_wdgt)
         conv_dor_lo.addLayout(conv_lo)
-        conv_dor_lo.addLayout(output_lo)
-        conv_dor_lo.addLayout(dor_lo, 1)
+        conv_dor_lo.addLayout(output_addon_lo, 1)
+        conv_dor_lo.addLayout(dor_lo)
 
         override_wdgt = QWidget(self)
         override_lo = QHBoxLayout(override_wdgt)
