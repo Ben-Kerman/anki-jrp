@@ -1,5 +1,6 @@
 import json
 import os.path
+import platform
 from collections.abc import Generator
 from dataclasses import dataclass, field
 from itertools import chain
@@ -56,7 +57,7 @@ class NoteTypePrefs:
 class AddonPrefs:
     mecab_path: str = os.path.join("bin", "mecab.exe")
     mecab_dict_dir: str = os.path.join("data", "ipadict")
-    mecab_use_system_exe: bool = False
+    mecab_use_system_exe: bool = platform.system() != "Windows"
     mecab_use_system_dict: bool = False
     note_types: list[NoteTypePrefs] = field(default_factory=list)
 
