@@ -8,7 +8,7 @@ from aqt.editor import Editor
 from . import global_vars
 from ..pylib.converter import convert
 from ..pylib.html_processing import strip_html
-from ..pylib.mecab import Mecab
+from ..pylib.mecab import Mecab, MecabError
 from ..pylib.output import fmt_jrp, fmt_migaku
 from ..pylib.segments import ParsingError, parse_jrp, parse_migaku
 
@@ -94,6 +94,9 @@ def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | Non
             try:
                 formatter = fmt_migaku if out_type == OutputType.MIGAKU else fmt_jrp
                 return "<br>".join(formatter(convert(line, prefs.convert, Mecab(), dic)) for line in gen_lines(val))
+            except MecabError as e:
+                aqt.utils.showWarning(f"Mecab error: {e}")
+                return None
             except ParsingError as e:
                 aqt.utils.showWarning(f"Conversion failed. Error: {e}")
                 return None
