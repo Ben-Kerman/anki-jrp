@@ -9,6 +9,7 @@ from aqt.operations import QueryOp
 
 from .util import get_path
 from ..pylib.dictionary import AccentEntry, BasicDict, Dictionary, VariantEntry
+from ..pylib.mecab import Mecab
 from ..pylib.preferences import Prefs
 from ..pylib.util import ConfigError
 
@@ -29,8 +30,14 @@ def load_prefs(col: Collection) -> None:
         elif load_res:
             loaded_prefs = load_res
 
+    update_prefs(loaded_prefs or Prefs())
+
+
+def update_prefs(new_prefs: Prefs):
     global prefs
-    prefs = loaded_prefs or Prefs()
+    prefs = new_prefs
+
+    init_mecab()
 
 
 def save_prefs():
@@ -41,6 +48,13 @@ def save_prefs():
         prefs.write_to_file(_prefs_path(aqt.mw.col))
     except Exception as e:
         aqt.utils.showWarning(f"Failed to update config file.\nError: {e}")
+
+
+def init_mecab():
+    global mecab_handle
+    exe_path = get_path(prefs.addon.mecab_path)
+    dir_path = get_path(prefs.addon.mecab_dict_dir)
+    mecab_handle = Mecab(exe_path, dir_path)
 
 
 def load_dict():
@@ -72,6 +86,7 @@ def load_dict():
 
 
 prefs: Prefs | None = None
+mecab_handle: Mecab | None = None
 dictionary: Dictionary | None = None
 
 QueryOp(parent=aqt.mw, op=lambda col: load_dict(), success=lambda _: print("JRP data loaded")).run_in_background()

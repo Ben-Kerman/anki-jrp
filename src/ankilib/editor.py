@@ -93,7 +93,8 @@ def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | Non
 
             try:
                 formatter = fmt_migaku if out_type == OutputType.MIGAKU else fmt_jrp
-                return "<br>".join(formatter(convert(line, prefs.convert, Mecab(), dic)) for line in gen_lines(val))
+                line_strs = (convert(line, prefs.convert, global_vars.mecab_handle, dic) for line in gen_lines(val))
+                return "<br>".join(formatter(s) for s in line_strs)
             except MecabError as e:
                 aqt.utils.showWarning(f"Mecab error: {e}")
                 return None

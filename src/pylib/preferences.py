@@ -54,6 +54,8 @@ class NoteTypePrefs:
 
 @dataclass
 class AddonPrefs:
+    mecab_path: str = os.path.join("bin", "mecab.exe")
+    mecab_dict_dir: str = os.path.join("data", "ipadict")
     note_types: list[NoteTypePrefs] = field(default_factory=list)
 
 
