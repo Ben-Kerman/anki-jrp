@@ -108,7 +108,7 @@ class MecabUnit(ParserUnit):
             raise MecabError(f"invalid line: {line}")
 
         fields = data.split(",")
-        if len(fields) != 11:
+        if len(fields) < 3 or (fields[2] != "未知語" and len(fields) != 11):
             raise MecabError(f"invalid number of fields: {line}")
 
         if fields[2] != "未知語":
