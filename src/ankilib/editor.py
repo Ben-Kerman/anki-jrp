@@ -5,10 +5,10 @@ from enum import Enum, auto
 import aqt.utils
 from aqt.editor import Editor
 
-from . import global_vars
+from . import global_vars as gv
 from ..pylib.converter import convert
 from ..pylib.html_processing import strip_html
-from ..pylib.mecab import Mecab, MecabError
+from ..pylib.mecab import MecabError
 from ..pylib.output import fmt_jrp, fmt_migaku
 from ..pylib.segments import ParsingError, parse_jrp, parse_migaku
 
@@ -85,15 +85,12 @@ def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | Non
             if not out_type:
                 raise ValueError("missing output type")
 
-            prefs = global_vars.prefs
-            dic = global_vars.dictionary
-            if not dic:
-                aqt.utils.showWarning("Dictionary is not (yet) loaded, can't convert.")
+            if not gv.convert_check():
                 return None
 
             try:
                 formatter = fmt_migaku if out_type == OutputType.MIGAKU else fmt_jrp
-                line_strs = (convert(line, prefs.convert, global_vars.mecab_handle, dic) for line in gen_lines(val))
+                line_strs = (convert(line, gv.prefs.convert, gv.mecab_handle, gv.dictionary) for line in gen_lines(val))
                 return "<br>".join(formatter(s) for s in line_strs)
             except MecabError as e:
                 aqt.utils.showWarning(f"Mecab error: {e}")
