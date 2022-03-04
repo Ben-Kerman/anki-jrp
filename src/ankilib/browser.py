@@ -5,7 +5,7 @@ import aqt
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QDialog, QHBoxLayout, QLabel, QMenu, QPushButton, \
     QVBoxLayout, QWidget
-from anki.notes import NoteId
+from anki.notes import Note, NoteId
 from aqt.browser import Browser
 
 from . import global_vars as gv
@@ -38,6 +38,7 @@ def convert_lines(lines: Iterable[str]) -> list[list[Unit]] | None:
 def convert_notes(brws: Browser, conv_type: ConvType, regen: bool, dry_run: bool):
     field_idx = 0  # TODO
     failed_notes: list[NoteId] = []
+    updated_notes: list[Note] = []
 
     for note_id in brws.selected_notes():
         note = brws.col.get_note(note_id)
@@ -45,9 +46,7 @@ def convert_notes(brws: Browser, conv_type: ConvType, regen: bool, dry_run: bool
         def update_note(new_val: str):
             if not dry_run:
                 note.fields[field_idx] = new_val
-                last_step = brws.col.undo_status().last_step
-                brws.col.update_note(note)
-                brws.col.merge_undo_entries(last_step)
+                updated_notes.append(note)
 
         field = note.fields[field_idx]
         lines = strip_html(field)
@@ -75,6 +74,10 @@ def convert_notes(brws: Browser, conv_type: ConvType, regen: bool, dry_run: bool
 
         formatter = fmt_migaku if conv_type == ConvType.MIGAKU else fmt_jrp
         update_note("<br>".join(formatter(units) for units in line_units))
+
+    undo_step = brws.col.add_custom_undo_entry("Bulk conversion")
+    brws.col.update_notes(updated_notes)
+    brws.col.merge_undo_entries(undo_step)
 
     if failed_notes:
         brws.search_for(f"nid:{','.join(map(str, failed_notes))}")
