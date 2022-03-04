@@ -27,9 +27,9 @@ def units_to_plain(lines: Iterable[Iterable[Unit]]) -> Iterable[str]:
     return ("".join(u.text() for u in units) for units in lines)
 
 
-def convert_lines(lines: Iterable[str]) -> Iterable[Iterable[Unit]] | None:
+def convert_lines(lines: Iterable[str]) -> list[list[Unit]] | None:
     try:
-        return (convert(line, gv.prefs.convert, gv.mecab_handle, gv.dictionary) for line in lines)
+        return [convert(line, gv.prefs.convert, gv.mecab_handle, gv.dictionary) for line in lines]
     except MecabError as e:
         aqt.utils.showWarning(f"Mecab error, stopping conversion: {e}")
         return None
@@ -69,6 +69,9 @@ def convert_notes(brws: Browser, conv_type: ConvType, regen: bool, dry_run: bool
 
         if regen and existing_type:
             line_units = convert_lines(units_to_plain(line_units))
+
+        if not line_units:
+            return
 
         formatter = fmt_migaku if conv_type == ConvType.MIGAKU else fmt_jrp
         update_note("<br>".join(formatter(units) for units in line_units))
