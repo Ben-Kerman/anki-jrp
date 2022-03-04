@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Iterable
 
 import aqt
 from PyQt5.QtCore import Qt
@@ -7,6 +8,14 @@ from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QDialog, QHBoxLayout,
 from anki.notes import NoteId
 from aqt.browser import Browser
 
+from . import global_vars as gv
+from .editor import OutputType, detect_syntax
+from ..pylib.converter import convert
+from ..pylib.html_processing import strip_html
+from ..pylib.mecab import MecabError
+from ..pylib.output import fmt_jrp, fmt_migaku
+from ..pylib.segments import ParsingError, Unit, parse_jrp, parse_migaku
+
 
 class ConvType(Enum):
     DEFAULT = "Default"
@@ -14,11 +23,55 @@ class ConvType(Enum):
     REMOVE = "Remove"
 
 
+def units_to_plain(lines: Iterable[Iterable[Unit]]) -> Iterable[str]:
+    return ("".join(u.text() for u in units) for units in lines)
+
+
+def convert_lines(lines: Iterable[str]) -> Iterable[Iterable[Unit]] | None:
+    try:
+        return (convert(line, gv.prefs.convert, gv.mecab_handle, gv.dictionary) for line in lines)
+    except MecabError as e:
+        aqt.utils.showWarning(f"Mecab error, stopping conversion: {e}")
+        return None
+
+
 def convert_notes(brws: Browser, conv_type: ConvType, regen: bool, dry_run: bool):
+    field_idx = 0  # TODO
     failed_notes: list[NoteId] = []
 
     for note_id in brws.selected_notes():
-        pass
+        note = brws.col.get_note(note_id)
+
+        def update_note(new_val: str):
+            if not dry_run:
+                note.fields[field_idx] = new_val
+                last_step = brws.col.undo_status().last_step
+                brws.col.update_note(note)
+                brws.col.merge_undo_entries(last_step)
+
+        field = note.fields[field_idx]
+        lines = strip_html(field)
+        existing_type = detect_syntax(field)
+        if existing_type:
+            parser = parse_migaku if existing_type == OutputType.MIGAKU else parse_jrp
+            try:
+                line_units = [parser(line) for line in lines]
+            except ParsingError:
+                failed_notes.append(note_id)
+                continue
+
+            if conv_type == ConvType.REMOVE:
+                update_note("<br>".join(units_to_plain(line_units)))
+        else:
+            if conv_type == ConvType.REMOVE:
+                continue
+            line_units = convert_lines(lines)
+
+        if regen and existing_type:
+            line_units = convert_lines(units_to_plain(line_units))
+
+        formatter = fmt_migaku if conv_type == ConvType.MIGAKU else fmt_jrp
+        update_note("<br>".join(formatter(units) for units in line_units))
 
     if failed_notes:
         brws.search_for(f"nid:{','.join(map(str, failed_notes))}")

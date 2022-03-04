@@ -53,7 +53,7 @@ _brace_re = re.compile(r"[^\\]{")
 _tag_re = re.compile(r"[^\\]\[(.+?)[^\\]]")
 
 
-def _detect_syntax(val: str) -> OutputType | None:
+def detect_syntax(val: str) -> OutputType | None:
     if _brace_re.search(val):
         return OutputType.DEFAULT
     elif m := _tag_re.search(val):
@@ -71,7 +71,7 @@ def _detect_syntax(val: str) -> OutputType | None:
 def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | None = None):
     def gen_lines(val: str) -> Generator[str]:
         lines = strip_html(val)
-        if t := _detect_syntax(val):
+        if t := detect_syntax(val):
             parser = parse_migaku if t == OutputType.MIGAKU else parse_jrp
             yield from ("".join(u.text() for u in parser(line)) for line in lines)
         else:

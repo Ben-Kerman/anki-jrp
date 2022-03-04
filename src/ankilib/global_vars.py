@@ -9,9 +9,11 @@ from aqt.operations import QueryOp
 
 from .templates import update_all_note_types
 from .util import get_path
+from ..pylib import converter
 from ..pylib.dictionary import AccentEntry, BasicDict, Dictionary, VariantEntry
 from ..pylib.mecab import Mecab
 from ..pylib.preferences import Prefs
+from ..pylib.segments import Unit
 from ..pylib.util import ConfigError
 
 T = TypeVar("T")
@@ -92,3 +94,10 @@ mecab_handle: Mecab | None = None
 dictionary: Dictionary | None = None
 
 QueryOp(parent=aqt.mw, op=lambda col: load_dict(), success=lambda _: print("JRP data loaded")).run_in_background()
+
+
+def convert_check() -> bool:
+    if not dictionary:
+        aqt.utils.showWarning("Dictionary is not (yet) loaded, can't convert.")
+        return False
+    return True
