@@ -1,10 +1,12 @@
 from enum import Enum
-from typing import Iterable
+from typing import Iterable, Sequence
 
 import aqt
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QDialog, QFormLayout, QHBoxLayout, QMenu, QPushButton, \
     QVBoxLayout, QWidget
+from anki.errors import InvalidInput
+from anki.models import NotetypeId
 from anki.notes import Note, NoteId
 from aqt.browser import Browser
 
@@ -35,8 +37,8 @@ def convert_lines(lines: Iterable[str]) -> list[list[Unit]] | None:
         return None
 
 
-def convert_notes(brws: Browser, note_ids: list[NoteId], conv_type: ConvType, regen: bool, dry_run: bool):
-    field_idx = 0  # TODO
+def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
+                  conv_type: ConvType, regen: bool, dry_run: bool):
     failed_notes: list[NoteId] = []
     updated_notes: list[Note] = []
 
@@ -88,7 +90,7 @@ def convert_notes(brws: Browser, note_ids: list[NoteId], conv_type: ConvType, re
             cond_msg = "All other selected notes were updated successfully."
         aqt.utils.showWarning(f"Conversion failed for some notes. {cond_msg}\n"
                               f"The failed notes remain unchanged and have been selected in the browser.\n"
-                              "You can now convert them individually or fix any issues "
+                              "You can now convert them individually, or fix any issues "
                               "and rerun the bulk conversion.")
     else:
         aqt.utils.showInfo("Conversion successful.")
@@ -96,13 +98,16 @@ def convert_notes(brws: Browser, note_ids: list[NoteId], conv_type: ConvType, re
 
 class ConvertDialog(QDialog):
     _conv_type_cb: QComboBox
+    _field_cb: QComboBox
     _gen_cb: QCheckBox
     _dryrun_cb: QCheckBox
 
-    def __init__(self, brws: Browser, notes: list[NoteId], parent: QWidget | None = None):
+    def __init__(self, brws: Browser, nt_id: NotetypeId, notes: Sequence[NoteId], parent: QWidget | None = None):
         super().__init__(parent)
         self.setWindowModality(Qt.ApplicationModal)
 
+        self._field_cb = QComboBox(self)
+        self._field_cb.addItems([field["name"] for field in brws.col.models.get(nt_id)["flds"]])
         self._conv_type_cb = QComboBox(self)
         self._conv_type_cb.addItems([ConvType.DEFAULT.value, ConvType.MIGAKU.value, ConvType.REMOVE.value])
 
@@ -112,9 +117,10 @@ class ConvertDialog(QDialog):
 
         form_lo = QFormLayout()
         form_lo.addRow("Conversion type:", self._conv_type_cb)
+        form_lo.addRow("Field:", self._field_cb)
 
         def exec_convert():
-            convert_notes(brws, notes, self._conv_type_cb.currentText(),
+            convert_notes(brws, notes, self._field_cb.currentIndex(), self._conv_type_cb.currentText(),
                           self._gen_cb.isChecked(), self._dryrun_cb.isChecked())
             self.accept()
 
@@ -142,8 +148,17 @@ def insert_menu_items(brws: Browser):
 
     def set_up_dialog():
         note_ids = brws.selected_notes()
+        if len(note_ids) < 2:
+            aqt.utils.showWarning("Two or more notes need to be selected for bulk conversion.")
+            return
 
-        brws.jrp_conv_dialog = ConvertDialog(brws, note_ids, brws)
+        try:
+            nt_id = brws.col.models.get_single_notetype_of_notes(note_ids)
+        except InvalidInput:
+            aqt.utils.showWarning("Only notes that all have the same note type can be converted in bulk.")
+            return
+
+        brws.jrp_conv_dialog = ConvertDialog(brws, nt_id, note_ids, brws)
         brws.jrp_conv_dialog.show()
 
     syn_conv_action = QAction("&Change Syntax", addon_menu)
