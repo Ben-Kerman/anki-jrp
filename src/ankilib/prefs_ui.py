@@ -5,8 +5,8 @@ from typing import TypeVar
 
 import aqt.utils
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QCheckBox, QDialog, QFormLayout, QFrame, QHBoxLayout, QLabel, QPushButton, QTabWidget, \
-    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QCheckBox, QDialog, QFormLayout, QFrame, QHBoxLayout, QHeaderView, QLabel, QPushButton, \
+    QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 from aqt.notetypechooser import NotetypeChooser
 
 from . import global_vars, prefs_ui_defs as ui_defs
@@ -83,7 +83,12 @@ class IgnoreOverrideWidget(QWidget):
         self._ors = ors
 
         self._tbl = QTableWidget(len(ors), 2, self)
+
         self._tbl.setHorizontalHeaderLabels(("Variants", "Reading"))
+        hh = self._tbl.horizontalHeader()
+        hh.setSectionResizeMode(0, QHeaderView.Stretch)
+        hh.setSectionResizeMode(1, QHeaderView.Stretch)
+
         for row, ior in enumerate(ors):
             self.insert_row(row, ior)
         self._tbl.cellChanged.connect(self.on_change)
@@ -122,9 +127,16 @@ class WordOverrideWidget(QWidget):
         self._ors = ors
 
         self._tbl = QTableWidget(len(ors), 6, self)
+
         self._tbl.setHorizontalHeaderLabels(("Old Variants", "Old Reading",
                                              "New Variants", "New Reading",
                                              "Pre", "Post"))
+        hh = self._tbl.horizontalHeader()
+        for i in range(4):
+            hh.setSectionResizeMode(i, QHeaderView.Stretch)
+        hh.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        hh.setSectionResizeMode(5, QHeaderView.ResizeToContents)
+
         for row, wor in enumerate(ors):
             self.insert_row(row, wor)
         self._tbl.cellChanged.connect(self.on_change)
@@ -184,7 +196,12 @@ class AccentOverrideWidget(QWidget):
         self._ors = ors
 
         self._tbl = QTableWidget(len(ors), 3, self)
+
         self._tbl.setHorizontalHeaderLabels(("Variants", "Reading", "Accents"))
+        hh = self._tbl.horizontalHeader()
+        for i in range(3):
+            hh.setSectionResizeMode(i, QHeaderView.Stretch)
+
         for row, aor in enumerate(ors):
             self.insert_row(row, aor)
         self._tbl.cellChanged.connect(self.on_change)
