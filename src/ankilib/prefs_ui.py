@@ -419,7 +419,7 @@ class PreferencesWidget(QTabWidget):
         conv_dor_lo.addLayout(conv_lo)
         conv_dor_lo.addLayout(output_addon_lo, 1)
 
-        self.addTab(conv_wdgt, "&Conversion")
+        self.addTab(conv_wdgt, "&General")
         self.addTab(dor_widget, "&Default Overrides")
         self.addTab(IgnoreOverrideWidget(prefs.convert.overrides.ignore, self), "&Ignored Words")
         self.addTab(WordOverrideWidget(prefs.convert.overrides.word, self), "&Word Overrides")

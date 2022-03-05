@@ -11,12 +11,12 @@ class WidgetType(Enum):
 
 
 conv_checkboxes = [
-    "General conversion settings",
+    "Conversion preferences:",
     {
         "path": ("convert", "prefer_accent_lookups"),
         "desc": "Prefer adding accents over readings"
     },
-    "Join preferences for 動詞・形容詞",
+    "Join preferences for 動詞・形容詞:",
     {
         "path": ("convert", "join", "yougen_join_nai"),
         "desc": "Join ない（知らない・早くない）"
@@ -66,7 +66,7 @@ conv_checkboxes = [
 ]
 
 output_defs = [
-    "Output preferences",
+    "Output preferences:",
     {
         "name": "min_accent_moras",
         "desc": "Minimum accent moras",
@@ -90,7 +90,7 @@ output_defs = [
 _path_tt = "Relative paths are resolved with the addon's install directory as the base."
 
 addon_defs = [
-    "Add-on preferences",
+    "Add-on preferences:",
     {
         "name": "mecab_path",
         "desc": "MeCab executable path",
