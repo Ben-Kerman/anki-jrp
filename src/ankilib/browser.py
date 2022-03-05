@@ -63,6 +63,7 @@ def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
 
             if conv_type == ConvType.REMOVE:
                 update_note("<br>".join(units_to_plain(line_units)))
+                continue
         else:
             if conv_type == ConvType.REMOVE:
                 continue
@@ -71,7 +72,7 @@ def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
         if regen and existing_type:
             line_units = convert_lines(units_to_plain(line_units))
 
-        if not line_units:
+        if line_units is None:
             return
 
         formatter = fmt_migaku if conv_type == ConvType.MIGAKU else fmt_jrp
@@ -120,7 +121,7 @@ class ConvertDialog(QDialog):
         form_lo.addRow("Field:", self._field_cb)
 
         def exec_convert():
-            convert_notes(brws, notes, self._field_cb.currentIndex(), self._conv_type_cb.currentText(),
+            convert_notes(brws, notes, self._field_cb.currentIndex(), ConvType(self._conv_type_cb.currentText()),
                           self._gen_cb.isChecked(), self._dryrun_cb.isChecked())
             self.accept()
 
