@@ -309,7 +309,7 @@ def convert(punits: Sequence[ParserUnit], prefs: ConvPrefs, dic: Dictionary) -> 
                 case HinsiType.ZYOSI | HinsiType.SETUBI:
                     unit = _handle_simple(pu)
                     i += 1
-                case HinsiType.SYMBOL:
+                case HinsiType.SYMBOL | HinsiType.NUMBER:
                     unit = Unit([Segment(pu.value)])
                     i += 1
                 case _:

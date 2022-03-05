@@ -23,6 +23,7 @@ class HinsiType(Enum):
     YOUGEN = auto()
     SETUBI = auto()
     SYMBOL = auto()
+    NUMBER = auto()
     OTHER = auto()
 
 
@@ -62,6 +63,8 @@ class MecabUnit(ParserUnit):
             case "名詞":
                 if self.hinsi_class_1 == "接尾":
                     return HinsiType.SETUBI
+                elif self.hinsi_class_1 == "数":
+                    return HinsiType.NUMBER
         return HinsiType.OTHER
 
     def comp_hinsi(self, *args: str):
