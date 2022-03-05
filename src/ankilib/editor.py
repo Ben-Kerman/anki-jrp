@@ -1,4 +1,3 @@
-import re
 from collections.abc import Callable, Generator
 from enum import Enum, auto
 
@@ -6,6 +5,7 @@ import aqt.utils
 from aqt.editor import Editor
 
 from . import global_vars as gv
+from ..pylib.conv_util import detect_syntax, squash_newlines
 from ..pylib.converter import convert
 from ..pylib.html_processing import strip_html
 from ..pylib.mecab import MecabError
@@ -42,26 +42,6 @@ def _replace(edit: Editor, transform: Callable[[str], str]):
     edit.web.page().runJavaScript("getCurrentField().editable.fieldHTML", lambda html: update_field_html(html))
 
 
-_nl_re = re.compile(r"[^\S\r\n]*[\r\n]+[^\S\r\n]*")
-
-_brace_re = re.compile(r"(?:^|[^\\]){")
-_tag_re = re.compile(r"(?:^|[^\\])\[((?:[^]]|\\])+)]")
-
-
-def detect_syntax(val: str) -> OutputType | None:
-    if _brace_re.search(val):
-        return OutputType.DEFAULT
-    elif m := _tag_re.search(val):
-        g = m.group(1)
-        if "|" in g or "=" in g:
-            return OutputType.DEFAULT
-        else:
-            return OutputType.MIGAKU
-    elif len(val) and val.count(" ") / len(val) > 0.2:
-        return OutputType.MIGAKU
-    return None
-
-
 def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | None = None):
     def gen_lines(val: str) -> Generator[str]:
         lines = strip_html(val)
@@ -72,7 +52,7 @@ def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | Non
             yield from lines
 
     def transform(val: str) -> str | None:
-        val = _nl_re.sub(" ", val)
+        val = squash_newlines(val)
         if conv_type == ConversionType.REMOVE:
             return insert_nbsp("<br>".join(gen_lines(val)))
         else:

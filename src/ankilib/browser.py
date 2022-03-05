@@ -13,7 +13,7 @@ from anki.notes import Note, NoteId
 from aqt.browser import Browser
 
 from . import global_vars as gv
-from .editor import detect_syntax
+from ..pylib.conv_util import detect_syntax
 from ..pylib.converter import convert
 from ..pylib.html_processing import strip_html
 from ..pylib.mecab import MecabError
