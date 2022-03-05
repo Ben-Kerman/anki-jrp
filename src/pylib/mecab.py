@@ -21,6 +21,7 @@ class ParserUnit:
 class HinsiType(Enum):
     ZYOSI = auto()
     YOUGEN = auto()
+    SETUBI = auto()
     SYMBOL = auto()
     OTHER = auto()
 
@@ -58,8 +59,10 @@ class MecabUnit(ParserUnit):
                 return HinsiType.YOUGEN
             case "記号":
                 return HinsiType.SYMBOL
-            case _:
-                return HinsiType.OTHER
+            case "名詞":
+                if self.hinsi_class_1 == "接尾":
+                    return HinsiType.SETUBI
+        return HinsiType.OTHER
 
     def comp_hinsi(self, *args: str):
         if self.hinsi != args[0]:
