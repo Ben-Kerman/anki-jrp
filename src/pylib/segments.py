@@ -203,7 +203,7 @@ class ParsingError(ValueError):
     pass
 
 
-_nbsp_re = re.compile(r"(?:&nbsp;|\xa0)")
+_nbsp_re = re.compile(r"&nbsp;|\xa0")
 
 
 def replace_nbsp(val: str) -> str:

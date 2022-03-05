@@ -9,11 +9,9 @@ from aqt.operations import QueryOp
 
 from .templates import update_all_note_types
 from .util import get_path
-from ..pylib import converter
 from ..pylib.dictionary import AccentEntry, BasicDict, Dictionary, VariantEntry
 from ..pylib.mecab import Mecab
 from ..pylib.preferences import Prefs
-from ..pylib.segments import Unit
 from ..pylib.util import ConfigError
 
 T = TypeVar("T")
