@@ -284,7 +284,7 @@ class Unit {
 		} else return this.base_reading;
 	}
 
-	generate_dom_nodes(bare_empty: boolean = false): Node[] {
+	generate_dom_nodes(bare_empty: boolean = true): Node[] {
 		const segment_nodes: Node[] = this.segments.flatMap(s => {
 			if(s.reading === null) {
 				return parseHtml(s.text);
@@ -703,7 +703,7 @@ function generate() {
 			root.append(...lines.flatMap((line, index) => {
 				const parser = settings["migaku"] ? parse_migaku : parse_jrp;
 				const unit_nodes = parser(line).flatMap(u => {
-					return u.generate_dom_nodes(settings["bare-empty-units"]);
+					return u.generate_dom_nodes(settings["enclose-empty-units"]);
 				});
 				return index > 0 ? [document.createElement("br"), ...unit_nodes] : unit_nodes;
 			}));
