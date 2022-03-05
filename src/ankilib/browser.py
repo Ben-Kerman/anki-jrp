@@ -108,7 +108,9 @@ class ConvertDialog(QDialog):
         self.setWindowModality(Qt.ApplicationModal)
 
         self._field_cb = QComboBox(self)
-        self._field_cb.addItems([field["name"] for field in brws.col.models.get(nt_id)["flds"]])
+        # sort fields by position, just to be safe
+        flds = [field["name"] for field in sorted(brws.col.models.get(nt_id)["flds"], key=lambda f: f["ord"])]
+        self._field_cb.addItems(flds)
         self._conv_type_cb = QComboBox(self)
         self._conv_type_cb.addItems([ConvType.DEFAULT.value, ConvType.MIGAKU.value, ConvType.REMOVE.value])
 
