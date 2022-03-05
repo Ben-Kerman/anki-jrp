@@ -75,9 +75,10 @@ def convert_notes(brws: Browser, note_ids: list[NoteId], conv_type: ConvType, re
         formatter = fmt_migaku if conv_type == ConvType.MIGAKU else fmt_jrp
         update_note("<br>".join(formatter(units) for units in line_units))
 
-    undo_step = brws.col.add_custom_undo_entry("Bulk conversion")
-    brws.col.update_notes(updated_notes)
-    brws.col.merge_undo_entries(undo_step)
+    if not dry_run:
+        undo_step = brws.col.add_custom_undo_entry("Bulk conversion")
+        brws.col.update_notes(updated_notes)
+        brws.col.merge_undo_entries(undo_step)
 
     if failed_notes:
         brws.search_for(f"nid:{','.join(map(str, failed_notes))}")
