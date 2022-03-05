@@ -9,7 +9,7 @@ from . import global_vars as gv
 from ..pylib.converter import convert
 from ..pylib.html_processing import strip_html
 from ..pylib.mecab import MecabError
-from ..pylib.output import OutputType, fmt_jrp, fmt_migaku
+from ..pylib.output import OutputType, fmt_jrp, fmt_migaku, insert_nbsp
 from ..pylib.segments import ParsingError, parse_jrp, parse_migaku
 
 _js_esc = str.maketrans({
@@ -74,7 +74,7 @@ def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | Non
     def transform(val: str) -> str | None:
         val = _nl_re.sub(" ", val)
         if conv_type == ConversionType.REMOVE:
-            return "<br>".join(gen_lines(val))
+            return insert_nbsp("<br>".join(gen_lines(val)))
         else:
             if not out_type:
                 raise ValueError("missing output type")

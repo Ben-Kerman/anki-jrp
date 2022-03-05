@@ -15,7 +15,7 @@ from .editor import detect_syntax
 from ..pylib.converter import convert
 from ..pylib.html_processing import strip_html
 from ..pylib.mecab import MecabError
-from ..pylib.output import OutputType, fmt_jrp, fmt_migaku
+from ..pylib.output import OutputType, fmt_jrp, fmt_migaku, insert_nbsp
 from ..pylib.segments import ParsingError, Unit, parse_jrp, parse_migaku
 
 
@@ -62,7 +62,7 @@ def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
                 continue
 
             if conv_type == ConvType.REMOVE:
-                update_note("<br>".join(units_to_plain(line_units)))
+                update_note(insert_nbsp("<br>".join(units_to_plain(line_units))))
                 continue
             elif regen:
                 line_units = convert_lines(units_to_plain(line_units))

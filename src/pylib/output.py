@@ -54,6 +54,21 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
     return " ".join([fmt_unit(u) for u in units])
 
 
+def insert_nbsp(val: str) -> str:
+    new_chars: list[str] = []
+    was_space: bool = False
+    for c in val:
+        if was_space:
+            was_space = False
+            if c == " ":
+                new_chars.append(chr(0xa0))
+                continue
+        elif c == " ":
+            was_space = True
+        new_chars.append(c)
+    return "".join(new_chars)
+
+
 def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
     def fmt_unit(unit: Unit) -> str:
         segment_str = "".join([s.fmt(escape=True) for s in unit.segments])
@@ -64,20 +79,6 @@ def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
             return f"{{{segment_str};{uncert}{yougen}{','.join(map(str, unit.accents))}{sp_base}}}"
         else:
             return segment_str
-
-    def insert_nbsp(val: str) -> str:
-        new_chars: list[str] = []
-        was_space: bool = False
-        for c in val:
-            if was_space:
-                was_space = False
-                if c == " ":
-                    new_chars.append(chr(0xa0))
-                    continue
-            elif c == " ":
-                was_space = True
-            new_chars.append(c)
-        return "".join(new_chars)
 
     res = "".join([fmt_unit(u) for u in units])
     return insert_nbsp(res) if prefs and prefs.preserve_spaces else res
