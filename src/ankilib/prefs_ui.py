@@ -148,11 +148,18 @@ class WordOverrideWidget(QWidget):
         layout.addWidget(self._tbl, 1)
 
     def insert_row(self, r: int, ovrd: WordOverride):
-        def make_cb(attr_name: str) -> QCheckBox:
+        def make_cb(attr_name: str) -> QWidget:
             cb = QCheckBox(self)
             cb.setChecked(getattr(ovrd, attr_name))
             cb.stateChanged.connect(lambda s: setattr(ovrd, attr_name, bool(s)))
-            return cb
+
+            container = QWidget()
+            lo = QHBoxLayout(container)
+            lo.addWidget(cb)
+            lo.setAlignment(Qt.AlignCenter)
+            lo.setContentsMargins(0, 0, 0, 0)
+
+            return container
 
         self._tbl.setItem(r, 0, QTableWidgetItem("・".join(ovrd.old_variants)))
         self._tbl.setItem(r, 1, QTableWidgetItem(ovrd.old_reading or ""))
