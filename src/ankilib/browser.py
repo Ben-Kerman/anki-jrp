@@ -31,7 +31,7 @@ def units_to_plain(lines: Iterable[Iterable[Unit]]) -> Iterable[str]:
 
 def convert_lines(lines: Iterable[str]) -> list[list[Unit]] | None:
     try:
-        return [convert(line, gv.prefs.convert, gv.mecab_handle, gv.dictionary) for line in lines]
+        return [convert(gv.mecab_handle.analyze(line), gv.prefs.convert, gv.dictionary) for line in lines]
     except MecabError as e:
         aqt.utils.showWarning(f"Mecab error, stopping conversion: {e}")
         return None

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Sequence, cast
 
 from .dictionary import Dictionary, Lookup
-from .mecab import HinsiType, Mecab, MecabUnit, ParserUnit
+from .mecab import HinsiType, MecabUnit, ParserUnit
 from .normalize import is_kana, to_hiragana
 from .preferences import ConvPrefs, JoinPrefs
 from .segments import Segment, Unit
@@ -298,8 +298,7 @@ def _handle_other(p: ConvPrefs, dic: Dictionary,
         return idx + 1, Unit.from_text(mu.value, mu.reading, base, is_yougen=is_yougen), None
 
 
-def convert(txt: str, prefs: ConvPrefs, mecab: Mecab, dic: Dictionary) -> list[Unit]:
-    punits = mecab.analyze(txt)
+def convert(punits: Sequence[ParserUnit], prefs: ConvPrefs, dic: Dictionary) -> list[Unit]:
     units: list[Unit] = []
     split_unit = None
     i = 0
