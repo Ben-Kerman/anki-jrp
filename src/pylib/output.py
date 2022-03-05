@@ -29,8 +29,8 @@ def _add_accent(unit: Unit, prefs: OutputPrefs | None) -> bool:
 def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
     def fmt_unit(unit: Unit) -> str:
         segments = unit.non_base_segments()
-        if len(segments) == 1 and all(c == " " for c in segments[0].text):
-            return chr(0x2002) * len(segments[0].text)  # en space
+        if len(segments) == 1 and segments[0].text.isspace():
+            return segments[0].text.replace(" ", chr(0x2002))  # en space
 
         tag_content = ""
         if _add_accent(unit, prefs):
@@ -51,7 +51,7 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
             tag = f"[{tag_content}]" if tag_content else ""
             return f"{esc('[', unit.text())}{tag}"
 
-    return " ".join([fmt_unit(u).replace(" ", chr(0x2002)) for u in units])
+    return " ".join([fmt_unit(u) for u in units])
 
 
 def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
