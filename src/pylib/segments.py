@@ -203,6 +203,13 @@ class ParsingError(ValueError):
     pass
 
 
+_nbsp_re = re.compile(r"(?:&nbsp;|\xa0)")
+
+
+def _replace_nbsp(val: str) -> str:
+    return _nbsp_re.sub(" ", val)
+
+
 def _read_until(val: str, idx: int, stop: tuple[str, ...]) -> tuple[int, str | None, str]:
     chars: list[str] = []
     itr = enumerate(val[idx:])
@@ -344,7 +351,7 @@ def parse_migaku(value: str, conv_en_spaces: bool = True) -> list[Unit]:
                 units.append(self.parse_unit())
             return units
 
-    return Parser(value).execute()
+    return Parser(_replace_nbsp(value)).execute()
 
 
 def parse_jrp(value: str) -> list[Unit]:
@@ -411,6 +418,8 @@ def parse_jrp(value: str) -> list[Unit]:
                 raise ParsingError(f"invalid accent: {val}")
 
         return pos + 1, unit
+
+    value = _replace_nbsp(value)
 
     units: list[Unit] = []
     free_segments: list[Segment] = []

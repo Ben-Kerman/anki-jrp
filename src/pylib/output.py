@@ -65,4 +65,19 @@ def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
         else:
             return segment_str
 
-    return "".join([fmt_unit(u) for u in units])
+    def insert_nbsp(val: str) -> str:
+        new_chars: list[str] = []
+        was_space: bool = False
+        for c in val:
+            if was_space:
+                was_space = False
+                if c == " ":
+                    new_chars.append(chr(0xa0))
+                    continue
+            elif c == " ":
+                was_space = True
+            new_chars.append(c)
+        return "".join(new_chars)
+
+    res = "".join([fmt_unit(u) for u in units])
+    return insert_nbsp(res) if prefs and prefs.preserve_spaces else res

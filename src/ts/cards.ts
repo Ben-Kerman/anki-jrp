@@ -332,6 +332,12 @@ class ParsingError extends Error {
 	}
 }
 
+const nbsp_re = /(?:%nbsp|\x0a)/;
+
+function replace_nbsp(val: string): string {
+	return val.replace(nbsp_re, " ");
+}
+
 function read_until(val: string, idx: number, stop: string[]): [number, string | null, string] {
 	// implementation differs from Python
 	const chars: string[] = [];
@@ -505,7 +511,7 @@ function parse_migaku(value: string): Unit[] {
 		}
 	}
 
-	return new Parser(value).execute();
+	return new Parser(replace_nbsp(value)).execute();
 }
 
 function parse_jrp(value: string): Unit[] {
@@ -607,6 +613,8 @@ function parse_jrp(value: string): Unit[] {
 
 		return [pos + 1, unit];
 	}
+
+	value = replace_nbsp(value);
 
 	const units: Unit[] = [];
 	let free_segments: Segment[] = [];

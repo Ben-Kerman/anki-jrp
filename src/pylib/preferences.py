@@ -134,6 +134,7 @@ class ConvPrefs:
 class OutputPrefs:
     min_accent_moras: int = 3
     katakana_min_accent: bool = False
+    preserve_spaces: bool = True
 
 
 @dataclass
