@@ -40,7 +40,14 @@ def convert_lines(lines: Iterable[str]) -> list[list[Unit]] | None:
 
 
 def write_backup_data(path: str, data: Sequence[tuple[NoteId, str, str]]):
-    raise NotImplementedError
+    def join_content(val: str) -> str:
+        return "\n\t".join(val.splitlines())
+
+    with open(path, "w") as fd:
+        for i, (note_id, old_val, new_val) in enumerate(data):
+            if i > 0:
+                fd.write("\n\n")
+            fd.write(f"{note_id}\nold: {join_content(old_val)}\nnew: {join_content(new_val)}")
 
 
 def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
