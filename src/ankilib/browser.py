@@ -1,3 +1,5 @@
+import os.path
+from datetime import datetime
 from enum import Enum
 from typing import Iterable, Sequence
 
@@ -37,20 +39,27 @@ def convert_lines(lines: Iterable[str]) -> list[list[Unit]] | None:
         return None
 
 
+def write_backup_data(path: str, data: Sequence[tuple[NoteId, str, str]]):
+    raise NotImplementedError
+
+
 def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
-                  conv_type: ConvType, regen: bool, dry_run: bool):
+                  conv_type: ConvType, regen: bool, backup: bool, dry_run: bool):
     failed_notes: list[NoteId] = []
     updated_notes: list[Note] = []
+    backup_data: list[tuple[NoteId, str, str]] = []
 
     for note_id in note_ids:
         note = brws.col.get_note(note_id)
+        field = note.fields[field_idx]
 
         def update_note(new_val: str):
             if not dry_run:
+                if backup:
+                    backup_data.append((note_id, field, new_val))
                 note.fields[field_idx] = new_val
                 updated_notes.append(note)
 
-        field = note.fields[field_idx]
         lines = strip_html(field)
         existing_type = detect_syntax(field)
         if existing_type:
@@ -78,7 +87,17 @@ def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
         output_prefs = gv.prefs.output if regen else None
         update_note("<br>".join(formatter(units, output_prefs) for units in line_units))
 
+    backup_msg = ""
     if not dry_run:
+        if backup:
+            bu_filename = f"jrp-recovery-data_{datetime.now().strftime('%Y-%m-%dT%H-%M-%S')}.txt"
+            backup_path = os.path.join(os.path.dirname(brws.col.path), bu_filename)
+            if os.path.exists(backup_path):
+                aqt.utils.showWarning(f"Backup file path already exists, aborting conversion: {backup_path}")
+                return
+            write_backup_data(backup_path, backup_data)
+            backup_msg = f"\nRecovery file is located at: {backup_path}"
+
         undo_step = brws.col.add_custom_undo_entry("Bulk conversion")
         brws.col.update_notes(updated_notes)
         brws.col.merge_undo_entries(undo_step)
@@ -90,17 +109,18 @@ def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
         else:
             cond_msg = "All other selected notes were updated successfully."
         aqt.utils.showWarning(f"Conversion failed for some notes. {cond_msg}\n"
-                              f"The failed notes remain unchanged and have been selected in the browser.\n"
+                              "The failed notes remain unchanged and have been selected in the browser.\n"
                               "You can now convert them individually, or fix any issues "
-                              "and rerun the bulk conversion.")
+                              f"and rerun the bulk conversion.{backup_msg}")
     else:
-        aqt.utils.showInfo("Conversion successful.")
+        aqt.utils.showInfo(f"Conversion successful.{backup_msg}")
 
 
 class ConvertDialog(QDialog):
     _conv_type_cb: QComboBox
     _field_cb: QComboBox
     _gen_cb: QCheckBox
+    _backup_cb: QCheckBox
     _dryrun_cb: QCheckBox
 
     def __init__(self, brws: Browser, nt_id: NotetypeId, notes: Sequence[NoteId], parent: QWidget | None = None):
@@ -115,6 +135,8 @@ class ConvertDialog(QDialog):
         self._conv_type_cb.addItems([ConvType.DEFAULT.value, ConvType.MIGAKU.value, ConvType.REMOVE.value])
 
         self._gen_cb = QCheckBox("(Re)generate contents", self)
+        self._backup_cb = QCheckBox("Save emergency recovery data", self)
+        self._backup_cb.setChecked(True)
         self._dryrun_cb = QCheckBox("Dry run", self)
         self._dryrun_cb.setChecked(True)
 
@@ -124,7 +146,7 @@ class ConvertDialog(QDialog):
 
         def exec_convert():
             convert_notes(brws, notes, self._field_cb.currentIndex(), ConvType(self._conv_type_cb.currentText()),
-                          self._gen_cb.isChecked(), self._dryrun_cb.isChecked())
+                          self._gen_cb.isChecked(), self._backup_cb.isChecked(), self._dryrun_cb.isChecked())
             self.accept()
 
         conv_btn = QPushButton("Convert", self)
@@ -140,6 +162,7 @@ class ConvertDialog(QDialog):
         lo = QVBoxLayout(self)
         lo.addLayout(form_lo)
         lo.addWidget(self._gen_cb)
+        lo.addWidget(self._backup_cb)
         lo.addWidget(self._dryrun_cb)
         lo.addLayout(btn_lo)
 
