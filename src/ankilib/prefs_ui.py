@@ -168,12 +168,11 @@ class WordOverrideWidget(QWidget):
                 item.setText("・".join(override.new_variants or []))
             else:
                 override.new_variants = _split(txt) if txt else None
+        elif not txt and not override.new_variants:
+            aqt.utils.showWarning("New variants and reading can't both be empty")
+            item.setText(override.new_reading)
         else:
-            if not txt and not override.new_variants:
-                aqt.utils.showWarning("New variants and reading can't both be empty")
-                item.setText(override.new_reading)
-            else:
-                override.new_reading = txt or None
+            override.new_reading = txt or None
 
 
 class AccentOverrideWidget(QWidget):

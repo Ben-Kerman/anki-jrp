@@ -102,13 +102,12 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: Sequ
         if prefs.match_ignore_or(rv.base_word or rv.word, rv.lookup.results[0].reading):
             rv.base_word = None
             rv.lookup = None
-        else:
-            if gen := prefs.apply_word_or(rv.base_word or rv.word, rv.lookup.results[0].reading):
-                for var, reading in gen:
-                    if lu := dic.look_up(var, reading):
-                        return Match(rv.last_idx, rv.word, rv.base_word, lu)
-                    else:
-                        return None
+        elif gen := prefs.apply_word_or(rv.base_word or rv.word, rv.lookup.results[0].reading):
+            for var, reading in gen:
+                if lu := dic.look_up(var, reading):
+                    return Match(rv.last_idx, rv.word, rv.base_word, lu)
+                else:
+                    return None
     return rv
 
 

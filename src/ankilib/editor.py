@@ -57,9 +57,8 @@ def detect_syntax(val: str) -> OutputType | None:
             return OutputType.DEFAULT
         else:
             return OutputType.MIGAKU
-    else:
-        if len(val) and val.count(" ") / len(val) > 0.2:
-            return OutputType.MIGAKU
+    elif len(val) and val.count(" ") / len(val) > 0.2:
+        return OutputType.MIGAKU
     return None
 
 

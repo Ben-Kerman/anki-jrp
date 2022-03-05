@@ -42,11 +42,11 @@ class Segment:
             sect = sections[s_idx]
             if not is_kana(sect):
                 new_seg = segments + [Segment(sect, reading[rs_idx:re_idx])]
+            elif reading[rs_idx:re_idx] == sect:
+                new_seg = segments + [Segment(sect)]
             else:
-                if reading[rs_idx:re_idx] == sect:
-                    new_seg = segments + [Segment(sect)]
-                else:
-                    return None
+                return None
+
             if s_idx == len(sections) - 1 and re_idx == len(reading):
                 return new_seg
             for nre in range(re_idx + 1, len(reading) + 1):
