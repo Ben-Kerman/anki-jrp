@@ -36,8 +36,8 @@ class StylePrefs:
     indicator_bar_radius: str = "var(--jrp-indicator-bar-width)"
     indicator_bar_gap: str = "2px"
     indicator_bar_margin: str = "0.3em"
-    indicator_bar_offset: str = "0.1em"
-    indicator_bar_offset_vert: str = "0.3em"
+    indicator_bar_offset: str = "0em"
+    indicator_bar_offset_vert: str = "0.1em"
     indicator_diamond_size: str = "1em"
 
 
