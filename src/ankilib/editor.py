@@ -86,7 +86,7 @@ def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | Non
                 formatter = fmt_migaku if out_type == OutputType.MIGAKU else fmt_jrp
                 parsed_lines = (gv.mecab_handle.analyze(line) for line in gen_lines(val))
                 conv_lines = (convert(pline, gv.prefs.convert, gv.dictionary) for pline in parsed_lines)
-                return "<br>".join(formatter(s) for s in conv_lines)
+                return "<br>".join(formatter(s, gv.prefs.output) for s in conv_lines)
             except MecabError as e:
                 aqt.utils.showWarning(f"Mecab error: {e}")
                 return None

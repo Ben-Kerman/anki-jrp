@@ -11,26 +11,29 @@ class OutputType(Enum):
     MIGAKU = auto()
 
 
-def _add_accent(p: OutputPrefs, unit: Unit) -> bool:
+def _add_accent(unit: Unit, prefs: OutputPrefs | None) -> bool:
     if not unit.accents:
         return False
 
+    if not prefs:
+        return True
+
     if len(unit.segments) == 1:
         txt = unit.segments[0].text
-        if (is_hiragana(txt) or p.katakana_min_accent and is_kana(txt)) \
-                and len(split_moras(txt)) < p.min_accent_moras and not unit.is_yougen:
+        if (is_hiragana(txt) or prefs.katakana_min_accent and is_kana(txt)) \
+                and len(split_moras(txt)) < prefs.min_accent_moras and not unit.is_yougen:
             return False
     return True
 
 
 def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
-    def fmt_unit(unit: Unit, p: OutputPrefs) -> str:
+    def fmt_unit(unit: Unit) -> str:
         segments = unit.non_base_segments()
         if len(segments) == 1 and all(c == " " for c in segments[0].text):
             return chr(0x2002) * len(segments[0].text)  # en space
 
         tag_content = ""
-        if _add_accent(p, unit):
+        if _add_accent(unit, prefs):
             if unit.is_yougen:
                 tag_content += f",{esc(';]', unit.base_reading())}"
             rdng = unit.accent_reading()
@@ -48,15 +51,13 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
             tag = f"[{tag_content}]" if tag_content else ""
             return f"{esc('[', unit.text())}{tag}"
 
-    if not prefs:
-        prefs = OutputPrefs()
-    return " ".join([fmt_unit(u, prefs).replace(" ", chr(0x2002)) for u in units])
+    return " ".join([fmt_unit(u).replace(" ", chr(0x2002)) for u in units])
 
 
 def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
-    def fmt_unit(unit: Unit, p: OutputPrefs) -> str:
+    def fmt_unit(unit: Unit) -> str:
         segment_str = "".join([s.fmt(escape=True) for s in unit.segments])
-        if _add_accent(p, unit):
+        if _add_accent(unit, prefs):
             uncert = "!" if unit.uncertain else ""
             yougen = "Y" if unit.is_yougen else ""
             sp_base = f"|{unit.special_base}" if unit.special_base else ""
@@ -64,6 +65,4 @@ def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
         else:
             return segment_str
 
-    if not prefs:
-        prefs = OutputPrefs()
-    return "".join([fmt_unit(u, prefs) for u in units])
+    return "".join([fmt_unit(u) for u in units])
