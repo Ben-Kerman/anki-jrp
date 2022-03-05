@@ -35,12 +35,12 @@ def convert_lines(lines: Iterable[str]) -> list[list[Unit]] | None:
         return None
 
 
-def convert_notes(brws: Browser, conv_type: ConvType, regen: bool, dry_run: bool):
+def convert_notes(brws: Browser, note_ids: list[NoteId], conv_type: ConvType, regen: bool, dry_run: bool):
     field_idx = 0  # TODO
     failed_notes: list[NoteId] = []
     updated_notes: list[Note] = []
 
-    for note_id in brws.selected_notes():
+    for note_id in note_ids:
         note = brws.col.get_note(note_id)
 
         def update_note(new_val: str):
@@ -98,7 +98,7 @@ class ConvertDialog(QDialog):
     _gen_cb: QCheckBox
     _dryrun_cb: QCheckBox
 
-    def __init__(self, brws: Browser, parent: QWidget | None = None):
+    def __init__(self, brws: Browser, notes: list[NoteId], parent: QWidget | None = None):
         super().__init__(parent)
         self.setWindowModality(Qt.ApplicationModal)
 
@@ -120,7 +120,7 @@ class ConvertDialog(QDialog):
         lo.addWidget(self._dryrun_cb)
 
         def exec_convert():
-            convert_notes(brws, self._conv_type_cb.currentText(),
+            convert_notes(brws, notes, self._conv_type_cb.currentText(),
                           self._gen_cb.isChecked(), self._dryrun_cb.isChecked())
             self.accept()
 
@@ -142,7 +142,9 @@ def insert_menu_items(brws: Browser):
     addon_menu = QMenu("&Japanese Readings && Accent Add-on", note_menu)
 
     def set_up_dialog():
-        brws.jrp_conv_dialog = ConvertDialog(brws, brws)
+        note_ids = brws.selected_notes()
+
+        brws.jrp_conv_dialog = ConvertDialog(brws, note_ids, brws)
         brws.jrp_conv_dialog.show()
 
     syn_conv_action = QAction("&Change Syntax", addon_menu)
