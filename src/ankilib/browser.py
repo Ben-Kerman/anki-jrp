@@ -3,7 +3,7 @@ from typing import Iterable
 
 import aqt
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QDialog, QHBoxLayout, QLabel, QMenu, QPushButton, \
+from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QDialog, QFormLayout, QHBoxLayout, QMenu, QPushButton, \
     QVBoxLayout, QWidget
 from anki.notes import Note, NoteId
 from aqt.browser import Browser
@@ -103,22 +103,15 @@ class ConvertDialog(QDialog):
         super().__init__(parent)
         self.setWindowModality(Qt.ApplicationModal)
 
-        lo = QVBoxLayout(self)
-
-        conv_lo = QHBoxLayout()
         self._conv_type_cb = QComboBox(self)
         self._conv_type_cb.addItems([ConvType.DEFAULT.value, ConvType.MIGAKU.value, ConvType.REMOVE.value])
-        lbl = QLabel("Conversion type:")
-        conv_lo.addWidget(lbl, 1)
-        conv_lo.addWidget(self._conv_type_cb)
-        lo.addLayout(conv_lo)
 
         self._gen_cb = QCheckBox("(Re)generate contents", self)
-        lo.addWidget(self._gen_cb)
-
         self._dryrun_cb = QCheckBox("Dry run", self)
         self._dryrun_cb.setChecked(True)
-        lo.addWidget(self._dryrun_cb)
+
+        form_lo = QFormLayout()
+        form_lo.addRow("Conversion type:", self._conv_type_cb)
 
         def exec_convert():
             convert_notes(brws, notes, self._conv_type_cb.currentText(),
@@ -129,11 +122,16 @@ class ConvertDialog(QDialog):
         conv_btn.clicked.connect(lambda: exec_convert())
         cancel_btn = QPushButton("Cancel", self)
         cancel_btn.clicked.connect(lambda: self.reject())
+
         btn_lo = QHBoxLayout()
         btn_lo.addStretch()
         btn_lo.addWidget(conv_btn)
         btn_lo.addWidget(cancel_btn)
 
+        lo = QVBoxLayout(self)
+        lo.addLayout(form_lo)
+        lo.addWidget(self._gen_cb)
+        lo.addWidget(self._dryrun_cb)
         lo.addLayout(btn_lo)
 
 
