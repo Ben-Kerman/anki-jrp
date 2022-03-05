@@ -31,7 +31,7 @@
 }
 
 .jrp-graph-bar-unaccented {
-	border-top: 0.1em solid black;
+	border-top: 0.15em solid black;
 }
 
 .night-mode .jrp-graph-bar-unaccented {
@@ -40,7 +40,7 @@
 
 .jrp-vertical .jrp-graph-bar-unaccented {
 	border-top: none;
-	border-right: 0.1em solid black;
+	border-right: 0.15em solid black;
 }
 
 .night-mode .jrp-graph-bar-unaccented {
@@ -50,7 +50,7 @@
 .jrp-graph-bar-accented {
 	border-image-source: url("_jrp-downstep-light.svg");
 	border-image-slice: 10%;
-	border-image-width: 0.1em;
+	border-width: 0.15em;
 	border-top-style: solid;
 	border-right-style: solid;
 
