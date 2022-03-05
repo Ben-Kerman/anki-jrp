@@ -35,31 +35,32 @@ def base_for_potential(word: str, reading: str | None) -> tuple[str, str] | None
     return word[:-2] + base_end, reading and reading[:-2] + base_end
 
 
+def _lookup_variants(p: ConvPrefs, word: str, reading_guess: str | None,
+                     base_word: str | None = None) -> Generator[tuple[str, str | None, str | None]]:
+    def pot(word: str, reading: str | None) -> tuple[str, str, str] | None:
+        if res := base_for_potential(word, reading):
+            pot_base, pot_reading = res
+            return pot_base, pot_reading, pot_base
+
+    if base_word:
+        if or_gen := p.apply_word_or(base_word, reading_guess, is_pre=True):
+            for or_var, or_reading in or_gen:
+                yield or_var, or_reading, or_var
+        else:
+            yield base_word, reading_guess, base_word
+            if pot_res := pot(base_word, reading_guess):
+                yield pot_res
+    if or_gen := p.apply_word_or(word, reading_guess, is_pre=True):
+        for or_var, or_reading in or_gen:
+            yield or_var, or_reading, None
+    else:
+        yield word, reading_guess, None
+        if pot_res := pot(word, reading_guess):
+            yield pot_res
+
+
 def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: Sequence[ParserUnit],
                        stop_cond: Callable[[int, MecabUnit], bool] = _dsc) -> Match | None:
-    def lookup_variants(p: ConvPrefs, word: str, reading_guess: str | None,
-                        base_word: str | None = None) -> Generator[tuple[str, str | None, str | None]]:
-        def pot(word: str, reading: str | None) -> tuple[str, str, str] | None:
-            if res := base_for_potential(word, reading):
-                pot_base, pot_reading = res
-                return pot_base, pot_reading, pot_base
-
-        if base_word:
-            if or_gen := p.apply_word_or(base_word, reading_guess, is_pre=True):
-                for or_var, or_reading in or_gen:
-                    yield or_var, or_reading, or_var
-            else:
-                yield base_word, reading_guess, base_word
-                if pot_res := pot(base_word, reading_guess):
-                    yield pot_res
-        if or_gen := p.apply_word_or(word, reading_guess, is_pre=True):
-            for or_var, or_reading in or_gen:
-                yield or_var, or_reading, None
-        else:
-            yield word, reading_guess, None
-            if pot_res := pot(word, reading_guess):
-                yield pot_res
-
     acc_match: Match | None = None
     plain_match: Match | None = None
     for i in range(idx, len(punits)):
@@ -76,7 +77,7 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: Sequ
         word = part_word + pu.value
         base_word = part_word + pu.base_form if pu.hinsi_type() == HinsiType.YOUGEN else None
 
-        for var_word, var_guess, var_base in lookup_variants(prefs, word, reading_guess, base_word):
+        for var_word, var_guess, var_base in _lookup_variants(prefs, word, reading_guess, base_word):
             if lu := dic.look_up(var_word, var_guess):
                 match = Match(i, word, var_base, lu)
                 if lu.has_accents():
