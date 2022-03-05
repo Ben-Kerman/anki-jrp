@@ -111,7 +111,7 @@ def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: Sequ
     return rv
 
 
-def _handle_josi(munit: MecabUnit) -> Unit:
+def _handle_zyosi(munit: MecabUnit) -> Unit:
     if to_hiragana(munit.value) == to_hiragana(munit.reading):
         return Unit([Segment(munit.value)])
     else:
@@ -307,7 +307,7 @@ def convert(punits: Sequence[ParserUnit], prefs: ConvPrefs, dic: Dictionary) -> 
         if isinstance(pu, MecabUnit):
             match pu.hinsi_type():
                 case HinsiType.ZYOSI:
-                    unit = _handle_josi(pu)
+                    unit = _handle_zyosi(pu)
                     i += 1
                 case HinsiType.SYMBOL:
                     unit = Unit([Segment(pu.value)])
