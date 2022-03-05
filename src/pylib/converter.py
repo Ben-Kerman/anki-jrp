@@ -1,6 +1,6 @@
 from collections.abc import Callable, Generator
 from dataclasses import dataclass
-from typing import cast
+from typing import Sequence, cast
 
 from .dictionary import Dictionary, Lookup
 from .mecab import HinsiType, Mecab, MecabUnit, ParserUnit
@@ -35,7 +35,7 @@ def base_for_potential(word: str, reading: str | None) -> tuple[str, str] | None
     return word[:-2] + base_end, reading and reading[:-2] + base_end
 
 
-def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: list[ParserUnit],
+def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: Sequence[ParserUnit],
                        stop_cond: Callable[[int, MecabUnit], bool] = _dsc) -> Match | None:
     def lookup_variants(p: ConvPrefs, word: str, reading_guess: str | None,
                         base_word: str | None = None) -> Generator[tuple[str, str | None, str | None]]:
@@ -118,7 +118,7 @@ def _handle_josi(munit: MecabUnit) -> Unit:
         return Unit.from_text(munit.value, to_hiragana(munit.reading))
 
 
-def _yougen_join(p: JoinPrefs, punits: list[ParserUnit], bmu: MecabUnit,
+def _yougen_join(p: JoinPrefs, punits: Sequence[ParserUnit], bmu: MecabUnit,
                  idx: int, prev: str = "") -> tuple[int, str, Unit | None]:
     if idx >= len(punits) or not isinstance(punits[idx], MecabUnit):
         return idx, prev, None
@@ -215,7 +215,7 @@ def _yougen_join(p: JoinPrefs, punits: list[ParserUnit], bmu: MecabUnit,
     return idx, prev, None
 
 
-def _finalize_yougen(p: ConvPrefs, punits: list[ParserUnit], tail_mu: MecabUnit,
+def _finalize_yougen(p: ConvPrefs, punits: Sequence[ParserUnit], tail_mu: MecabUnit,
                      m: Match) -> tuple[int, Unit, Unit | None]:
     def find_reading(word: str, base_word: str, base_reading: str) -> str:
         def is_sahen(word: str, base: str) -> bool:
@@ -275,7 +275,8 @@ def _finalize_other(p: ConvPrefs, m: Match) -> tuple[int, Unit, Unit | None]:
     return m.last_idx + 1, unit, None
 
 
-def _handle_other(p: ConvPrefs, dic: Dictionary, punits: list[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
+def _handle_other(p: ConvPrefs, dic: Dictionary,
+                  punits: Sequence[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
     def stop_cond(i: int, mu: MecabUnit) -> bool:
         if i > 0 and isinstance(punits[i - 1], MecabUnit):
             pu = cast(MecabUnit, punits[i - 1])
