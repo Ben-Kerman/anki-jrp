@@ -64,13 +64,12 @@ def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
             if conv_type == ConvType.REMOVE:
                 update_note("<br>".join(units_to_plain(line_units)))
                 continue
+            elif regen:
+                line_units = convert_lines(units_to_plain(line_units))
         else:
             if conv_type == ConvType.REMOVE:
                 continue
             line_units = convert_lines(lines)
-
-        if regen and existing_type:
-            line_units = convert_lines(units_to_plain(line_units))
 
         if line_units is None:
             return
