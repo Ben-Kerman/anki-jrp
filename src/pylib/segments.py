@@ -169,7 +169,7 @@ class Unit:
             base_idx = 0
             for i, s in enumerate(segments):
                 for k, c in enumerate(to_katakana(s.reading or s.text)):
-                    if base_idx > len(k_base):
+                    if base_idx >= len(k_base):
                         return base
 
                     if c != k_base[base_idx]:
