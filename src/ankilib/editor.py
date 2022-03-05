@@ -44,8 +44,8 @@ def _replace(edit: Editor, transform: Callable[[str], str]):
 
 _nl_re = re.compile(r"[^\S\r\n]*[\r\n]+[^\S\r\n]*")
 
-_brace_re = re.compile(r"[^\\]{")
-_tag_re = re.compile(r"[^\\]\[(.+?)[^\\]]")
+_brace_re = re.compile(r"(?:^|[^\\]){")
+_tag_re = re.compile(r"(?:^|[^\\])\[(.+?)[^\\]]")
 
 
 def detect_syntax(val: str) -> OutputType | None:
