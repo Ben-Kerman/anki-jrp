@@ -12,9 +12,10 @@ from aqt.notetypechooser import NotetypeChooser
 from . import global_vars, prefs_ui_defs as ui_defs
 from .common_ui import add_form_row, insert_checkboxes
 from .templates import remove_mia_migaku, update_script, update_style
-from ..pylib import overrides
+from ..pylib import default_overrides
 from ..pylib.accents import Accent
-from ..pylib.overrides import AccentOverride, DefaultOverride, IgnoreOverride, WordOverride
+from ..pylib.default_overrides import DefaultOverride
+from ..pylib.overrides import AccentOverride, IgnoreOverride, WordOverride
 from ..pylib.preferences import NoteTypePrefs, Prefs, StylePrefs
 
 _DEFAULT_PREFS = Prefs()
@@ -413,24 +414,23 @@ class PreferencesWidget(QTabWidget):
         output_addon_lo.addLayout(output_lo)
         output_addon_lo.addLayout(addon_lo)
 
-        default_ors = overrides.defaults()
         dor_widget = QWidget(self)
 
         dior_lo = QVBoxLayout()
         dior_lo.addWidget(QLabel("Default ignored words:", conv_wdgt))
-        for dior in default_ors.ignore:
+        for dior in default_overrides.ignore:
             dior_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.ignore, dior, conv_wdgt))
         dior_lo.addStretch()
 
         dwor_lo = QVBoxLayout()
         dwor_lo.addWidget(QLabel("Default word overrides:", conv_wdgt))
-        for dwor in default_ors.word:
+        for dwor in default_overrides.word:
             dwor_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.word, dwor, conv_wdgt))
         dwor_lo.addStretch()
 
         daor_lo = QVBoxLayout()
         daor_lo.addWidget(QLabel("Default accent overrides:", conv_wdgt))
-        for daor in default_ors.accent:
+        for daor in default_overrides.accent:
             daor_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.accent, daor, conv_wdgt))
         daor_lo.addStretch()
 
