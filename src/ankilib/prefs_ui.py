@@ -407,17 +407,11 @@ class PreferencesWidget(QTabWidget):
         conv_dor_lo.addLayout(output_addon_lo, 1)
         conv_dor_lo.addLayout(dor_lo)
 
-        override_wdgt = QWidget(self)
-        override_lo = QHBoxLayout(override_wdgt)
-        override_lo.addWidget(IgnoreOverrideWidget(prefs.convert.overrides.ignore, override_wdgt))
-        override_lo.addWidget(WordOverrideWidget(prefs.convert.overrides.word, override_wdgt))
-        override_lo.addWidget(AccentOverrideWidget(prefs.convert.overrides.accent, override_wdgt))
-
-        nt_wdgt = NoteTypesWidget(prefs.addon.note_types, self)
-
         self.addTab(conv_wdgt, "&Conversion")
-        self.addTab(override_wdgt, "&Overrides")
-        self.addTab(nt_wdgt, "&Note Types")
+        self.addTab(IgnoreOverrideWidget(prefs.convert.overrides.ignore, self), "&Ignored Words")
+        self.addTab(WordOverrideWidget(prefs.convert.overrides.word, self), "&Word Overrides")
+        self.addTab(AccentOverrideWidget(prefs.convert.overrides.accent, self), "&Accent Overrides")
+        self.addTab(NoteTypesWidget(prefs.addon.note_types, self), "&Note Types")
 
 
 class PreferencesDialog(QDialog):
