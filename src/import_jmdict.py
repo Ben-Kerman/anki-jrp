@@ -14,6 +14,10 @@ with lzma.open(sys.argv[1], "wt", encoding="utf-8") as tfd:
     tfd.write("# word variant mapping generated from JMdict\n")
     tfd.write("# format: reading{,reading}<TAB>variant{,variant}\n")
     for entry in jmd_root:
+        k_eles = entry.findall("k_ele")
+        if not k_eles:
+            continue
+
         equiv_readings = {}
         for reading in entry.findall("r_ele"):
             reb_hira = to_hiragana(reading.find("reb").text)
@@ -31,5 +35,5 @@ with lzma.open(sys.argv[1], "wt", encoding="utf-8") as tfd:
                 else:
                     variants = itr_to_hira(non_empty[0])
             else:
-                variants = itr_to_hira(r.find("keb").text for r in entry.findall("k_ele"))
+                variants = itr_to_hira(r.find("keb").text for r in k_eles)
             tfd.write(f"{reading}\t{','.join(variants)}\n")
