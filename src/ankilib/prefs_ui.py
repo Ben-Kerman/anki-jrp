@@ -390,24 +390,37 @@ class PreferencesWidget(QTabWidget):
         output_addon_lo.addLayout(addon_lo)
 
         default_ors = overrides.defaults()
-        dor_lo = QVBoxLayout()
-        dor_lo.addWidget(QLabel("Default ignored words:", conv_wdgt))
+        dor_widget = QWidget(self)
+
+        dior_lo = QVBoxLayout()
+        dior_lo.addWidget(QLabel("Default ignored words:", conv_wdgt))
         for dior in default_ors.ignore:
-            dor_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.ignore, dior, conv_wdgt))
-        dor_lo.addWidget(QLabel("Default word overrides:", conv_wdgt))
+            dior_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.ignore, dior, conv_wdgt))
+        dior_lo.addStretch()
+
+        dwor_lo = QVBoxLayout()
+        dwor_lo.addWidget(QLabel("Default word overrides:", conv_wdgt))
         for dwor in default_ors.word:
-            dor_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.word, dwor, conv_wdgt))
-        dor_lo.addWidget(QLabel("Default accent overrides:", conv_wdgt))
+            dwor_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.word, dwor, conv_wdgt))
+        dwor_lo.addStretch()
+
+        daor_lo = QVBoxLayout()
+        daor_lo.addWidget(QLabel("Default accent overrides:", conv_wdgt))
         for daor in default_ors.accent:
-            dor_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.accent, daor, conv_wdgt))
-        dor_lo.addStretch()
+            daor_lo.addWidget(DefaultOverrideCheckbox(prefs.convert.disabled_override_ids.accent, daor, conv_wdgt))
+        daor_lo.addStretch()
+
+        dor_lo = QHBoxLayout(dor_widget)
+        dor_lo.addLayout(dior_lo)
+        dor_lo.addLayout(dwor_lo)
+        dor_lo.addLayout(daor_lo)
 
         conv_dor_lo = QHBoxLayout(conv_wdgt)
         conv_dor_lo.addLayout(conv_lo)
         conv_dor_lo.addLayout(output_addon_lo, 1)
-        conv_dor_lo.addLayout(dor_lo)
 
         self.addTab(conv_wdgt, "&Conversion")
+        self.addTab(dor_widget, "&Default Overrides")
         self.addTab(IgnoreOverrideWidget(prefs.convert.overrides.ignore, self), "&Ignored Words")
         self.addTab(WordOverrideWidget(prefs.convert.overrides.word, self), "&Word Overrides")
         self.addTab(AccentOverrideWidget(prefs.convert.overrides.accent, self), "&Accent Overrides")
