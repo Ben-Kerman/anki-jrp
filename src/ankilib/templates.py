@@ -145,11 +145,13 @@ def update_script(nt: NotetypeDict, force: bool = False) -> NotetypeDict | None:
     return nt if had_changes else None
 
 
-def update_note_type(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | None:
+def update_note_type(nt: NotetypeDict, prefs: NoteTypePrefs,
+                     old_prefs: NoteTypePrefs | None = None) -> NotetypeDict | None:
     had_changes = False
 
     if prefs.manage_style:
-        if with_style := update_style(nt, prefs.style):
+        force = bool(old_prefs) and prefs.style != old_prefs.style
+        if with_style := update_style(nt, prefs.style, force=force):
             had_changes = True
             nt = with_style
 
@@ -161,7 +163,7 @@ def update_note_type(nt: NotetypeDict, prefs: NoteTypePrefs) -> NotetypeDict | N
     return nt if had_changes else None
 
 
-def update_all_note_types(col: Collection, prefs: AddonPrefs) -> list[str] | None:
+def update_all_note_types(col: Collection, prefs: AddonPrefs, old_prefs: AddonPrefs | None = None) -> list[str] | None:
     warnings: list[str] = []
     for nt_prefs in prefs.note_types:
         nt = col.models.get(nt_prefs.nt_id)
@@ -169,7 +171,9 @@ def update_all_note_types(col: Collection, prefs: AddonPrefs) -> list[str] | Non
             warnings.append(f"Unknown note type ID: {nt_prefs.nt_id}")
             continue
 
-        nt = update_note_type(nt, nt_prefs)
+        old_nt_prefs = old_prefs and next(filter(lambda p: p.nt_id == nt_prefs.nt_id, old_prefs.note_types), None)
+        nt = update_note_type(nt, nt_prefs, old_nt_prefs)
+
         if nt:
             try:
                 col.models.update_dict(nt)

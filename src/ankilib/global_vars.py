@@ -38,9 +38,8 @@ def load_prefs(col: Collection) -> None:
 
 def update_prefs(new_prefs: Prefs):
     global prefs
+    update_all_note_types(aqt.mw.col, new_prefs.addon, prefs and prefs.addon)
     prefs = new_prefs
-
-    update_all_note_types(aqt.mw.col, prefs.addon)
     init_mecab()
 
 
