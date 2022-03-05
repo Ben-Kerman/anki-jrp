@@ -75,7 +75,8 @@ def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
             return
 
         formatter = fmt_migaku if conv_type == ConvType.MIGAKU else fmt_jrp
-        update_note("<br>".join(formatter(units) for units in line_units))
+        output_prefs = gv.prefs.output if regen else None
+        update_note("<br>".join(formatter(units, output_prefs) for units in line_units))
 
     if not dry_run:
         undo_step = brws.col.add_custom_undo_entry("Bulk conversion")
