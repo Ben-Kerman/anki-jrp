@@ -11,11 +11,11 @@ from anki.notes import Note, NoteId
 from aqt.browser import Browser
 
 from . import global_vars as gv
-from .editor import OutputType, detect_syntax
+from .editor import detect_syntax
 from ..pylib.converter import convert
 from ..pylib.html_processing import strip_html
 from ..pylib.mecab import MecabError
-from ..pylib.output import fmt_jrp, fmt_migaku
+from ..pylib.output import OutputType, fmt_jrp, fmt_migaku
 from ..pylib.segments import ParsingError, Unit, parse_jrp, parse_migaku
 
 

@@ -1,7 +1,14 @@
+from enum import Enum, auto
+
 from .normalize import is_hiragana, is_kana, split_moras
 from .preferences import OutputPrefs
 from .segments import Unit
 from .util import escape_text as esc
+
+
+class OutputType(Enum):
+    DEFAULT = auto()
+    MIGAKU = auto()
 
 
 def _add_accent(p: OutputPrefs, unit: Unit) -> bool:

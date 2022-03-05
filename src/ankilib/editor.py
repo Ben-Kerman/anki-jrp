@@ -9,7 +9,7 @@ from . import global_vars as gv
 from ..pylib.converter import convert
 from ..pylib.html_processing import strip_html
 from ..pylib.mecab import MecabError
-from ..pylib.output import fmt_jrp, fmt_migaku
+from ..pylib.output import OutputType, fmt_jrp, fmt_migaku
 from ..pylib.segments import ParsingError, parse_jrp, parse_migaku
 
 _js_esc = str.maketrans({
@@ -18,11 +18,6 @@ _js_esc = str.maketrans({
     "\"": "\\\"",
     "\\": "\\\\",
 })
-
-
-class OutputType(Enum):
-    DEFAULT = auto()
-    MIGAKU = auto()
 
 
 class ConversionType(Enum):
