@@ -78,6 +78,12 @@ output_defs = [
         "desc": "Ignore minimum accent katakana",
         "tool": "Ignore any kana-only words below the minimum mora count, not just hiragana.",
         "type": WidgetType.Checkbox
+    }, {
+        "name": "preserve_spaces",
+        "desc": "Preserve spaces",
+        "tool": "When enabled the addon will attempt to preserve spaces in HTML visually\n"
+                "by inserting non-breaking space entities (&nbsp;).",
+        "type": WidgetType.Checkbox
     }
 ]
 
