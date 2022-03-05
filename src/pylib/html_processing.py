@@ -1,5 +1,7 @@
 from html.parser import HTMLParser
 
+from .segments import replace_nbsp
+
 _void_tags = {"area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param",
               "source", "track", "wbr"}
 _block_tags = {"blockquote", "dd", "div", "dl", "dt", "figcaption", "figure", "hr", "li", "ol", "p", "pre", "ul"}
@@ -83,7 +85,7 @@ class JrpHTMLParser(HTMLParser):
         return self.lines
 
 
-def strip_html(val: str) -> list[str]:
+def strip_html(val: str, norm_nbsp: bool = True) -> list[str]:
     parser = JrpHTMLParser()
     parser.feed(val)
-    return parser.close()
+    return [replace_nbsp(line) if norm_nbsp else line for line in parser.close()]
