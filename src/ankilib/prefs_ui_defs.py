@@ -132,7 +132,6 @@ nt_checkboxes = [
 ]
 
 style_defs = [
-    "Values will be inserted into CSS as-is, without any verification",
     {
         "name": "hide_on_front",
         "desc": "Hide information on the front of cards",
@@ -148,12 +147,14 @@ style_defs = [
         "name": "highlight_split_accents",
         "desc": "Highlight split accents",
         "tool": "Highlight split accents (e.g. ゼ↓ンダイ・ミ→モン) "
-                "by adding a text shadow in the second accent pattern's color.\n"
-                "If disabled, words with split accent will appear as though their accent is unknown. "
-                "The indicator will still work properly, "
-                "except for the first accent of a word when using diamonds.",
+                "by adding a text shadow in the second accent pattern's color.\n\n"
+                "If disabled, words with split accent will appear as though their accent is unknown.\n"
+                "The graph and indicators will still work properly, "
+                "except for the first indicator when using diamonds.",
         "type": WidgetType.Checkbox
-    }, {
+    },
+    "Values will be inserted into CSS as-is, without any verification",
+    {
         "name": "ruby_font_size",
         "desc": "Ruby (furigana) font size",
         "tool": "--jrp-ruby-font-size",
