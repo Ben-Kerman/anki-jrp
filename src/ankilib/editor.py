@@ -5,6 +5,7 @@ import aqt.utils
 from aqt.editor import Editor
 
 from . import global_vars as gv
+from .util import get_path
 from ..pylib.conv_util import detect_syntax, squash_newlines
 from ..pylib.converter import convert
 from ..pylib.html_processing import strip_html
@@ -79,21 +80,21 @@ def _convert(edit: Editor, conv_type: ConversionType, out_type: Optional[OutputT
 
 def inject_buttons(buttons: List[str], edit: Editor):
     buttons.append(edit.addButton(
-        icon=None,
+        icon=get_path("assets", "convert.svg"),
         cmd="jrp_generate_default",
         func=lambda e: _convert(e, ConversionType.GENERATE, OutputType.DEFAULT),
         tip="(Re)generate readings and accents with default syntax (F2)",
         keys="F2")
     )
     buttons.append(edit.addButton(
-        icon=None,
+        icon=get_path("assets", "migaku.svg"),
         cmd="jrp_generate_migaku",
         func=lambda e: _convert(e, ConversionType.GENERATE, OutputType.MIGAKU),
         tip="(Re)generate readings and accents with Migaku syntax (Ctrl+F2)",
         keys="Ctrl+F2")
     )
     buttons.append(edit.addButton(
-        icon=None,
+        icon=get_path("assets", "restore.svg"),
         cmd="jrp_remove",
         func=lambda e: _convert(e, ConversionType.REMOVE),
         tip="Restore original text (F4)",
