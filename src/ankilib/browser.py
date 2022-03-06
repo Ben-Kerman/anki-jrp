@@ -95,16 +95,16 @@ def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
         update_note("<br>".join(formatter(units, output_prefs) for units in line_units))
 
     backup_msg = ""
-    if not dry_run:
-        if backup:
-            bu_filename = f"jrp-recovery-data_{datetime.now().strftime('%Y-%m-%dT%H-%M-%S')}.txt"
-            backup_path = os.path.join(os.path.dirname(brws.col.path), bu_filename)
-            if os.path.exists(backup_path):
-                aqt.utils.showWarning(f"Backup file path already exists, aborting conversion: {backup_path}")
-                return
-            write_backup_data(backup_path, backup_data)
-            backup_msg = f"\nRecovery file is located at: {backup_path}"
+    if backup:
+        bu_filename = f"jrp-recovery-data_{datetime.now().strftime('%Y-%m-%dT%H-%M-%S')}.txt"
+        backup_path = os.path.join(os.path.dirname(brws.col.path), bu_filename)
+        if os.path.exists(backup_path):
+            aqt.utils.showWarning(f"Backup file path already exists, aborting conversion: {backup_path}")
+            return
+        write_backup_data(backup_path, backup_data)
+        backup_msg = f"\nRecovery file is located at: {backup_path}"
 
+    if not dry_run:
         undo_step = brws.col.add_custom_undo_entry("Bulk conversion")
         brws.col.update_notes(updated_notes)
         brws.col.merge_undo_entries(undo_step)
