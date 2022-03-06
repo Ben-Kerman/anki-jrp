@@ -35,7 +35,7 @@ def _fmt_css(fmt_def: Dict[str, Any]) -> str:
 
 
 def generate_css(prefs: StylePrefs) -> str:
-    files = (
+    files = [
         {
             "name": "variables",
             "type": "var",
@@ -58,7 +58,12 @@ def generate_css(prefs: StylePrefs) -> str:
             "name": "graph",
             "type": "css"
         }
-    )
+    ]
+    if prefs.hide_on_front:
+        files.append({
+            "name": "front",
+            "type": "css"
+        })
     return _compress_spaces("".join(_fmt_css(fmt_def) for fmt_def in files))
 
 

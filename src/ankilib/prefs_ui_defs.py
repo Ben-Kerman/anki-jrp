@@ -134,6 +134,12 @@ nt_checkboxes = [
 style_defs = [
     "Values will be inserted into CSS as-is, without any verification",
     {
+        "name": "hide_on_front",
+        "desc": "Hide information on the front of cards",
+        "tool": "When enabled, furigana as well as accent graphs, indicators, and coloring\n"
+                "will be hidden in HTML elements that have a parent with the CSS class 'jrp-front'.",
+        "type": WidgetType.Checkbox
+    }, {
         "name": "use_diamond_indicators",
         "desc": "Use diamond indicators",
         "tool": "Use Migaku-style diamonds as accent indicators instead of bars.",

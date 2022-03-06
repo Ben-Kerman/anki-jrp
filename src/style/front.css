@@ -1,0 +1,20 @@
+.jrp-front .jrp-graph {
+	display: none;
+}
+
+.jrp-front .jrp-indicator-container {
+	display: none;
+}
+
+.jrp-front [data-jrp-generate] rt {
+	visibility: hidden;
+}
+
+.jrp-front .jrp-unit.jrp-heiban > span, .jrp-front .jrp-graph .jrp-heiban,
+.jrp-front .jrp-unit.jrp-kifuku > span, .jrp-front .jrp-graph .jrp-kifuku,
+.jrp-front .jrp-unit.jrp-atamadaka > span, .jrp-front .jrp-graph .jrp-atamadaka,
+.jrp-front .jrp-unit.jrp-odaka > span, .jrp-front .jrp-graph .jrp-odaka,
+.jrp-front .jrp-unit.jrp-nakadaka > span, .jrp-front .jrp-graph .jrp-nakadaka,
+.jrp-front .jrp-unit.jrp-unknown > span, .jrp-front .jrp-graph .jrp-unknown {
+	color: inherit;
+}

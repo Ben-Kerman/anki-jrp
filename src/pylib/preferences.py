@@ -14,6 +14,7 @@ from .util import ConfigError, from_json, to_json
 
 @dataclass
 class StylePrefs:
+    hide_on_front: bool = True
     use_diamond_indicators: bool = False
     highlight_split_accents: bool = True
     ruby_font_size: str = "40%"
