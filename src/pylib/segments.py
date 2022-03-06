@@ -139,7 +139,7 @@ class Unit:
     def base_reading(self) -> Optional[str]:
         if self.special_base:
             return self.special_base
-        elif any(type(s) == BaseSegment for s in self.segments):
+        elif any(type(s) is BaseSegment for s in self.segments):
             def process_segment(s: Union[Segment, BaseSegment]) -> str:
                 if type(s) is Segment:
                     return s.reading or s.text

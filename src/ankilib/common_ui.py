@@ -81,7 +81,7 @@ class Checkbox(QWidget):
 
 def insert_checkboxes(defs: Iterable[Union[str, dict]], wdgt: QWidget, lo: QLayout, prefs: Any, defaults: Any):
     for item in defs:
-        if type(item) == str:
+        if type(item) is str:
             lo.addWidget(QLabel(item, wdgt))
         else:
             cb = Checkbox(item["desc"], prefs, defaults, item["path"], wdgt)
@@ -189,7 +189,7 @@ T = TypeVar("T")
 def add_form_row(parent: QWidget, prefs: T, defaults: T,
                  item: dict, form_lo: QFormLayout,
                  transform: Callable[[str, str], str] = lambda _, v: v):
-    if type(item) == str:
+    if type(item) is str:
         form_lo.addRow(QLabel(item))
         return
 
