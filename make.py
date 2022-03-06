@@ -2,6 +2,7 @@
 import json
 import os
 import shutil
+import subprocess
 import sys
 from collections.abc import Sequence
 from datetime import datetime
@@ -26,6 +27,17 @@ if os.path.exists("target/"):
 os.makedirs("target/", exist_ok=True)
 
 now = datetime.timetuple(datetime.now())
+
+
+def compile_ts(path: str) -> bytes | None:
+    args = ["tsc", "--target", "es2021",
+            "--lib", "es2021,dom,dom.iterable",
+            "--strictNullChecks",
+            "--removeComments",
+            "--outFile", "/dev/stdout",
+            path]
+    res = subprocess.run(args, capture_output=True)
+    return res.stdout if res.returncode == 0 else None
 
 
 def add_data(zf: ZipFile, data: bytes, tgt_path: str, compress: bool = True):
@@ -53,7 +65,14 @@ def make_addon(path: str, full: bool, dic: bool = False):
     with ZipFile(path, "w") as azip:
         for dirname in ("pylib", "ankilib", "assets", "style"):
             add_files(azip, os.path.join("src", dirname), dirname, (".py", ".svg", ".css", ".pat", ".var"))
-        add_files(azip, "src/ts", "js", (".js",))
+        for file in os.listdir("src/ts"):
+            base, ext = os.path.splitext(file)
+            if ext != ".ts":
+                continue
+            js_data = compile_ts(os.path.join("src/ts", file))
+            if js_data is None:
+                sys.exit(f"tsc failed for {file}")
+            add_data(azip, js_data, os.path.join("js", f"{base}.js"))
         add_file(azip, "src/__init__.py", "__init__.py")
         add_data(azip, json.dumps(manifest).encode("utf-8"), "manifest.json")
 
