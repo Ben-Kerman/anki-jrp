@@ -1,7 +1,7 @@
 import os.path
 from datetime import datetime
 from enum import Enum
-from typing import Iterable, Sequence
+from typing import Iterable, List, Optional, Sequence, Tuple
 
 import aqt
 from PyQt5.QtCore import Qt
@@ -31,7 +31,7 @@ def units_to_plain(lines: Iterable[Iterable[Unit]]) -> Iterable[str]:
     return ("".join(u.text() for u in units) for units in lines)
 
 
-def convert_lines(lines: Iterable[str]) -> list[list[Unit]] | None:
+def convert_lines(lines: Iterable[str]) -> Optional[List[List[Unit]]]:
     try:
         return [convert(gv.mecab_handle.analyze(line), gv.prefs.convert, gv.dictionary) for line in lines]
     except MecabError as e:
@@ -39,7 +39,7 @@ def convert_lines(lines: Iterable[str]) -> list[list[Unit]] | None:
         return None
 
 
-def write_backup_data(path: str, data: Sequence[tuple[NoteId, str, str]]):
+def write_backup_data(path: str, data: Sequence[Tuple[NoteId, str, str]]):
     def join_content(val: str) -> str:
         return "\n\t".join(val.splitlines())
 
@@ -52,9 +52,9 @@ def write_backup_data(path: str, data: Sequence[tuple[NoteId, str, str]]):
 
 def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
                   conv_type: ConvType, regen: bool, backup: bool, dry_run: bool):
-    failed_notes: list[NoteId] = []
-    updated_notes: list[Note] = []
-    backup_data: list[tuple[NoteId, str, str]] = []
+    failed_notes: List[NoteId] = []
+    updated_notes: List[Note] = []
+    backup_data: List[Tuple[NoteId, str, str]] = []
 
     for note_id in note_ids:
         note = brws.col.get_note(note_id)
@@ -130,7 +130,7 @@ class ConvertDialog(QDialog):
     _backup_cb: QCheckBox
     _dryrun_cb: QCheckBox
 
-    def __init__(self, brws: Browser, nt_id: NotetypeId, notes: Sequence[NoteId], parent: QWidget | None = None):
+    def __init__(self, brws: Browser, nt_id: NotetypeId, notes: Sequence[NoteId], parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setWindowModality(Qt.ApplicationModal)
 

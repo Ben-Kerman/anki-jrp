@@ -1,7 +1,6 @@
-from collections.abc import Callable
 from copy import deepcopy
 from enum import Enum, auto
-from typing import TypeVar
+from typing import Callable, List, Optional, Set, TypeVar
 
 import aqt.utils
 from PyQt5.QtCore import Qt, pyqtSignal
@@ -23,10 +22,10 @@ _DEFAULT_NT_PREFS = NoteTypePrefs(0)
 
 
 class DefaultOverrideCheckbox(QCheckBox):
-    id_set: set[int]
+    id_set: Set[int]
     override: DefaultOverride
 
-    def __init__(self, id_set: set[int], override: DefaultOverride, parent: QWidget | None = None):
+    def __init__(self, id_set: Set[int], override: DefaultOverride, parent: Optional[QWidget] = None):
         super().__init__(override.value.fmt(), parent)
         self.id_set = id_set
         self.override = override
@@ -44,7 +43,7 @@ class DefaultOverrideCheckbox(QCheckBox):
 T = TypeVar("T")
 
 
-def _split(txt: str, sep: str = "・", conv: Callable[[str], T] = lambda s: s) -> list[T]:
+def _split(txt: str, sep: str = "・", conv: Callable[[str], T] = lambda s: s) -> List[T]:
     return [conv(v) for v in (v.strip() for v in txt.split(sep)) if v]
 
 
@@ -76,10 +75,10 @@ def _setup_btns(self, default: Callable) -> QHBoxLayout:
 
 
 class IgnoreOverrideWidget(QWidget):
-    _ors: list[IgnoreOverride]
+    _ors: List[IgnoreOverride]
     _tbl: QTableWidget
 
-    def __init__(self, ors: list[IgnoreOverride], parent: QWidget | None = None):
+    def __init__(self, ors: List[IgnoreOverride], parent: Optional[QWidget] = None):
         super().__init__(parent)
         self._ors = ors
 
@@ -120,10 +119,10 @@ class IgnoreOverrideWidget(QWidget):
 
 
 class WordOverrideWidget(QWidget):
-    _ors: list[WordOverride]
+    _ors: List[WordOverride]
     _tbl: QTableWidget
 
-    def __init__(self, ors: list[WordOverride], parent: QWidget | None = None):
+    def __init__(self, ors: List[WordOverride], parent: Optional[QWidget] = None):
         super().__init__(parent)
         self._ors = ors
 
@@ -196,10 +195,10 @@ class WordOverrideWidget(QWidget):
 
 
 class AccentOverrideWidget(QWidget):
-    _ors: list[AccentOverride]
+    _ors: List[AccentOverride]
     _tbl: QTableWidget
 
-    def __init__(self, ors: list[AccentOverride], parent: QWidget | None = None):
+    def __init__(self, ors: List[AccentOverride], parent: Optional[QWidget] = None):
         super().__init__(parent)
         self._ors = ors
 
@@ -259,10 +258,10 @@ class AccentOverrideWidget(QWidget):
 
 class NoteTypesWidget(QWidget):
     _ntc: NotetypeChooser
-    _lst: list[NoteTypePrefs]
+    _lst: List[NoteTypePrefs]
     _lo: QVBoxLayout
 
-    def __init__(self, nt_pref_list: list[NoteTypePrefs], parent: QWidget | None = None):
+    def __init__(self, nt_pref_list: List[NoteTypePrefs], parent: Optional[QWidget] = None):
         super().__init__(parent)
         self._lst = nt_pref_list
 
@@ -300,7 +299,7 @@ class NoteTypesWidget(QWidget):
 
 
 class StyleDialog(QDialog):
-    def __init__(self, style_prefs: StylePrefs, parent: QWidget | None = None):
+    def __init__(self, style_prefs: StylePrefs, parent: Optional[QWidget] = None):
         super().__init__(parent)
 
         self.setWindowTitle("Note Type Style")
@@ -393,7 +392,7 @@ class NoteTypeWidget(QFrame):
 
 
 class PreferencesWidget(QTabWidget):
-    def __init__(self, prefs: Prefs, parent: QWidget | None = None):
+    def __init__(self, prefs: Prefs, parent: Optional[QWidget] = None):
         super().__init__(parent)
 
         conv_wdgt = QWidget(self)
@@ -456,7 +455,7 @@ class PreferencesDialog(QDialog):
 
     closed = pyqtSignal()
 
-    def __init__(self, prefs: Prefs, parent: QWidget | None = None):
+    def __init__(self, prefs: Prefs, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.prefs = prefs
 

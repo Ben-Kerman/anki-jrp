@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from typing import List, Optional, Sequence
 
 from .normalize import is_hiragana, is_kana, split_moras
 from .preferences import OutputPrefs
@@ -11,7 +12,7 @@ class OutputType(Enum):
     MIGAKU = auto()
 
 
-def _add_accent(unit: Unit, prefs: OutputPrefs | None) -> bool:
+def _add_accent(unit: Unit, prefs: Optional[OutputPrefs]) -> bool:
     if not unit.accents:
         return False
 
@@ -26,7 +27,7 @@ def _add_accent(unit: Unit, prefs: OutputPrefs | None) -> bool:
     return True
 
 
-def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
+def fmt_migaku(units: Sequence[Unit], prefs: Optional[OutputPrefs] = None) -> str:
     def fmt_unit(unit: Unit) -> str:
         segments = unit.non_base_segments()
         if len(segments) == 1 and segments[0].text.isspace():
@@ -55,7 +56,7 @@ def fmt_migaku(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
 
 
 def insert_nbsp(val: str) -> str:
-    new_chars: list[str] = []
+    new_chars: List[str] = []
     was_space: bool = False
     for c in val:
         if was_space:
@@ -69,7 +70,7 @@ def insert_nbsp(val: str) -> str:
     return "".join(new_chars)
 
 
-def fmt_jrp(units: list[Unit], prefs: OutputPrefs | None = None) -> str:
+def fmt_jrp(units: Sequence[Unit], prefs: Optional[OutputPrefs] = None) -> str:
     def fmt_unit(unit: Unit) -> str:
         segment_str = "".join([s.fmt(escape=True) for s in unit.segments])
         if _add_accent(unit, prefs):

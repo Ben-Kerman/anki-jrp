@@ -2,7 +2,7 @@ import dataclasses
 import sys
 from dataclasses import MISSING, dataclass, is_dataclass
 from types import GenericAlias, NoneType, UnionType
-from typing import Any, Iterable, Type, TypeVar, get_args, get_origin
+from typing import Any, Iterable, Optional, Type, TypeVar, Union, get_args, get_origin
 
 
 def warn(*args):
@@ -24,11 +24,11 @@ def escape_text(chrs: Iterable[str], txt: str) -> str:
     return txt.translate(str.maketrans(dic))
 
 
-def from_json(json_val: Any, typ: Type[T], try_cls_method: bool = True) -> T | ConfigError:
+def from_json(json_val: Any, typ: Type[T], try_cls_method: bool = True) -> Union[T, ConfigError]:
     def types_to_list(t: Any) -> tuple:
         return get_args(t) if type(t) == UnionType else (t,)
 
-    def check_type(val: Any, t: Type[T]) -> U | ConfigError:
+    def check_type(val: Any, t: Type[T]) -> Union[U, ConfigError]:
         return val if type(val) is t else ConfigError(f"invalid type")
 
     if typ in (str, bool, int, float, NoneType):
@@ -95,7 +95,7 @@ class ConvIgnore:
     pass
 
 
-def to_json(value: T, default: T | None = None, try_cls_method: bool = True) -> Any:
+def to_json(value: T, default: Optional[T] = None, try_cls_method: bool = True) -> Any:
     typ = type(value)
 
     if value == default or value is None:

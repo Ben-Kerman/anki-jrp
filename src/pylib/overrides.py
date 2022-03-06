@@ -1,6 +1,5 @@
-from collections.abc import Generator
 from dataclasses import dataclass
-from typing import Any, Union
+from typing import Any, Iterable, List, Optional, Tuple, Union
 
 from .accents import Accent
 from .normalize import comp_kana
@@ -9,13 +8,13 @@ from .util import ConfigError, from_json
 
 @dataclass
 class IgnoreOverride:
-    variants: list[str]
-    reading: str | None = None
+    variants: List[str]
+    reading: Optional[str] = None
 
     def fmt(self) -> str:
         return f"ignore {self.reading or ''}【{'・'.join(self.variants)}】"
 
-    def match(self, variant: str, reading: str | None) -> bool:
+    def match(self, variant: str, reading: Optional[str]) -> bool:
         return variant in self.variants and (not self.reading or not reading or comp_kana(reading, self.reading))
 
     @classmethod
@@ -25,10 +24,10 @@ class IgnoreOverride:
 
 @dataclass
 class WordOverride:
-    old_variants: list[str]
-    old_reading: str | None = None
-    new_variants: list[str] | None = None
-    new_reading: str | None = None
+    old_variants: List[str]
+    old_reading: Optional[str] = None
+    new_variants: Optional[List[str]] = None
+    new_reading: Optional[str] = None
     pre_lookup: bool = False
     post_lookup: bool = True
 
@@ -37,7 +36,7 @@ class WordOverride:
         new_vars = f"【{'・'.join(self.new_variants)}】" if self.new_variants else ""
         return f"{self.old_reading or ''}{old_vars}→ {self.new_reading or ''}{new_vars}"
 
-    def apply(self, variant: str, reading: str | None) -> Generator[tuple[str, str | None]] | None:
+    def apply(self, variant: str, reading: Optional[str]) -> Optional[Iterable[Tuple[str, Optional[str]]]]:
         if variant in self.old_variants \
                 and (not self.old_reading or not reading or comp_kana(reading, self.old_reading)):
             new_variants = self.new_variants or (variant,)
@@ -61,9 +60,9 @@ class WordOverride:
 
 @dataclass
 class AccentOverride:
-    variants: list[str]
+    variants: List[str]
     reading: str
-    accents: list[Accent]
+    accents: List[Accent]
 
     def fmt(self) -> str:
         return f"{self.reading}【{'・'.join(self.variants)}】→ [{']['.join(map(str, self.accents))}]"

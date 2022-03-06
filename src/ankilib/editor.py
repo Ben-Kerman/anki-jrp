@@ -1,5 +1,5 @@
-from collections.abc import Callable, Generator
 from enum import Enum, auto
+from typing import Callable, Iterable, List, Optional
 
 import aqt.utils
 from aqt.editor import Editor
@@ -42,8 +42,8 @@ def _replace(edit: Editor, transform: Callable[[str], str]):
     edit.web.page().runJavaScript("getCurrentField().editable.fieldHTML", lambda html: update_field_html(html))
 
 
-def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | None = None):
-    def gen_lines(val: str) -> Generator[str]:
+def _convert(edit: Editor, conv_type: ConversionType, out_type: Optional[OutputType] = None):
+    def gen_lines(val: str) -> Iterable[str]:
         lines = strip_html(val)
         if t := detect_syntax(val):
             parser = parse_migaku if t == OutputType.MIGAKU else parse_jrp
@@ -51,7 +51,7 @@ def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | Non
         else:
             yield from lines
 
-    def transform(val: str) -> str | None:
+    def transform(val: str) -> Optional[str]:
         val = squash_newlines(val)
         if conv_type == ConversionType.REMOVE:
             return insert_nbsp("<br>".join(gen_lines(val)))
@@ -77,7 +77,7 @@ def _convert(edit: Editor, conv_type: ConversionType, out_type: OutputType | Non
     _replace(edit, transform)
 
 
-def inject_buttons(buttons: list[str], edit: Editor):
+def inject_buttons(buttons: List[str], edit: Editor):
     buttons.append(edit.addButton(
         icon=None,
         cmd="jrp_generate_default",

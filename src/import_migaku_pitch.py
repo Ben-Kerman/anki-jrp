@@ -18,20 +18,19 @@ class ImportEntry(AccentEntry):
 
     def __init__(self, reading: str, variant: str, accents: list[Accent], source: str):
         super().__init__(to_hiragana(reading), [variant], accents)
-        match source:
-            case "nhk":
-                self.sources = ["日"]
-            case "daiji":
-                self.sources = ["林"]
-            case "mia":
-                self.sources = ["Ｍ"]
-            case "wa":
-                self.sources = ["和"]
-            case "shin":
-                self.sources = ["新"]
-            case _:
-                self.sources = []
-                warn(f"unknown source: {source}")
+        if source == "nhk":
+            self.sources = ["日"]
+        elif source == "daiji":
+            self.sources = ["林"]
+        elif source == "mia":
+            self.sources = ["Ｍ"]
+        elif source == "wa":
+            self.sources = ["和"]
+        elif source == "shin":
+            self.sources = ["新"]
+        else:
+            self.sources = []
+            warn(f"unknown source: {source}")
 
     def fmt_line(self) -> str:
         return f"{self.reading}\t" \

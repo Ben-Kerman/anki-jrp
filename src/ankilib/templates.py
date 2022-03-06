@@ -2,7 +2,7 @@ import dataclasses
 import os.path
 import re
 from re import Pattern
-from typing import Any
+from typing import Any, Dict, List, Optional, Tuple
 
 from anki.collection import Collection
 from anki.models import NotetypeDict
@@ -24,7 +24,7 @@ _patterns = ("heiban", "kifuku", "atamadaka", "odaka", "nakadaka")
 _patterns_unk = _patterns + ("unknown",)
 
 
-def _fmt_css(fmt_def: dict[str, Any]) -> str:
+def _fmt_css(fmt_def: Dict[str, Any]) -> str:
     fmt = _read_file("..", "style", f"{fmt_def['name']}.{fmt_def['type']}")
     if fmt_def["type"] == "var":
         return fmt.format(**fmt_def["vars"])
@@ -95,7 +95,7 @@ def _enclose_code(code: str, css: bool = False) -> str:
            f"{oc} JRP add-on managed section end {cc}"
 
 
-def _split_managed_section(value: str, css: bool = False, force_update: bool = False) -> tuple[str, str] | None:
+def _split_managed_section(value: str, css: bool = False, force_update: bool = False) -> Optional[Tuple[str, str]]:
     def tag_re(end: bool = False) -> Pattern:
         oc, cc = [re.escape(c) for c in _comment_symbols["css" if css else "html"]]
         tag_pat = "end" if end else r"start \[version:(\d+)]"
@@ -110,8 +110,8 @@ def _split_managed_section(value: str, css: bool = False, force_update: bool = F
     return f"{value.rstrip()}\n\n", ""
 
 
-def update_style(nt: NotetypeDict, prefs: StylePrefs, force: bool = False) -> NotetypeDict | None:
-    def update_css(css: str) -> str | None:
+def update_style(nt: NotetypeDict, prefs: StylePrefs, force: bool = False) -> Optional[NotetypeDict]:
+    def update_css(css: str) -> Optional[str]:
         if sects := _split_managed_section(css, css=True, force_update=force):
             before, after = sects
             return f"{before}{_enclose_code(generate_css(prefs), css=True)}{after}"
@@ -126,8 +126,8 @@ def update_style(nt: NotetypeDict, prefs: StylePrefs, force: bool = False) -> No
         return None
 
 
-def update_script(nt: NotetypeDict, force: bool = False) -> NotetypeDict | None:
-    def update_js(fmt: str) -> str | None:
+def update_script(nt: NotetypeDict, force: bool = False) -> Optional[NotetypeDict]:
+    def update_js(fmt: str) -> Optional[str]:
         if sects := _split_managed_section(fmt, force_update=force):
             before, after = sects
             return f"{before}{_enclose_code(f'<script>{generate_js()}</script>')}{after}"
@@ -146,7 +146,7 @@ def update_script(nt: NotetypeDict, force: bool = False) -> NotetypeDict | None:
 
 
 def update_note_type(nt: NotetypeDict, prefs: NoteTypePrefs,
-                     old_prefs: NoteTypePrefs | None = None) -> NotetypeDict | None:
+                     old_prefs: Optional[NoteTypePrefs] = None) -> Optional[NotetypeDict]:
     had_changes = False
 
     if prefs.manage_style:
@@ -163,8 +163,9 @@ def update_note_type(nt: NotetypeDict, prefs: NoteTypePrefs,
     return nt if had_changes else None
 
 
-def update_all_note_types(col: Collection, prefs: AddonPrefs, old_prefs: AddonPrefs | None = None) -> list[str] | None:
-    warnings: list[str] = []
+def update_all_note_types(col: Collection, prefs: AddonPrefs,
+                          old_prefs: Optional[AddonPrefs] = None) -> Optional[List[str]]:
+    warnings: List[str] = []
     for nt_prefs in prefs.note_types:
         nt = col.models.get(nt_prefs.nt_id)
         if not nt:

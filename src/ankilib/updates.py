@@ -1,6 +1,7 @@
 import os.path
 import platform
 import shutil
+from typing import Optional
 
 from anki.collection import Collection
 
@@ -22,7 +23,7 @@ def _col_path(col: Collection) -> str:
     return os.path.join(os.path.dirname(col.path), "jrp-last-version")
 
 
-def check_update(col: Collection | None = None) -> bool:
+def check_update(col: Optional[Collection] = None) -> bool:
     path = _col_path(col) if col else _path()
     if os.path.exists(path):
         with open(path) as fd:

@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Any, Callable, Iterable, Sequence, TypeVar
+from typing import Any, Callable, Iterable, Optional, Sequence, TypeVar, Union
 
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QIcon
@@ -28,7 +28,7 @@ def _set(obj, path: Sequence[str], new_val):
 
 
 class ResetButton(QPushButton):
-    def __init__(self, parent: QWidget | None = None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(QIcon(util.get_asset_path("reset.svg")), "", parent)
         self.setFlat(True)
         sp = self.sizePolicy()
@@ -46,7 +46,8 @@ class Checkbox(QWidget):
     _btn: QPushButton
     _lo: QHBoxLayout
 
-    def __init__(self, label: str, prefs: Prefs, defaults: Prefs, path: Sequence[str], parent: QWidget | None = None):
+    def __init__(self, label: str, prefs: Prefs, defaults: Prefs, path: Sequence[str],
+                 parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.prefs = prefs
         self.defaults = defaults
@@ -78,7 +79,7 @@ class Checkbox(QWidget):
         self._cb.setChecked(def_val)
 
 
-def insert_checkboxes(defs: list[str | dict], wdgt: QWidget, lo: QLayout, prefs: Any, defaults: Any):
+def insert_checkboxes(defs: Iterable[Union[str, dict]], wdgt: QWidget, lo: QLayout, prefs: Any, defaults: Any):
     for item in defs:
         if type(item) == str:
             lo.addWidget(QLabel(item, wdgt))
@@ -95,7 +96,7 @@ class PickerWidget(QWidget):
 
     value_changed = pyqtSignal(str)
 
-    def __init__(self, init_val: str, parent: QWidget | None = None):
+    def __init__(self, init_val: str, parent: Optional[QWidget] = None):
         super().__init__(parent)
 
         self._picker = self.setup_picker()

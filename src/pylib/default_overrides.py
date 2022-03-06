@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Generic, TypeVar
+from typing import Generic, List, TypeVar
 
 from .accents import Accent
 from .overrides import AccentOverride, IgnoreOverride, WordOverride
@@ -15,9 +15,9 @@ class DefaultOverride(Generic[T]):
 
 @dataclass
 class DefaultOverrides:
-    ignore: list[DefaultOverride[IgnoreOverride]]
-    word: list[DefaultOverride[WordOverride]]
-    accent: list[DefaultOverride[AccentOverride]]
+    ignore: List[DefaultOverride[IgnoreOverride]]
+    word: List[DefaultOverride[WordOverride]]
+    accent: List[DefaultOverride[AccentOverride]]
 
 
 ignore = [

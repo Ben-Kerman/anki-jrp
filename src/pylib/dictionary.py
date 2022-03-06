@@ -1,8 +1,7 @@
 import lzma
 import sys
-from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Generic, TextIO, Type, TypeVar
+from typing import Dict, Generic, Iterable, List, Optional, Sequence, TextIO, Type, TypeVar
 
 from .accents import Accent
 from .normalize import is_kana, to_hiragana
@@ -11,8 +10,8 @@ T = TypeVar("T")
 
 
 class BasicDict(Generic[T]):
-    _readings: dict[str, list[T]]
-    _variants: dict[str, list[T]]
+    _readings: Dict[str, List[T]]
+    _variants: Dict[str, List[T]]
 
     def __init__(self, entry_type: Type[T], path):
         self.variants = {}
@@ -30,19 +29,19 @@ class BasicDict(Generic[T]):
                 except ValueError:
                     print(f"skipping invalid dict entry: {line}")
 
-    def look_up_variant(self, val: str) -> list[T] | None:
+    def look_up_variant(self, val: str) -> Optional[List[T]]:
         return self.variants.get(val)
 
-    def look_up_reading(self, val: str) -> list[T] | None:
+    def look_up_reading(self, val: str) -> Optional[List[T]]:
         return self.readings.get(to_hiragana(val))
 
 
 class AccentEntry:
     reading: str
-    variants: list[str]
-    accents: list[Accent]
+    variants: List[str]
+    accents: List[Accent]
 
-    def __init__(self, reading: str, variants: list[str], accents: list[Accent]):
+    def __init__(self, reading: str, variants: Iterable[str], accents: List[Accent]):
         self.reading = sys.intern(reading)
         self.variants = [sys.intern(v) for v in variants]
         self.accents = accents
@@ -64,9 +63,9 @@ class AccentEntry:
 
 class VariantEntry:
     reading: str
-    variants: list[str]
+    variants: List[str]
 
-    def __init__(self, reading: str, variants: list[str]):
+    def __init__(self, reading: str, variants: List[str]):
         self.variants = [sys.intern(v) for v in variants]
         self.reading = sys.intern(reading)
 
@@ -92,19 +91,19 @@ Entry = TypeVar("Entry", AccentEntry, VariantEntry)
 @dataclass
 class LookupResult:
     reading: str
-    accents: list[Accent] | None = None
+    accents: Optional[List[Accent]] = None
 
     def __repr__(self):
         return f"R[{self.reading},{self.accents}]"
 
     @classmethod
-    def convert_entries(cls, entries: Iterable[Entry]) -> list["LookupResult"]:
+    def convert_entries(cls, entries: Iterable[Entry]) -> List["LookupResult"]:
         return [cls(e.reading, e.accents if isinstance(e, AccentEntry) else None) for e in entries]
 
 
 @dataclass
 class Lookup:
-    results: list[LookupResult]
+    results: List[LookupResult]
     uncertain: bool = False
 
     def __repr__(self):
@@ -119,7 +118,7 @@ class Dictionary:
     accent: AccentDict
     variant: VariantDict
 
-    def _variant_lookup(self, word: str, as_reading: bool = False) -> list[AccentEntry] | None:
+    def _variant_lookup(self, word: str, as_reading: bool = False) -> Optional[List[AccentEntry]]:
         lu_fn = self.variant.look_up_reading if as_reading else self.variant.look_up_variant
         res = []
         var_ents = lu_fn(word)
@@ -131,13 +130,13 @@ class Dictionary:
                 res.extend(acc_ent for acc_ent in acc_ents if acc_ent not in res)
         return res
 
-    def look_up(self, word: str, reading_guess: str | None = None) -> Lookup | None:
-        def filter_for_guess(entries: list[Entry], guess: str | None) -> list[Entry] | None:
+    def look_up(self, word: str, reading_guess: Optional[str] = None) -> Optional[Lookup]:
+        def filter_for_guess(entries: Iterable[Entry], guess: Optional[str]) -> Optional[List[Entry]]:
             if not guess:
                 return None
             return [e for e in entries if to_hiragana(e.reading) == to_hiragana(guess)]
 
-        def check_uncertain(entrs: list[AccentEntry]) -> bool:
+        def check_uncertain(entrs: Sequence[AccentEntry]) -> bool:
             return any(e.reading == entrs[0].reading for e in entrs[1:])
 
         word_direct_aent = self.accent.look_up_variant(word)
@@ -150,7 +149,7 @@ class Dictionary:
             filtered_aent = filter_for_guess(word_var_aent, reading_guess) or word_var_aent
             return Lookup(LookupResult.convert_entries(filtered_aent), check_uncertain(filtered_aent))
 
-        current_lu: Lookup | None = None
+        current_lu: Optional[Lookup] = None
         read_direct_aent = self.accent.look_up_reading(word)
         if read_direct_aent:
             current_lu = Lookup(LookupResult.convert_entries(read_direct_aent), len(read_direct_aent) > 1)

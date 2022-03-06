@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 
 from .output import OutputType
 
@@ -13,7 +14,7 @@ _brace_re = re.compile(r"(?:^|[^\\]){")
 _tag_re = re.compile(r"(?:^|[^\\])\[((?:[^]]|\\])+)]")
 
 
-def detect_syntax(val: str) -> OutputType | None:
+def detect_syntax(val: str) -> Optional[OutputType]:
     if _brace_re.search(val):
         return OutputType.DEFAULT
     elif m := _tag_re.search(val):

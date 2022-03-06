@@ -1,5 +1,4 @@
-from collections.abc import Iterable
-from typing import Callable
+from typing import Callable, Iterable, List
 
 _hira = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖゝゞ"
 _kata = "ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヽヾ"
@@ -10,7 +9,7 @@ _is_hira_set = set(_hira + _non_script_chrs)
 _is_kata_set = set(_kata + _non_script_chrs)
 
 
-def _itr_conv(itr: Iterable[str], fn: Callable[[str], str]) -> list[str]:
+def _itr_conv(itr: Iterable[str], fn: Callable[[str], str]) -> List[str]:
     conv_itr = (fn(e) for e in itr)
     seen = set()
     return [e for e in conv_itr if not (e in seen or seen.add(e))]
@@ -28,7 +27,7 @@ def to_hiragana(val: str) -> str:
     return val.translate(_to_hira_tbl)
 
 
-def itr_to_hira(itr: Iterable[str]) -> list[str]:
+def itr_to_hira(itr: Iterable[str]) -> List[str]:
     return _itr_conv(itr, to_hiragana)
 
 
@@ -57,7 +56,7 @@ def comp_kana(val: str, *args: str) -> bool:
     return all(to_katakana(a) == first for a in args)
 
 
-def itr_to_kata(itr: Iterable[str]) -> list[str]:
+def itr_to_kata(itr: Iterable[str]) -> List[str]:
     return _itr_conv(itr, to_katakana)
 
 
@@ -65,7 +64,7 @@ _i_dan = ("キ", "ギ", "シ", "ジ", "チ", "ヂ", "ニ", "ヒ", "ビ", "ピ", 
 _e_comp = ("イ", "ウ", "キ", "ギ", "ク", "グ", "シ", "ジ", "チ", "ツ", "ニ", "ヒ", "ビ", "ピ", "フ", "ミ", "リ", "ヴ")
 
 
-def split_moras(reading: str, as_hira: bool = False) -> list[str]:
+def split_moras(reading: str, as_hira: bool = False) -> List[str]:
     conv_fn = to_hiragana if as_hira else to_katakana
     kana = to_katakana(reading)
     moras = []

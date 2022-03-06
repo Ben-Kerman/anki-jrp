@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Union
+from typing import Any, List, Optional, Tuple, Union
 
 from .normalize import split_moras
 from .util import ConfigError
@@ -7,13 +7,13 @@ from .util import ConfigError
 
 @dataclass
 class Accent:
-    value: int | list[tuple[int, int]] | None
+    value: Optional[Union[int, List[Tuple[int, int]]]]
 
     default = False
 
     @classmethod
-    def from_str(cls, val: str, mora_count: int | None = None) -> "Accent":
-        def parse_part(v: str) -> tuple[int, int | None]:
+    def from_str(cls, val: str, mora_count: Optional[int] = None) -> "Accent":
+        def parse_part(v: str) -> Tuple[int, Optional[int]]:
             split = v.split("@")
             if len(split) == 1:
                 return int(v), None
@@ -67,7 +67,7 @@ class Accent:
         else:
             return ConfigError(f"invalid JSON type for accent")
 
-    def to_json(self, _) -> int | list[tuple[int, int]]:
+    def to_json(self, _) -> Union[int, List[Tuple[int, int]]]:
         if self.value is None:
             raise ValueError("None value in config accent")
         return self.value

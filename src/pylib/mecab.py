@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from subprocess import PIPE, Popen
+from typing import List, Optional, Tuple
 
 from .normalize import is_kana, to_hiragana
 
@@ -30,14 +31,14 @@ class HinsiType(Enum):
 @dataclass
 class MecabUnit(ParserUnit):
     hinsi: str
-    hinsi_class_1: str | None = None
-    hinsi_class_2: str | None = None
-    hinsi_class_3: str | None = None
-    conj_type: str | None = None
-    conj_form: str | None = None
-    base_form: str | None = None
-    reading: str | None = None
-    pronunciation: str | None = None
+    hinsi_class_1: Optional[str] = None
+    hinsi_class_2: Optional[str] = None
+    hinsi_class_3: Optional[str] = None
+    conj_type: Optional[str] = None
+    conj_form: Optional[str] = None
+    base_form: Optional[str] = None
+    reading: Optional[str] = None
+    pronunciation: Optional[str] = None
 
     def __repr__(self):
         return "MecabUnit[" \
@@ -53,18 +54,17 @@ class MecabUnit(ParserUnit):
                f"{self.pronunciation}]"
 
     def hinsi_type(self) -> HinsiType:
-        match self.hinsi:
-            case "助詞" | "助動詞":
-                return HinsiType.ZYOSI
-            case "動詞" | "形容詞":
-                return HinsiType.YOUGEN
-            case "記号":
-                return HinsiType.SYMBOL
-            case "名詞":
-                if self.hinsi_class_1 == "接尾":
-                    return HinsiType.SETUBI
-                elif self.hinsi_class_1 == "数":
-                    return HinsiType.NUMBER
+        if self.hinsi == "助詞" or self.hinsi == "助動詞":
+            return HinsiType.ZYOSI
+        elif self.hinsi == "動詞" or self.hinsi == "形容詞":
+            return HinsiType.YOUGEN
+        elif self.hinsi == "記号":
+            return HinsiType.SYMBOL
+        elif self.hinsi == "名詞":
+            if self.hinsi_class_1 == "接尾":
+                return HinsiType.SETUBI
+            elif self.hinsi_class_1 == "数":
+                return HinsiType.NUMBER
         return HinsiType.OTHER
 
     def comp_hinsi(self, *args: str):
@@ -78,7 +78,7 @@ class MecabUnit(ParserUnit):
             return False
         return True
 
-    def base_reading(self) -> str | None:
+    def base_reading(self) -> Optional[str]:
         if self.hinsi_type() != HinsiType.YOUGEN:
             return None
 
@@ -95,14 +95,14 @@ class MecabUnit(ParserUnit):
         return self.reading[0:len(self.reading) - i] + self.base_form[len(self.value) - i:]
 
     @classmethod
-    def from_line(cls, line: str) -> tuple["MecabUnit", int, int]:
+    def from_line(cls, line: str) -> Tuple["MecabUnit", int, int]:
         def raise_on_ast(val: str) -> str:
             if val == "*":
                 raise MecabError("unexpected empty value in unit")
             else:
                 return val
 
-        def ast_to_none(val: str) -> str | None:
+        def ast_to_none(val: str) -> Optional[str]:
             return None if val == "*" else val
 
         # format: %m(表層形)\t%ps,%pe,%H(品詞,品詞細分類1,品詞細分類2,品詞細分類3,活用型,活用形,原形,読み,発音)
@@ -134,9 +134,9 @@ class MecabUnit(ParserUnit):
 
 @dataclass
 class Mecab:
-    exe_path: str | None = None
-    dic_dir: str | None = None
-    _inst: Popen | None = field(default=None, init=False)
+    exe_path: Optional[str] = None
+    dic_dir: Optional[str] = None
+    _inst: Optional[Popen] = field(default=None, init=False)
 
     def _instance(self) -> Popen:
         if self._inst is None or self._inst.poll() is not None:
@@ -154,7 +154,7 @@ class Mecab:
 
         return self._inst
 
-    def analyze(self, txt: str) -> list[ParserUnit]:
+    def analyze(self, txt: str) -> List[ParserUnit]:
         inst = self._instance()
         utf8_bytes = txt.encode("utf-8")
         inst.stdin.write(utf8_bytes + b"\n")

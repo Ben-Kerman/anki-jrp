@@ -1,7 +1,7 @@
 import os.path
 from lzma import LZMAError
 from os.path import dirname
-from typing import Type, TypeVar
+from typing import Optional, Type, TypeVar
 
 import aqt
 from anki.collection import Collection
@@ -86,9 +86,9 @@ def load_dict():
         dictionary = Dictionary(acc_dic, var_dic)
 
 
-prefs: Prefs | None = None
-mecab_handle: Mecab | None = None
-dictionary: Dictionary | None = None
+prefs: Optional[Prefs] = None
+mecab_handle: Optional[Mecab] = None
+dictionary: Optional[Dictionary] = None
 
 QueryOp(parent=aqt.mw, op=lambda col: load_dict(), success=lambda _: print("JRP data loaded")).run_in_background()
 

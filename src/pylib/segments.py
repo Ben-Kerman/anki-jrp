@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from typing import List, Optional, Sequence, Tuple, Union
 
 from .accents import Accent
 from .normalize import comp_kana, has_kana, is_kana, split_moras, to_hiragana, to_katakana
@@ -10,9 +11,9 @@ from .util import escape_text as esc
 @dataclass
 class Segment:
     text: str
-    reading: str | None
+    reading: Optional[str]
 
-    def __init__(self, text: str, reading: str | None = None):
+    def __init__(self, text: str, reading: Optional[str] = None):
         self.text = text
         if reading and not comp_kana(text, reading):
             self.reading = reading
@@ -29,10 +30,10 @@ class Segment:
         return f"[{txt}|{rdng}]" if rdng else txt
 
     @classmethod
-    def generate(cls, word: str, reading: str | None) -> list["Segment"]:
-        def segmentalize(reading: str, sections: list[str],
+    def generate(cls, word: str, reading: Optional[str]) -> List["Segment"]:
+        def segmentalize(reading: str, sections: Sequence[str],
                          rs_idx: int, re_idx: int, s_idx: int,
-                         segments: list[cls]) -> list[cls] | None:
+                         segments: List[cls]) -> Optional[List[cls]]:
             if s_idx >= len(sections):
                 if rs_idx < len(reading):
                     return None
@@ -86,7 +87,7 @@ class Segment:
 
 @dataclass
 class BaseSegment:
-    text: str | None
+    text: Optional[str]
     base: str
 
     def __repr__(self) -> str:
@@ -101,11 +102,11 @@ class BaseSegment:
 
 @dataclass
 class Unit:
-    segments: list[Segment | BaseSegment]
-    accents: list[Accent] = field(default_factory=list)
+    segments: List[Union[Segment, BaseSegment]]
+    accents: List[Accent] = field(default_factory=list)
     is_yougen: bool = False
     uncertain: bool = False
-    special_base: str | None = None
+    special_base: Optional[str] = None
     was_bare: bool = False
 
     def __repr__(self) -> str:
@@ -114,40 +115,38 @@ class Unit:
         specbs = f"|{self.special_base}" if self.special_base else ""
         return f"U[{self.segments},{self.accents}{yougen}{uncert}{specbs}]"
 
-    def non_base_segments(self) -> list[Segment]:
-        segments: list[Segment] = []
+    def non_base_segments(self) -> List[Segment]:
+        segments: List[Segment] = []
         for s in self.segments:
-            match s:
-                case Segment():
-                    segments.append(s)
-                case BaseSegment():
-                    if s.text:
-                        if segments and not segments[-1].reading:
-                            segments[-1] = Segment(segments[-1].text + s.text)
-                        else:
-                            segments.append(Segment(s.text))
-                case _:
-                    raise ValueError(f"invalid segment type")
+            if type(s) is Segment:
+                segments.append(s)
+            elif type(s) is BaseSegment:
+                if s.text:
+                    if segments and not segments[-1].reading:
+                        segments[-1] = Segment(segments[-1].text + s.text)
+                    else:
+                        segments.append(Segment(s.text))
+            else:
+                raise ValueError(f"invalid segment type")
         return segments
 
-    def reading(self, upper: int | None = None) -> str:
+    def reading(self, upper: Optional[int] = None) -> str:
         return "".join(map(lambda s: s.reading or s.text, self.non_base_segments()[:upper]))
 
-    def text(self, upper: int | None = None) -> str:
+    def text(self, upper: Optional[int] = None) -> str:
         return "".join(map(lambda s: s.text, self.non_base_segments()[:upper]))
 
-    def base_reading(self) -> str | None:
+    def base_reading(self) -> Optional[str]:
         if self.special_base:
             return self.special_base
         elif any(type(s) == BaseSegment for s in self.segments):
-            def process_segment(s: Segment | BaseSegment) -> str:
-                match s:
-                    case Segment():
-                        return s.reading or s.text
-                    case BaseSegment():
-                        return s.base
-                    case _:
-                        raise ValueError("invalid segment type")
+            def process_segment(s: Union[Segment, BaseSegment]) -> str:
+                if type(s) is Segment:
+                    return s.reading or s.text
+                elif type(s) is BaseSegment:
+                    return s.base
+                else:
+                    raise ValueError("invalid segment type")
 
             return "".join([process_segment(s) for s in self.segments])
         elif self.is_yougen:
@@ -159,10 +158,11 @@ class Unit:
         return self.base_reading() or self.reading()
 
     @classmethod
-    def from_text(cls, text: str, reading: str | None = None, base: str | None = None,
-                  accents: list[Accent] | None = None, is_yougen: bool = False, uncertain: bool = False,
+    def from_text(cls, text: str, reading: Optional[str] = None, base: Optional[str] = None,
+                  accents: Optional[List[Accent]] = None, is_yougen: bool = False, uncertain: bool = False,
                   was_bare: bool = False) -> "Unit":
-        def base_segments(segments: list[Segment], base: str) -> list[Segment | BaseSegment] | str | None:
+        def base_segments(segments: Sequence[Segment],
+                          base: str) -> Optional[Union[List[Union[Segment, BaseSegment]], str]]:
             new_segments = []
 
             k_base = to_katakana(base)
@@ -190,11 +190,11 @@ class Unit:
         segments = Segment.generate(text, reading)
         special_base = None
         if is_yougen:
-            match base_segments(segments, base):
-                case list(new_segments):
-                    segments = new_segments
-                case str(special):
-                    special_base = special
+            bs = base_segments(segments, base)
+            if type(bs) is list:
+                segments = bs
+            elif type(bs) is str:
+                special_base = bs
 
         return cls(segments, accents or [], is_yougen, uncertain, special_base, was_bare)
 
@@ -210,18 +210,18 @@ def replace_nbsp(val: str) -> str:
     return _nbsp_re.sub(" ", val)
 
 
-def _read_until(val: str, idx: int, stop: tuple[str, ...]) -> tuple[int, str | None, str]:
-    chars: list[str] = []
+def _read_until(val: str, idx: int, stop: Tuple[str, ...]) -> Tuple[int, Optional[str], str]:
+    chars: List[str] = []
     itr = enumerate(val[idx:])
     for i, c in itr:
         if c in stop:
             return idx + i, c, "".join(chars)
         elif c == "\\":
-            match next(itr, None):
-                case [_, esc_c]:
-                    chars.append(esc_c)
-                case None:
-                    raise ParsingError("backslash at end of input")
+            nxt = next(itr, None)
+            if nxt is None:
+                raise ParsingError("backslash at end of input")
+            else:
+                chars.append(nxt[1])
         else:
             chars.append(c)
     return len(val), None, "".join(chars)
@@ -230,7 +230,7 @@ def _read_until(val: str, idx: int, stop: tuple[str, ...]) -> tuple[int, str | N
 _mi_acc_re = re.compile(r"([hkano])(\d*)")
 
 
-def _parse_migaku_accents(val: str, reading: str) -> list[Accent]:
+def _parse_migaku_accents(val: str, reading: str) -> List[Accent]:
     def convert(tag: str) -> Accent:
         m = _mi_acc_re.fullmatch(tag)
         if not m:
@@ -254,7 +254,7 @@ def _parse_migaku_accents(val: str, reading: str) -> list[Accent]:
     return [convert(t) for t in val.split(",")]
 
 
-def parse_migaku(value: str, conv_en_spaces: bool = True) -> list[Unit]:
+def parse_migaku(value: str, conv_en_spaces: bool = True) -> List[Unit]:
     class State(Enum):
         BASE_READING = auto()
         ACCENTS = auto()
@@ -273,7 +273,7 @@ def parse_migaku(value: str, conv_en_spaces: bool = True) -> list[Unit]:
             while self.pos < len(self.val) and self.val[self.pos] == " ":
                 self.pos += 1
 
-        def read_text(self, stop: tuple[str, ...]) -> tuple[str | None, str]:
+        def read_text(self, stop: Tuple[str, ...]) -> Tuple[Optional[str], str]:
             full_stop = stop + ("<",)
             parts = []
             while True:
@@ -303,35 +303,32 @@ def parse_migaku(value: str, conv_en_spaces: bool = True) -> list[Unit]:
                 return Unit([Segment(prefix)], was_bare=True)
 
             rdng_end_c, prefix_reading = self.read_text((",", ";", "]"))
-            match rdng_end_c:
-                case ",":
-                    state = State.BASE_READING
-                case ";":
-                    state = State.ACCENTS
-                case "]":
-                    state = State.SUFFIX
-                case _:
-                    raise ParsingError(f"unclosed Migaku tag: {self.val}")
+            if rdng_end_c == ",":
+                state = State.BASE_READING
+            elif rdng_end_c == ";":
+                state = State.ACCENTS
+            elif rdng_end_c == "]":
+                state = State.SUFFIX
+            else:
+                raise ParsingError(f"unclosed Migaku tag: {self.val}")
 
             base_reading: str = ""
             if state == State.BASE_READING:
                 bsfm_end_c, base_reading = self.read_text((";", "]"))
-                match bsfm_end_c:
-                    case ";":
-                        state = State.ACCENTS
-                    case "]":
-                        state = State.SUFFIX
-                    case _:
-                        raise ParsingError(f"unclosed Migaku tag: {self.val}")
+                if bsfm_end_c == ";":
+                    state = State.ACCENTS
+                elif bsfm_end_c == "]":
+                    state = State.SUFFIX
+                else:
+                    raise ParsingError(f"unclosed Migaku tag: {self.val}")
 
             accent_str: str = ""
             if state == State.ACCENTS:
                 acct_end, acct_c, accent_str = _read_until(self.val, self.pos, ("]",))
-                match acct_c:
-                    case "]":
-                        state = State.SUFFIX
-                    case _:
-                        raise ParsingError(f"closing ] missing: {self.val}")
+                if acct_c == "]":
+                    state = State.SUFFIX
+                else:
+                    raise ParsingError(f"closing ] missing: {self.val}")
                 self.pos = acct_end + 1
 
             suffix: str = ""
@@ -344,7 +341,7 @@ def parse_migaku(value: str, conv_en_spaces: bool = True) -> list[Unit]:
             unit.accents = _parse_migaku_accents(accent_str, unit.accent_reading()) if accent_str else None
             return unit
 
-        def execute(self) -> list[Unit]:
+        def execute(self) -> List[Unit]:
             units = []
             while self.pos < len(self.val):
                 self.skip_space()
@@ -354,8 +351,8 @@ def parse_migaku(value: str, conv_en_spaces: bool = True) -> list[Unit]:
     return Parser(replace_nbsp(value)).execute()
 
 
-def parse_jrp(value: str) -> list[Unit]:
-    def parse_segment(val: str, start_idx: int) -> tuple[int, Segment | BaseSegment]:
+def parse_jrp(value: str) -> List[Unit]:
+    def parse_segment(val: str, start_idx: int) -> Tuple[int, Union[Segment, BaseSegment]]:
         sep_idx, sep_c, seg_text = _read_until(val, start_idx + 1, ("|", "="))
         if sep_c:
             cls = BaseSegment if sep_c == "=" else Segment
@@ -365,8 +362,8 @@ def parse_jrp(value: str) -> list[Unit]:
             return end_idx + 1, cls(seg_text, reading)
         raise ParsingError(f"invalid segment: {val}")
 
-    def parse_unit(val: str, start_idx: int) -> tuple[int, Unit]:
-        segments: list[Segment | BaseSegment] = []
+    def parse_unit(val: str, start_idx: int) -> Tuple[int, Unit]:
+        segments: List[Union[Segment, BaseSegment]] = []
 
         pos = start_idx + 1
         while pos < len(val):
@@ -374,17 +371,16 @@ def parse_jrp(value: str) -> list[Unit]:
             if txt:
                 segments.append(Segment(txt))
 
-            match last_c:
-                case "[":
-                    pos, s = parse_segment(val, pos)
-                    segments.append(s)
-                case ";" | "}":
-                    break
+            if last_c == "[":
+                pos, s = parse_segment(val, pos)
+                segments.append(s)
+            elif last_c == ";" or last_c == "}":
+                break
         else:
             raise ParsingError(f"unclosed unit: {val}")
 
         accent_str: str = ""
-        special_base: str | None = None
+        special_base: Optional[str] = None
         uncertain = False
         is_yougen = False
         if val[pos] == ";":
@@ -421,8 +417,8 @@ def parse_jrp(value: str) -> list[Unit]:
 
     value = replace_nbsp(value)
 
-    units: list[Unit] = []
-    free_segments: list[Segment] = []
+    units: List[Unit] = []
+    free_segments: List[Segment] = []
 
     idx = 0
     while idx < len(value):
@@ -430,18 +426,17 @@ def parse_jrp(value: str) -> list[Unit]:
         if text:
             free_segments.append(Segment(text))
 
-        match c:
-            case "{":
-                if free_segments:
-                    units.append(Unit(free_segments, was_bare=True))
-                free_segments = []
-                idx, u = parse_unit(value, idx)
-                units.append(u)
-            case "[":
-                idx, segment = parse_segment(value, idx)
-                if type(segment) != Segment:  # TODO maybe allow
-                    raise ParsingError(f"base form segment outside of unit: {value}")
-                free_segments.append(segment)
+        if c == "{":
+            if free_segments:
+                units.append(Unit(free_segments, was_bare=True))
+            free_segments = []
+            idx, u = parse_unit(value, idx)
+            units.append(u)
+        elif c == "[":
+            idx, segment = parse_segment(value, idx)
+            if type(segment) != Segment:  # TODO maybe allow
+                raise ParsingError(f"base form segment outside of unit: {value}")
+            free_segments.append(segment)
 
     if free_segments:
         units.append(Unit(free_segments, was_bare=True))

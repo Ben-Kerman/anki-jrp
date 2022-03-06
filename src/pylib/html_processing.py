@@ -1,4 +1,5 @@
 from html.parser import HTMLParser
+from typing import List, MutableSequence, Optional, Sequence, Tuple
 
 from .segments import replace_nbsp
 
@@ -30,9 +31,9 @@ _p_no_end_omit = {"a", "audio", "del", "ins", "map", "noscript", "video"}
 
 
 class JrpHTMLParser(HTMLParser):
-    tag_stack: list[str]
-    lines: list[str]
-    cur_line: list[str]
+    tag_stack: List[str]
+    lines: List[str]
+    cur_line: List[str]
 
     def __init__(self):
         super().__init__()
@@ -46,8 +47,8 @@ class JrpHTMLParser(HTMLParser):
             self.lines.append(line)
         self.cur_line = []
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        def handle_omission(tag_stack: list[str], start_tag: str) -> str | None:
+    def handle_starttag(self, tag: str, attrs: Sequence[Tuple[str, Optional[str]]]) -> None:
+        def handle_omission(tag_stack: MutableSequence[str], start_tag: str) -> Optional[str]:
             if not tag_stack:
                 return None
             stack_tag: str = tag_stack[-1]
@@ -61,7 +62,7 @@ class JrpHTMLParser(HTMLParser):
             self.tag_stack.append(tag)
 
     def handle_endtag(self, tag: str) -> None:
-        def handle_omission(tag_stack: list[str], end_tag: str) -> str | None:
+        def handle_omission(tag_stack: MutableSequence[str], end_tag: str) -> Optional[str]:
             if not tag_stack:
                 return None
             stack_tag: str = tag_stack[-1]
@@ -79,13 +80,13 @@ class JrpHTMLParser(HTMLParser):
     def handle_data(self, data: str) -> None:
         self.cur_line.append(data)
 
-    def close(self) -> list[str]:
+    def close(self) -> List[str]:
         super().close()
         self._insert_line()
         return self.lines
 
 
-def strip_html(val: str, norm_nbsp: bool = True) -> list[str]:
+def strip_html(val: str, norm_nbsp: bool = True) -> List[str]:
     parser = JrpHTMLParser()
     parser.feed(val)
     return [replace_nbsp(line) if norm_nbsp else line for line in parser.close()]

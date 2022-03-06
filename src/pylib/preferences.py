@@ -1,11 +1,10 @@
 import json
 import os.path
 import platform
-from collections.abc import Generator
 from dataclasses import dataclass, field
 from itertools import chain
 from json import JSONDecodeError
-from typing import Union
+from typing import Iterable, List, Optional, Set, Tuple, Union
 
 from . import default_overrides, version
 from .accents import Accent
@@ -59,7 +58,7 @@ class AddonPrefs:
     mecab_dict_dir: str = os.path.join("data", "ipadic")
     mecab_use_system_exe: bool = platform.system() != "Windows"
     mecab_use_system_dict: bool = False
-    note_types: list[NoteTypePrefs] = field(default_factory=list)
+    note_types: List[NoteTypePrefs] = field(default_factory=list)
 
 
 @dataclass
@@ -83,16 +82,16 @@ class JoinPrefs:
 
 @dataclass
 class Overrides:
-    ignore: list[IgnoreOverride] = field(default_factory=list)
-    word: list[WordOverride] = field(default_factory=list)
-    accent: list[AccentOverride] = field(default_factory=list)
+    ignore: List[IgnoreOverride] = field(default_factory=list)
+    word: List[WordOverride] = field(default_factory=list)
+    accent: List[AccentOverride] = field(default_factory=list)
 
 
 @dataclass
 class DisabledOverrideIds:
-    ignore: set[int] = field(default_factory=set)
-    word: set[int] = field(default_factory=set)
-    accent: set[int] = field(default_factory=set)
+    ignore: Set[int] = field(default_factory=set)
+    word: Set[int] = field(default_factory=set)
+    accent: Set[int] = field(default_factory=set)
 
     def to_json(self, default: "DisabledOverrideIds") -> dict:
         val: dict = to_json(self, default, False)
@@ -109,12 +108,12 @@ class ConvPrefs:
     disabled_override_ids: DisabledOverrideIds = field(default_factory=DisabledOverrideIds)
     prefer_accent_lookups: bool = False
 
-    def match_ignore_or(self, variant: str, reading: str | None) -> bool:
+    def match_ignore_or(self, variant: str, reading: Optional[str]) -> bool:
         defaults = (do.value for do in default_overrides.ignore if do.id not in self.disabled_override_ids.ignore)
         return any(io.match(variant, reading) for io in chain(self.overrides.ignore, defaults))
 
-    def apply_word_or(self, variant: str, reading: str | None,
-                      is_pre: bool = False) -> Generator[tuple[str, str | None]] | None:
+    def apply_word_or(self, variant: str, reading: Optional[str],
+                      is_pre: bool = False) -> Optional[Iterable[Tuple[str, Optional[str]]]]:
         defaults = (do.value for do in default_overrides.word if do.id not in self.disabled_override_ids.word)
         for wo in (wo for wo in chain(self.overrides.word, defaults)):
             if is_pre and wo.pre_lookup or not is_pre and wo.post_lookup:
@@ -122,7 +121,7 @@ class ConvPrefs:
                     return gen
         return None
 
-    def apply_accent_or(self, variant: str, reading: str) -> list[Accent] | None:
+    def apply_accent_or(self, variant: str, reading: str) -> Optional[List[Accent]]:
         defaults = (ao.value for ao in default_overrides.accent if ao.id not in self.disabled_override_ids.accent)
         for ao in chain(self.overrides.accent, defaults):
             if ao.match(variant, reading):

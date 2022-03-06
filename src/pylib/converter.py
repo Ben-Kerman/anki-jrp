@@ -1,6 +1,5 @@
-from collections.abc import Callable, Generator
 from dataclasses import dataclass
-from typing import Sequence, cast
+from typing import Callable, Iterable, List, Optional, Sequence, Tuple, cast
 
 from .dictionary import Dictionary, Lookup
 from .mecab import HinsiType, MecabUnit, ParserUnit
@@ -13,10 +12,10 @@ from .segments import Segment, Unit
 class Match:
     last_idx: int
     word: str
-    base_word: str | None = None
+    base_word: Optional[str] = None
     lookup: Lookup = None
 
-    def gen_unit_if_ignored(self) -> Unit | None:
+    def gen_unit_if_ignored(self) -> Optional[Unit]:
         return None if self.lookup else Unit([Segment(self.word)])
 
 
@@ -28,16 +27,16 @@ _potential_table = str.maketrans("えけげせてねべめれエケゲセテネ�
                                  "うくぐすつぬぶむるうくぐすつぬぶむる")
 
 
-def base_for_potential(word: str, reading: str | None) -> tuple[str, str] | None:
+def base_for_potential(word: str, reading: Optional[str]) -> Optional[Tuple[str, str]]:
     if len(word) < 3 or word[-1] != "る":
         return None
     base_end = word[-2].translate(_potential_table)
     return word[:-2] + base_end, reading and reading[:-2] + base_end
 
 
-def _lookup_variants(p: ConvPrefs, word: str, reading_guess: str | None,
-                     base_word: str | None = None) -> Generator[tuple[str, str | None, str | None]]:
-    def pot(word: str, reading: str | None) -> tuple[str, str, str] | None:
+def _lookup_variants(p: ConvPrefs, word: str, reading_guess: Optional[str],
+                     base_word: Optional[str] = None) -> Iterable[Tuple[str, Optional[str], Optional[str]]]:
+    def pot(word: str, reading: Optional[str]) -> Optional[Tuple[str, str, str]]:
         if res := base_for_potential(word, reading):
             pot_base, pot_reading = res
             return pot_base, pot_reading, pot_base
@@ -60,9 +59,9 @@ def _lookup_variants(p: ConvPrefs, word: str, reading_guess: str | None,
 
 
 def find_longest_match(prefs: ConvPrefs, dic: Dictionary, idx: int, punits: Sequence[ParserUnit],
-                       stop_cond: Callable[[int, MecabUnit], bool] = _dsc) -> Match | None:
-    acc_match: Match | None = None
-    plain_match: Match | None = None
+                       stop_cond: Callable[[int, MecabUnit], bool] = _dsc) -> Optional[Match]:
+    acc_match: Optional[Match] = None
+    plain_match: Optional[Match] = None
     for i in range(idx, len(punits)):
         pu = punits[i]
         if not isinstance(pu, MecabUnit) or stop_cond(i, pu):
@@ -119,7 +118,7 @@ def _handle_simple(munit: MecabUnit) -> Unit:
 
 
 def _yougen_join(p: JoinPrefs, punits: Sequence[ParserUnit], bmu: MecabUnit,
-                 idx: int, prev: str = "") -> tuple[int, str, Unit | None]:
+                 idx: int, prev: str = "") -> Tuple[int, str, Optional[Unit]]:
     if idx >= len(punits) or not isinstance(punits[idx], MecabUnit):
         return idx, prev, None
     mu = cast(MecabUnit, punits[idx])
@@ -216,7 +215,7 @@ def _yougen_join(p: JoinPrefs, punits: Sequence[ParserUnit], bmu: MecabUnit,
 
 
 def _finalize_yougen(p: ConvPrefs, punits: Sequence[ParserUnit], tail_mu: MecabUnit,
-                     m: Match) -> tuple[int, Unit, Unit | None]:
+                     m: Match) -> Tuple[int, Unit, Optional[Unit]]:
     def find_reading(word: str, base_word: str, base_reading: str) -> str:
         def is_sahen(word: str, base: str) -> bool:
             return base.endswith("する") and word.endswith(("さ", "し", "す", "せ", "そ")) \
@@ -237,11 +236,10 @@ def _finalize_yougen(p: ConvPrefs, punits: Sequence[ParserUnit], tail_mu: MecabU
         return head + tail
 
     def has_special_reading(munit: MecabUnit) -> bool:
-        match munit.hinsi:
-            case "動詞":
-                return munit.base_form in ("くる", "来る", "來る")
-            case "形容詞":
-                return munit.base_form in ("いい", "良い", "好い", "善い", "佳い", "吉い", "宜い")
+        if munit.hinsi == "動詞":
+            return munit.base_form in ("くる", "来る", "來る")
+        elif munit.hinsi == "形容詞":
+            return munit.base_form in ("いい", "良い", "好い", "善い", "佳い", "吉い", "宜い")
         return False
 
     new_idx, trailing, split_unit = _yougen_join(p.join, punits, tail_mu, m.last_idx + 1)
@@ -263,7 +261,7 @@ def _finalize_yougen(p: ConvPrefs, punits: Sequence[ParserUnit], tail_mu: MecabU
     return new_idx, unit, split_unit
 
 
-def _finalize_other(p: ConvPrefs, m: Match) -> tuple[int, Unit, Unit | None]:
+def _finalize_other(p: ConvPrefs, m: Match) -> Tuple[int, Unit, Optional[Unit]]:
     if iu := m.gen_unit_if_ignored():
         unit = iu
     else:
@@ -276,7 +274,7 @@ def _finalize_other(p: ConvPrefs, m: Match) -> tuple[int, Unit, Unit | None]:
 
 
 def _handle_other(p: ConvPrefs, dic: Dictionary,
-                  punits: Sequence[ParserUnit], idx: int) -> tuple[int, Unit, Unit | None]:
+                  punits: Sequence[ParserUnit], idx: int) -> Tuple[int, Unit, Optional[Unit]]:
     def stop_cond(i: int, mu: MecabUnit) -> bool:
         if i > 0 and isinstance(punits[i - 1], MecabUnit):
             pu = cast(MecabUnit, punits[i - 1])
@@ -298,22 +296,22 @@ def _handle_other(p: ConvPrefs, dic: Dictionary,
         return idx + 1, Unit.from_text(mu.value, mu.reading, base, is_yougen=is_yougen), None
 
 
-def convert(punits: Sequence[ParserUnit], prefs: ConvPrefs, dic: Dictionary) -> list[Unit]:
-    units: list[Unit] = []
+def convert(punits: Sequence[ParserUnit], prefs: ConvPrefs, dic: Dictionary) -> List[Unit]:
+    units: List[Unit] = []
     split_unit = None
     i = 0
     while i < len(punits):
         pu = punits[i]
         if isinstance(pu, MecabUnit):
-            match pu.hinsi_type():
-                case HinsiType.ZYOSI | HinsiType.SETUBI:
-                    unit = _handle_simple(pu)
-                    i += 1
-                case HinsiType.SYMBOL | HinsiType.NUMBER:
-                    unit = Unit([Segment(pu.value)])
-                    i += 1
-                case _:
-                    i, unit, split_unit = _handle_other(prefs, dic, punits, i)
+            ht = pu.hinsi_type()
+            if ht == HinsiType.ZYOSI or ht == HinsiType.SETUBI:
+                unit = _handle_simple(pu)
+                i += 1
+            elif ht == HinsiType.SYMBOL or ht == HinsiType.NUMBER:
+                unit = Unit([Segment(pu.value)])
+                i += 1
+            else:
+                i, unit, split_unit = _handle_other(prefs, dic, punits, i)
         else:
             unit = Unit([Segment(pu.value)])
             i += 1
