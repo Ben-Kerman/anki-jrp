@@ -5,7 +5,7 @@ from typing import Iterable, List, Optional, Sequence, Tuple
 
 import aqt
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QDialog, QFormLayout, QHBoxLayout, QMenu, QPushButton, \
+from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QDialog, QFormLayout, QHBoxLayout, QPushButton, \
     QVBoxLayout, QWidget
 from anki.errors import InvalidInput
 from anki.models import NotetypeId
@@ -175,10 +175,6 @@ class ConvertDialog(QDialog):
 
 
 def insert_menu_items(brws: Browser):
-    note_menu = brws.form.menu_Notes
-    note_menu.addSeparator()
-    addon_menu = QMenu("&Japanese Readings && Accent Add-on", note_menu)
-
     def set_up_dialog():
         note_ids = brws.selected_notes()
         if len(note_ids) < 2:
@@ -194,8 +190,8 @@ def insert_menu_items(brws: Browser):
         brws.jrp_conv_dialog = ConvertDialog(brws, nt_id, note_ids, brws)
         brws.jrp_conv_dialog.show()
 
-    syn_conv_action = QAction("&Change Syntax", addon_menu)
-    syn_conv_action.triggered.connect(set_up_dialog)
-
-    addon_menu.addAction(syn_conv_action)
-    note_menu.addMenu(addon_menu)
+    note_menu = brws.form.menu_Notes
+    note_menu.addSeparator()
+    bulk_conv_action = QAction("&JRP Add-on Bulk Conversion...", note_menu)
+    bulk_conv_action.triggered.connect(set_up_dialog)
+    note_menu.addAction(bulk_conv_action)
