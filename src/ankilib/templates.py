@@ -1,5 +1,4 @@
 import dataclasses
-import os.path
 import re
 from re import Pattern
 from typing import Any, Dict, List, Optional, Tuple
@@ -7,12 +6,13 @@ from typing import Any, Dict, List, Optional, Tuple
 from anki.collection import Collection
 from anki.models import NotetypeDict
 
+from .util import get_path
 from ..pylib import version
 from ..pylib.preferences import AddonPrefs, NoteTypePrefs, StylePrefs
 
 
 def _read_file(*path_comps: str) -> str:
-    with open(os.path.join(os.path.dirname(os.path.normpath(__file__)), *path_comps), encoding="utf-8") as fd:
+    with open(get_path(*path_comps), encoding="utf-8") as fd:
         return fd.read()
 
 
@@ -25,7 +25,7 @@ _patterns_unk = _patterns + ("unknown",)
 
 
 def _fmt_css(fmt_def: Dict[str, Any]) -> str:
-    fmt = _read_file("..", "style", f"{fmt_def['name']}.{fmt_def['type']}")
+    fmt = _read_file("style", f"{fmt_def['name']}.{fmt_def['type']}")
     if fmt_def["type"] == "var":
         return fmt.format(**fmt_def["vars"])
     elif fmt_def["type"] == "pat":
