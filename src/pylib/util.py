@@ -1,7 +1,6 @@
 import dataclasses
 import sys
 from dataclasses import MISSING, dataclass, is_dataclass
-from types import GenericAlias, NoneType, UnionType
 from typing import Any, Iterable, Optional, Type, TypeVar, Union, get_args, get_origin
 
 
@@ -26,14 +25,14 @@ def escape_text(chrs: Iterable[str], txt: str) -> str:
 
 def from_json(json_val: Any, typ: Type[T], try_cls_method: bool = True) -> Union[T, ConfigError]:
     def types_to_list(t: Any) -> tuple:
-        return get_args(t) if type(t) == UnionType else (t,)
+        return get_args(t) if get_origin(t) == Union else (t,)
 
     def check_type(val: Any, t: Type[T]) -> Union[U, ConfigError]:
         return val if type(val) is t else ConfigError(f"invalid type")
 
-    if typ in (str, bool, int, float, NoneType):
+    if typ in (str, bool, int, float, type(None)):
         return check_type(json_val, typ)
-    elif type(typ) == GenericAlias and get_origin(typ) in (list, set):
+    elif (origin := get_origin(typ)) and origin in (list, set):
         lst = check_type(json_val, list)
         if isinstance(lst, ConfigError):
             return lst
