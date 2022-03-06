@@ -63,9 +63,10 @@ def make_addon(path: str, full: bool, dic: bool = False):
 
             add_file(azip, os.path.join(windows_bin_dir, "libmecab.dll"), "bin/libmecab.dll")
             add_file(azip, os.path.join(windows_bin_dir, "mecab.exe"), "bin/mecab.exe")
+            add_data(azip, b"", "bin/mecabrc")
 
         if dic:
-            add_files(azip, ipadic_dir, "data/ipadict")
+            add_files(azip, ipadic_dir, "data/ipadic")
 
 
 make_addon(f"target/{addon_id}_{version}.ankiaddon", full=False)
