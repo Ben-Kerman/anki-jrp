@@ -26,7 +26,7 @@ def copy_assets(col: Collection):
         asset_file_path = get_asset_path(fn)
         cm_file_path = join(cm_dir, f"_{fn}")
         if os.path.exists(cm_file_path):
-            with open(asset_file_path) as afd, open(cm_file_path) as cfd:
+            with open(asset_file_path, "rb") as afd, open(cm_file_path, "rb") as cfd:
                 if afd.read() == cfd.read():
                     continue
         shutil.copy2(asset_file_path, cm_file_path)

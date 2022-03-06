@@ -26,7 +26,7 @@ def _col_path(col: Collection) -> str:
 def check_update(col: Optional[Collection] = None) -> bool:
     path = _col_path(col) if col else _path()
     if os.path.exists(path):
-        with open(path) as fd:
+        with open(path, encoding="utf-8") as fd:
             return fd.read().strip() != version.script
     return True
 
@@ -35,7 +35,7 @@ def update() -> None:
     if not check_update():
         return
 
-    with open(_path(), "w") as fd:
+    with open(_path(), "w", encoding="utf-8") as fd:
         fd.write(version.script)
 
     bin_path = get_path("bin")
@@ -49,5 +49,5 @@ def update_collection(col: Collection) -> None:
 
     copy_assets(col)
     update_all_note_types(col, global_vars.prefs.addon)
-    with open(_col_path(col), "w") as fd:
+    with open(_col_path(col), "w", encoding="utf-8") as fd:
         fd.write(version.script)

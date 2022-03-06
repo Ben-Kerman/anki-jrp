@@ -148,7 +148,7 @@ class Prefs:
         if not os.path.exists(path):
             return None
 
-        with open(path) as cfd:
+        with open(path, encoding="utf-8") as cfd:
             try:
                 raw = json.load(cfd)
             except JSONDecodeError as e:
@@ -159,5 +159,5 @@ class Prefs:
         json_obj = to_json(self, type(self)())
         json_obj["version"] = version.config
         json_str = json.dumps(json_obj, ensure_ascii=False)
-        with open(path, "w") as cfd:
+        with open(path, "w", encoding="utf-8") as cfd:
             cfd.write(json_str)

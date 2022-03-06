@@ -14,7 +14,7 @@ _, data_dir, windows_bin_dir = sys.argv[:3]
 ipadic_dir = sys.argv[3] if len(sys.argv) >= 4 else None
 
 version_dict = {}
-with open("src/pylib/version.py") as vfd:
+with open("src/pylib/version.py", encoding="utf-8") as vfd:
     exec(vfd.read(), version_dict)
 version = version_dict["script"]
 addon_id = "japanese-readings-and-pitch-accent"

@@ -12,7 +12,7 @@ from ..pylib.preferences import AddonPrefs, NoteTypePrefs, StylePrefs
 
 
 def _read_file(*path_comps: str) -> str:
-    with open(os.path.join(os.path.dirname(os.path.normpath(__file__)), *path_comps)) as fd:
+    with open(os.path.join(os.path.dirname(os.path.normpath(__file__)), *path_comps), encoding="utf-8") as fd:
         return fd.read()
 
 

@@ -43,7 +43,7 @@ def write_backup_data(path: str, data: Sequence[Tuple[NoteId, str, str]]):
     def join_content(val: str) -> str:
         return "\n\t".join(val.splitlines())
 
-    with open(path, "w") as fd:
+    with open(path, "w", encoding="utf-8") as fd:
         for i, (note_id, old_val, new_val) in enumerate(data):
             if i > 0:
                 fd.write("\n\n")
