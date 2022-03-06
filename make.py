@@ -1,5 +1,5 @@
 #!/bin/python
-
+import json
 import os
 import shutil
 import sys
@@ -16,8 +16,10 @@ ipadic_dir = sys.argv[3] if len(sys.argv) >= 4 else None
 version_dict = {}
 with open("src/pylib/version.py") as vfd:
     exec(vfd.read(), version_dict)
-name = "japanese-readings-and-pitch-accent"
 version = version_dict["script"]
+addon_id = "japanese-readings-and-pitch-accent"
+name = "Japanese Readings and Pitch Accent"
+manifest = {"package": addon_id, "name": name}
 
 if os.path.exists("target/"):
     shutil.rmtree("target/")
@@ -26,12 +28,17 @@ os.makedirs("target/", exist_ok=True)
 now = datetime.timetuple(datetime.now())
 
 
-def add_file(zf: ZipFile, src_path: str, tgt_path: str, compress: bool = True):
+def add_data(zf: ZipFile, data: bytes, tgt_path: str, compress: bool = True):
     zi = ZipInfo(tgt_path, date_time=now)
-    if compress and os.path.getsize(src_path) > 100:
+    if compress and len(data) > 100:
         zi.compress_type = ZIP_LZMA
-    with open(src_path, "rb") as fd, zf.open(zi, "w") as zfd:
-        zfd.write(fd.read())
+    with zf.open(zi, "w") as zfd:
+        zfd.write(data)
+
+
+def add_file(zf: ZipFile, src_path: str, tgt_path: str, compress: bool = True):
+    with open(src_path, "rb") as fd:
+        add_data(zf, fd.read(), tgt_path, compress)
 
 
 def add_files(zf: ZipFile, src_path: str, tgt_path: str | None = None, ext: Sequence[str] | None = None):
@@ -48,6 +55,7 @@ def make_addon(path: str, full: bool, dic: bool = False):
             add_files(azip, os.path.join("src", dirname), dirname, (".py", ".svg", ".css", ".pat", ".var"))
         add_files(azip, "src/ts", "js", (".js",))
         add_file(azip, "src/__init__.py", "__init__.py")
+        add_data(azip, json.dumps(manifest).encode("utf-8"), "manifest.json")
 
         if full:
             add_file(azip, os.path.join(data_dir, "accents.xz"), "data/accents.xz", compress=False)
@@ -60,10 +68,10 @@ def make_addon(path: str, full: bool, dic: bool = False):
             add_files(azip, ipadic_dir, "data/ipadict")
 
 
-make_addon(f"target/{name}_{version}.ankiaddon", full=False)
-make_addon(f"target/{name}_{version}_full.ankiaddon", full=True)
+make_addon(f"target/{addon_id}_{version}.ankiaddon", full=False)
+make_addon(f"target/{addon_id}_{version}_full.ankiaddon", full=True)
 if ipadic_dir:
-    make_addon(f"target/{name}_{version}_ipadic.ankiaddon", full=True, dic=True)
+    make_addon(f"target/{addon_id}_{version}_ipadic.ankiaddon", full=True, dic=True)
 
-with ZipFile(f"target/{name}_script-only_{version}.zip", "w") as szip:
+with ZipFile(f"target/{addon_id}_script-only_{version}.zip", "w") as szip:
     add_files(szip, "src/pylib", ext=(".py",))
