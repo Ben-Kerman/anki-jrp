@@ -1,4 +1,6 @@
 import os
+import platform
+import subprocess
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from subprocess import PIPE, Popen
@@ -148,7 +150,12 @@ class Mecab:
                 args.append(f"--dicdir={self.dic_dir}")
 
             try:
-                self._inst = Popen(args, stdin=PIPE, stdout=PIPE)
+                if platform.system() == "Windows":
+                    si = subprocess.STARTUPINFO()
+                    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                else:
+                    si = None
+                self._inst = Popen(args, stdin=PIPE, stdout=PIPE, startupinfo=si)
             except FileNotFoundError:
                 raise MecabError("executable not found")
 
