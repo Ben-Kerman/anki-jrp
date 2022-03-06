@@ -133,19 +133,44 @@ class ConvertDialog(QDialog):
     def __init__(self, brws: Browser, nt_id: NotetypeId, notes: Sequence[NoteId], parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowTitle("Bulk Conversion")
 
         self._field_cb = QComboBox(self)
         # sort fields by position, just to be safe
         flds = [field["name"] for field in sorted(brws.col.models.get(nt_id)["flds"], key=lambda f: f["ord"])]
         self._field_cb.addItems(flds)
+        self._field_cb.setToolTip("The field that will be converted.")
         self._conv_type_cb = QComboBox(self)
         self._conv_type_cb.addItems([ConvType.DEFAULT.value, ConvType.MIGAKU.value, ConvType.REMOVE.value])
+        self._conv_type_cb.setToolTip("Which type of conversion to perform.\n"
+                                      "The existing syntax type (if any) will be auto-detected.\n\n"
+                                      "'Default' is the syntax specific to this add-on.\n"
+                                      "'Migaku' is the more limited syntax from the Migaku Japanese Add-on,\n"
+                                      "\twhich is based on that from the Japanese Support Add-on.\n"
+                                      "'Remove' deletes either syntax if present")
 
-        self._gen_cb = QCheckBox("(Re)generate contents", self)
+        self._gen_cb = QCheckBox("Regenerate contents", self)
+        self._gen_cb.setToolTip("If the conversion type is set to 'Default' or 'Migaku' and this is checked,\n"
+                                "field contents will be fully regenerated for all notes.\n"
+                                "By default, existing contents will be preserved as much as possible\n"
+                                "and only notes without any syntax will be regenerated.\n"
+                                "Has no effect with 'Remove'.")
         self._backup_cb = QCheckBox("Save emergency recovery data", self)
         self._backup_cb.setChecked(True)
+        self._backup_cb.setToolTip("This will save a file containing each changed note's ID\n"
+                                   "as well as the old and new contents of the target field\n"
+                                   "in your collection's (profile's) directory.\n"
+                                   "This is not a proper backup and you should export the deck(s)\n"
+                                   "(with scheduling information) before running bulk conversions\n"
+                                   "on very large amounts of notes.")
         self._dryrun_cb = QCheckBox("Dry run", self)
         self._dryrun_cb.setChecked(True)
+        self._dryrun_cb.setToolTip("If this option is enabled, the conversion will run and show any errors "
+                                   "that occur but changes won't be applied to the notes.\n"
+                                   "Even when disabled, changes won't be written "
+                                   "unless the whole conversion process succeeded without any general errors.\n"
+                                   "Note-specific syntax errors will result in only that note being excluded "
+                                   "and highlighted in the browser.")
 
         form_lo = QFormLayout()
         form_lo.addRow("Conversion type:", self._conv_type_cb)
