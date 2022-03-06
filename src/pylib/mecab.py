@@ -162,6 +162,9 @@ class Mecab:
         return self._inst
 
     def analyze(self, txt: str) -> List[ParserUnit]:
+        if "\n" in txt:
+            raise MecabError("line feed in text passed to analyze function")
+
         inst = self._instance()
         utf8_bytes = txt.encode("utf-8")
         inst.stdin.write(utf8_bytes + b"\n")
