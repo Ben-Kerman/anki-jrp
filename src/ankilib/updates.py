@@ -1,4 +1,6 @@
 import os.path
+import platform
+import shutil
 
 from anki.collection import Collection
 
@@ -30,6 +32,10 @@ def update() -> None:
 
     with open(_path(), "w") as fd:
         fd.write(version.script)
+
+    bin_path = get_path("bin")
+    if platform.system() != "Windows" and os.path.exists(bin_path):
+        shutil.rmtree(bin_path)
 
 
 def update_collection(col: Collection) -> None:
