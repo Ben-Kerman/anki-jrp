@@ -3,13 +3,13 @@
 	position: relative;
 }
 
-.jrp-unit rt {
+[data-jrp-generate] rt {
 	text-align: center;
 	font-size: var(--jrp-ruby-font-size);
 	user-select: none;
 }
 
-.jrp-unit rt:hover {
+[data-jrp-generate] rt:hover {
 	user-select: text;
 }
 
