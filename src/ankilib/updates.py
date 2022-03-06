@@ -11,7 +11,11 @@ from ..pylib import version
 
 
 def _path() -> str:
-    return get_path("user_files", "last-version")
+    uf_path = get_path("user_files")
+    if not os.path.exists(uf_path):
+        os.makedirs(uf_path)
+
+    return os.path.join(uf_path, "last-version")
 
 
 def _col_path(col: Collection) -> str:
