@@ -70,6 +70,10 @@ def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
         lines = strip_html(squash_newlines(field))
         existing_type = detect_syntax(field)
         if existing_type:
+            if not regen and (existing_type == OutputType.MIGAKU and conv_type == ConvType.MIGAKU
+                              or existing_type == OutputType.DEFAULT and conv_type == ConvType.DEFAULT):
+                continue
+
             parser = parse_migaku if existing_type == OutputType.MIGAKU else parse_jrp
             try:
                 line_units = [parser(line) for line in lines]
