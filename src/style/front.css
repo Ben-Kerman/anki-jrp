@@ -6,7 +6,7 @@
 	display: none;
 }
 
-.jrp-front [data-jrp-generate] rt {
+.jrp-front[data-jrp-generate] rt, .jrp-front [data-jrp-generate] rt {
 	visibility: hidden;
 }
 
