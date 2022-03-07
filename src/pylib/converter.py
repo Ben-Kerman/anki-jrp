@@ -288,7 +288,7 @@ def _handle_other(p: ConvPrefs, dic: Dictionary,
     m = find_longest_match(p, dic, idx, punits, stop_cond)
     if m:
         tail_mu = cast(MecabUnit, punits[m.last_idx])
-        if tail_mu.hinsi_type() == HinsiType.YOUGEN:
+        if m.base_word and tail_mu.hinsi_type() == HinsiType.YOUGEN:
             return _finalize_yougen(p, punits, tail_mu, m)
         else:
             return _finalize_other(p, m)
