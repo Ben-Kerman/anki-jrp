@@ -13,7 +13,7 @@ from anki.notes import Note, NoteId
 from aqt.browser import Browser
 
 from . import global_vars as gv
-from ..pylib.conv_util import detect_syntax
+from ..pylib.conv_util import detect_syntax, squash_newlines
 from ..pylib.converter import convert
 from ..pylib.html_processing import strip_html
 from ..pylib.mecab import MecabError
@@ -67,7 +67,7 @@ def convert_notes(brws: Browser, note_ids: Sequence[NoteId], field_idx: int,
                 note.fields[field_idx] = new_val
                 updated_notes.append(note)
 
-        lines = strip_html(field)
+        lines = strip_html(squash_newlines(field))
         existing_type = detect_syntax(field)
         if existing_type:
             parser = parse_migaku if existing_type == OutputType.MIGAKU else parse_jrp
