@@ -30,7 +30,7 @@ Anki's built-in automatic backups if you haven't already.
    probably what most users will want to install initially.  
    This is also the version shared on AnkiWeb.
 4. Restart Anki, open the "Manage Note Types" menu (`Ctrl`+`⇧`+`N`) and set up
-   your templates as described [here]().
+   your templates as described [here](/doc/template-setup.md).
 5. Open the add-on's preferences under "Tools", go the "Note Types" tab, then
    select and click "Add" for all note types you set up in the previous step.  
    If you previously used the Migaku Japanese Add-on with any note type
