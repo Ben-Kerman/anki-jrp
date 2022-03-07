@@ -4,6 +4,13 @@ This Anki add-on allows automatically generating readings (furigana) and pitch
 accent information for an entire field with a single button press. It can also
 convert any amount of cards in bulk.
 
+The add-on is currently experimental and you'll probably encounter bugs or
+crashes. It is extremely unlikely (probably even impossible) for your data to
+get corrupted by using this addon (the specific notes being changed aside), but
+you should still make backups, especially when bulk converting notes, and enable
+Anki's built-in automatic backups if you haven't already.  
+[See below](#reporting-issues) for details on how to report issues.
+
 ## Getting Started
 
 1. Make sure you have Anki version 2.1.49 or later installed.
@@ -114,3 +121,15 @@ brings some limitations with it:
 - Ambiguous accents can't be marked and thus won't be highlighted.
 - Split accents can't be accurately represented and will be displayed as
   unknown.
+
+## Reporting Issues
+
+If you encounter a bug or crash while using the add-on please report it. You can
+either open a GitHub issue in this repository or contact me on Discord, where
+you can find me in the [Refold community servers](https://refold.la/join/).
+
+Explain what you were doing when the issue occurred as accurately as possible,
+ideally with a list of steps to reproduce it. If the problem is related to
+specific cards, consider including an `.apkg` export of those cards (_Notes_
+→ _Export Notes..._ in the Anki browser while having the cards in question
+selected).
