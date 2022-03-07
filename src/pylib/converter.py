@@ -31,7 +31,10 @@ def base_for_potential(word: str, reading: Optional[str]) -> Optional[Tuple[str,
     if len(word) < 3 or word[-1] != "る":
         return None
     base_end = word[-2].translate(_potential_table)
-    return word[:-2] + base_end, reading and reading[:-2] + base_end
+    if word[-2] != base_end:
+        return word[:-2] + base_end, reading and reading[:-2] + base_end
+    else:
+        return None
 
 
 def _lookup_variants(p: ConvPrefs, word: str, reading_guess: Optional[str],
