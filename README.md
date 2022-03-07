@@ -61,3 +61,56 @@ containing hundreds or thousands of cards, make sure to back everything up
 before running the conversion. Exporting the deck(s) with scheduling information
 (but without media, since the conversion only changes the notes themselves)
 should be sufficient.
+
+## Syntax
+
+The add-on supports its own fully featured syntax and is also compatible with
+the syntax from the old Migaku Japanese Add-on.
+
+### Default
+
+In the default syntax, readings are written in square brackets with kanji on the
+left and furigana on the right separated by a `|`, like `[漢字|かんじ]`.  
+Words with pitch accent information are enclosed in curly braces that contain
+the word (including reading tags) itself and comma-separated pitch accent
+information after a semicolon: `{[受|う]け[入|い]れる;Y4,0}`.
+
+The accent information normally consists of a comma-separated list of numbers,
+each representing the accented mora or 0 for unaccented (平板) words. The only
+special cases are unknown accents marked with a `?` (which can only occur by
+converting Migaku syntax), and split accents like 一目瞭然 (いち↓もく・りょ→うぜん)
+are a special case and are composed of several parts separated by dashes. Each
+part consists of the number of the accented mora, an `@` sign, and the number of
+moras it applies to. For example: `{[一目瞭然|いちもくりょうぜん];2@4-0@4,0}`.
+
+An `!` and `Y` can be placed before the actual pitch accent information.
+Exclamation marks indicate ambiguous accents, such as for many kana-only words
+or certain words with multiple accents. If present, a Y (from 用 as in 活用・用言)
+will cause all accents other than [0] to be displayed as the kifuku (起伏)
+pattern. The add-on automatically inserts ambiguity marks if it found more than
+one possible set of accents with the same reading for a word during lookup, you
+should then manually look up the words in question and adjust the accent tags as
+needed. Ys are added to all words identified as 動詞 (verbs) or 形容詞 (i-adjectives)
+by MeCab.
+
+The base readings of conjugated words can be indicated in two ways, inline
+like `{[行|い][って=く];Y0}`, or after the accent(s) like `{[来|き]た;Y1|くる}`.
+
+### Migaku
+
+For backwards compatibility, Migaku-style syntax is also supported, but using it
+brings some limitations with it:
+
+- Only one reading per word is possible, leading to furigana frequently
+  duplicating characters from the word, like <ruby>この先<rt>このさき</rt></ruby>,
+  <ruby>付き合<rt>つきあ</rt></ruby>う or <ruby>変わり身<rt>かわりみ</rt></ruby>.
+- The base reading of conjugable words must always be included in full, even the
+  part that is identical to the reading of the conjugated form. This is also
+  true if the base reading and actual reading are the same, so the Migaku
+  version of what would be `{[陥|おとしい]れる;Y5,0}` in default syntax
+  is `陥[おとしい,おとしいれる;k5,h]れる`.
+- Since words are space-separated, ASCII spaces can't be represented properly
+  and are replaced with en spaces (U+2002).
+- Ambiguous accents can't be marked and thus won't be highlighted.
+- Split accents can't be accurately represented and will be displayed as
+  unknown.
