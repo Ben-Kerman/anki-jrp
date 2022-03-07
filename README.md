@@ -14,8 +14,8 @@ Anki's built-in automatic backups if you haven't already.
 ## Getting Started
 
 1. Make sure you have Anki version 2.1.49 or later installed.
-2. On non-Windows platforms only, [install MeCab]() since only a Windows
-   executable is bundled with the addon.
+2. On non-Windows platforms only, [install MeCab](/doc/mecab.md) since only a
+   Windows executable is bundled with the addon.
 3. Install the full version of the add-on
    from [AnkiWeb](https://ankiweb.net/shared/info/TBD).  
    Alternatively, download one of the `.ankiaddon` files from the
