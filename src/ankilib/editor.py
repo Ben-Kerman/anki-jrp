@@ -52,7 +52,10 @@ def _convert(edit: Editor, conv_type: ConversionType, out_type: Optional[OutputT
         else:
             yield from lines
 
-    def transform(val: str) -> Optional[str]:
+    def transform(val: Optional[str]) -> Optional[str]:
+        if val is None:
+            return None
+
         val = squash_newlines(val)
         if conv_type == ConversionType.REMOVE:
             return insert_nbsp("<br>".join(gen_lines(val)))
