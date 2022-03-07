@@ -105,8 +105,8 @@ like `{[行|い][って=く];Y0}`, or after the accent(s) like `{[来|き]た;Y1
 
 ### Migaku
 
-For backwards compatibility, Migaku-style syntax is also supported, but using it
-brings some limitations with it:
+For backwards compatibility, Migaku-style syntax is also supported, but it has
+some limitations compared to the new syntax:
 
 - Only one reading per word is possible, leading to furigana frequently
   duplicating characters from the word, like <ruby>この先<rt>このさき</rt></ruby>,
@@ -121,6 +121,16 @@ brings some limitations with it:
 - Ambiguous accents can't be marked and thus won't be highlighted.
 - Split accents can't be accurately represented and will be displayed as
   unknown.
+
+## Migrating from the Migaku Japanese Add-on
+
+Follow the guide to [getting started](#getting-started) above.
+
+You can easily migrate existing notes to the new syntax without losing any
+manual changes by selecting them in the browser and
+[bulk converting](#bulk-conversion) them with the _Default_ conversion type as
+long as _Regenerate contents_ is disabled. Make sure to back up all notes in
+case there are bugs in the conversion algorithm.
 
 ## Reporting Issues
 
