@@ -23,7 +23,7 @@ class Segment:
     def __repr__(self) -> str:
         return f"S[{self.text}|{self.reading}]"
 
-    def fmt(self, escape: bool = False) -> str:
+    def fmt(self, escape: bool = False, ignore_base: bool = False) -> str:
         txt, rdng = self.text, self.reading
         if escape:
             txt, rdng = esc('|=]', txt) if rdng else esc("{[;}", txt), esc(']', rdng) if rdng else rdng
@@ -93,11 +93,11 @@ class BaseSegment:
     def __repr__(self) -> str:
         return f"BS[{self.text}={self.base}]"
 
-    def fmt(self, escape: bool = False) -> str:
+    def fmt(self, escape: bool = False, ignore_base: bool = False) -> str:
         txt, base = self.text or "", self.base
         if escape:
             txt, base = (esc('|=]', txt) if txt else ""), esc(']', base)
-        return f"[{txt}={base}]"
+        return txt if ignore_base else f"[{txt}={base}]"
 
 
 @dataclass

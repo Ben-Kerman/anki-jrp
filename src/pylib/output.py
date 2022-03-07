@@ -72,14 +72,14 @@ def insert_nbsp(val: str) -> str:
 
 def fmt_jrp(units: Sequence[Unit], prefs: Optional[OutputPrefs] = None) -> str:
     def fmt_unit(unit: Unit) -> str:
-        segment_str = "".join([s.fmt(escape=True) for s in unit.segments])
         if _add_accent(unit, prefs):
+            segment_str = "".join([s.fmt(escape=True) for s in unit.segments])
             uncert = "!" if unit.uncertain else ""
             yougen = "Y" if unit.is_yougen else ""
             sp_base = f"|{unit.special_base}" if unit.special_base else ""
             return f"{{{segment_str};{uncert}{yougen}{','.join(map(str, unit.accents))}{sp_base}}}"
         else:
-            return segment_str
+            return "".join([s.fmt(escape=True, ignore_base=True) for s in unit.segments])
 
     res = "".join([fmt_unit(u) for u in units])
     return insert_nbsp(res) if prefs and prefs.preserve_spaces else res
