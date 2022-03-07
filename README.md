@@ -18,8 +18,8 @@ automatic backups if you haven't already.
 1. Make sure you have Anki version 2.1.49 or later installed.
 2. On non-Windows platforms only, [install MeCab](/doc/mecab.md) since only a
    Windows executable is bundled with the add-on.
-3. Install the full version of the add-on
-   from [AnkiWeb](https://ankiweb.net/shared/info/TBD).  
+3. Install the full version of the add-on from
+   [AnkiWeb](https://ankiweb.net/shared/info/1845503807).  
    Alternatively, download one of the `.ankiaddon` files from the
    [latest release](https://github.com/Ben-Kerman/anki-jrp/releases/latest)
    and manually install it from the add-on menu.
