@@ -10,6 +10,10 @@
 	visibility: hidden;
 }
 
+.jrp-front .jrp-unit.jrp-uncertain > span {
+	opacity: initial;
+}
+
 .jrp-front .jrp-unit.jrp-heiban > span, .jrp-front .jrp-graph .jrp-heiban,
 .jrp-front .jrp-unit.jrp-kifuku > span, .jrp-front .jrp-graph .jrp-kifuku,
 .jrp-front .jrp-unit.jrp-atamadaka > span, .jrp-front .jrp-graph .jrp-atamadaka,
@@ -17,4 +21,17 @@
 .jrp-front .jrp-unit.jrp-nakadaka > span, .jrp-front .jrp-graph .jrp-nakadaka,
 .jrp-front .jrp-unit.jrp-unknown > span, .jrp-front .jrp-graph .jrp-unknown {
 	color: inherit;
+}
+
+.jrp-front .jrp-unit.jrp-heiban-2 > span, .jrp-front .jrp-unit.jrp-kifuku-2 > span,
+.jrp-front .jrp-unit.jrp-atamadaka-2 > span, .jrp-front .jrp-unit.jrp-odaka-2 > span,
+.jrp-front .jrp-unit.jrp-nakadaka-2 > span, .jrp-front .jrp-unit.jrp-unknown-2 > span {
+	text-shadow: inherit;
+}
+
+.jrp-front .jrp-unit.jrp-heiban-3 > span, .jrp-front .jrp-unit.jrp-kifuku-3 > span,
+.jrp-front .jrp-unit.jrp-atamadaka-3 > span, .jrp-front .jrp-unit.jrp-odaka-3 > span,
+.jrp-front .jrp-unit.jrp-nakadaka-3 > span, .jrp-front .jrp-unit.jrp-unknown-3 > span {
+	background-color: initial;
+	border-radius: initial;
 }
