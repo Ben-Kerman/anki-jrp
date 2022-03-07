@@ -1,3 +1,4 @@
+# This project is licensed under the terms of the GNU GPL v3: https://www.gnu.org/licenses/; © 2022 Ben Kerman
 import re
 from dataclasses import dataclass, field
 from enum import Enum, auto

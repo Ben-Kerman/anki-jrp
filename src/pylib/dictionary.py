@@ -1,3 +1,4 @@
+# This project is licensed under the terms of the GNU GPL v3: https://www.gnu.org/licenses/; © 2022 Ben Kerman
 import lzma
 import sys
 from dataclasses import dataclass
