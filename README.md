@@ -4,6 +4,8 @@ This Anki add-on allows automatically generating readings (furigana) and pitch
 accent information for an entire field with a single button press. It can also
 convert any amount of cards in bulk.
 
+<img src="https://i.imgur.com/8NFw0HB.png">
+
 The add-on is currently experimental and you'll probably encounter bugs or
 crashes. Data corruption due to this addon is extremely unlikely (probably even
 impossible), the specific notes being changed aside, but you should still make
