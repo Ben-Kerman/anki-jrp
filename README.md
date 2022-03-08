@@ -7,15 +7,15 @@ convert any amount of cards in bulk.
 <img src="https://i.imgur.com/8NFw0HB.png">
 
 The add-on is currently experimental and you'll probably encounter bugs or
-crashes. Data corruption due to this addon is extremely unlikely (probably even
-impossible), the specific notes being changed aside, but you should still make
-backups, especially when bulk converting notes, and enable Anki's built-in
-automatic backups if you haven't already.  
+crashes. Data corruption is extremely unlikely (probably even impossible), the
+specific notes being changed aside, but you should still make backups,
+especially when bulk converting notes, and enable Anki's built-in automatic
+backups if you haven't already.  
 [See below](#reporting-issues) for details on how to report issues.
 
 ## Getting Started
 
-1. Make sure you have Anki version 2.1.49 or later installed.
+1. Make sure you have Anki 2.1.49 or later installed.
 2. On non-Windows platforms only, [install MeCab](/doc/mecab.md) since only a
    Windows executable is bundled with the add-on.
 3. Install the full version of the add-on from
@@ -34,11 +34,11 @@ automatic backups if you haven't already.
 4. Restart Anki, open the _Manage Note Types_ menu (`Ctrl`+`⇧`+`N`) and set up
    your templates as described [here](/doc/template-setup.md).
 5. Open the add-on's preferences under _Tools_ in Anki's main menu bar, go the
-   _Note Types_ tab, then select and _Add_ all note types you set up in the
-   previous step.  
-   If you previously used the Migaku Japanese Add-on with any note type
-   click `Remove MIA/Migaku` in its section to remove the script and styling
-   from that add-on, otherwise this add-on will not work properly.
+   _Note Types_ tab, then select and _Add_ all note types you set up in the last
+   step.  
+   Click `Remove MIA/Migaku` for any note types you previously used the Migaku
+   Japanese Add-on with to remove the script and styling from that add-on,
+   otherwise this add-on will not work properly.
 6. Save your preferences. You should now be able to preview or review any cards
    that contain reading/accent syntax with furigana and accent coloring /
    indicators.
@@ -147,4 +147,5 @@ Explain what you were doing when the issue occurred as accurately as possible,
 ideally with a list of steps to reproduce it. If the problem is related to
 specific cards, consider including an `.apkg` export of those cards (_Notes_
 → _Export Notes..._ in the Anki browser while having the cards in question
-selected).
+selected). If there was an error message include its full contents as well, if
+possible as selectable text.

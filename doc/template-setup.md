@@ -1,13 +1,12 @@
 # Note Type Setup
 
-In order for the add-on to work properly, you'll have to make some adjustments
-to your card templates.
+You'll have to make some adjustments to your card templates for the add-on to
+work properly.
 
 ## Fields
 
-Every field that should be processed by the script that generates furigana and
-accent highlighting needs to be enclosed in an HTML element with the
-attribute `data-jrp-generate`.
+Every field that furigana and accent highlighting should generated for needs to
+be enclosed in an HTML element with the attribute `data-jrp-generate`.
 
 If you previously used the Migaku Japanese Add-on you'll likely have lines like
 this somewhere in your templates:
@@ -23,8 +22,8 @@ Those can be replaced with this:
 ```
 
 If you didn't use the Migaku Add-on before, all you need to do is find the tag
-(in `{{}}`) for the field you want to generate from, and place HTML tags around
-like in the line above.
+(in `{{`/`}}`) for the field you want to generate from, and place HTML tags
+around it like in the line above.
 
 ---
 

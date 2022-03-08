@@ -26,9 +26,9 @@ below.
 
 ### Requirements
 
-- A C++ compiler. Ideally g++ which, if it isn't installed by already, should be
-  available in a package called `gcc`, `g++`, or similar on most distros.  
-  Check if it works by running `g++ --version`.
+- A C++ compiler. Ideally g++ which, if it isn't installed already, should be
+  available in a package called `gcc`, `g++`, or similar on most distros. Check
+  if it works by running `g++ --version`.
 - `libiconv`. Probably already present as part of glibc.
 - `git`, for cloning the repo. You can also skip step 1 below and download the
   source tarball linked here: https://taku910.github.io/mecab/#download.
@@ -44,7 +44,7 @@ below.
 4. If `configure` finished without errors, run `make` (and ensure it succeeds).
 5. Create a temporary target directory.
 6. Run `make DESTDIR="<tgt dir>" install`, where `<tgt dir>` is the absolute
-   path of the directory from the previous step.
+   path of the directory you just made.
 7. Copy or move `<tgt dir>/usr/bin/mecab` and `<tgt dir>/usr/lib/libmecab.so.2`
    to a new directory. Create an empty file named `mecabrc` in the same
    directory.
