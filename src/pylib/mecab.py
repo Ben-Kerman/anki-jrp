@@ -143,9 +143,12 @@ class Mecab:
 
     def _instance(self) -> Popen:
         if self._inst is None or self._inst.poll() is not None:
+            env = os.environ.copy()
             args = [self.exe_path] if self.exe_path else ["mecab"]
             args.extend(("--unk-feature=未知語", "--node-format=%m\\t%ps,%pe,%H\\n"))
             if self.exe_path:
+                if platform.system() == "Linux":
+                    env["LD_LIBRARY_PATH"] = os.path.dirname(self.exe_path)
                 args.append(f"--rcfile={os.path.join(os.path.dirname(self.exe_path), 'mecabrc')}")
             if self.dic_dir:
                 args.append(f"--dicdir={self.dic_dir}")
@@ -156,7 +159,7 @@ class Mecab:
                     si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                 else:
                     si = None
-                self._inst = Popen(args, stdin=PIPE, stdout=PIPE, startupinfo=si)
+                self._inst = Popen(args, stdin=PIPE, stdout=PIPE, env=env, startupinfo=si)
             except FileNotFoundError:
                 raise MecabError("executable not found")
 
