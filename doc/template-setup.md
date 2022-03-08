@@ -5,8 +5,8 @@ work properly.
 
 ## Fields
 
-Every field that furigana and accent highlighting should generated for needs to
-be enclosed in an HTML element with the attribute `data-jrp-generate`.
+Every field that furigana and accent highlighting should be generated for needs
+to be enclosed in an HTML element with the attribute `data-jrp-generate`.
 
 If you previously used the Migaku Japanese Add-on you'll likely have lines like
 this somewhere in your templates:
@@ -37,7 +37,7 @@ mode by setting the attribute's value to `migaku`:
 
 ## Card Front
 
-Any fields on the front of the class also need to be children of an element with
+Any fields on the front of the card also need to be children of an element with
 the class `jrp-front`. This can be the element with the generate attribute:
 
 ```html
@@ -54,10 +54,10 @@ Or any enclosing element:
 
 ## Vertical Writing
 
-Vertical writing (縦書き) is fully supported. Simply add the `jr-vertical`
-class to an element and all generated elements below it will use vertical
-styling. The class doesn't enable vertical writing mode by itself, but you can
-change that by adding this to your note type's style sheet:
+Vertical writing (縦書き) is fully supported. Simply add the class `jrp-vertical`
+to an element and all generated elements below it will use vertical styling. The
+class doesn't enable vertical writing mode by itself, but you can change that by
+adding this to your note type's style sheet:
 
 ```css
 .jrp-vertical {

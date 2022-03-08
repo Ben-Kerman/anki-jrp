@@ -117,12 +117,11 @@ some limitations compared to the new syntax:
   duplicating characters from the word, like <ruby>この先<rt>このさき</rt></ruby>,
   <ruby>付き合<rt>つきあ</rt></ruby>う or <ruby>変わり身<rt>かわりみ</rt></ruby>.
 - The base reading of conjugable words must always be included in full, even the
-  part that is identical to the reading of the conjugated form. This is also
-  true if the base reading and actual reading are the same, so the Migaku
-  version of what would be `{[陥|おとしい]れる;Y5,0}` in default syntax
-  is `陥[おとしい,おとしいれる;k5,h]れる`.
-- Since words are space-separated, ASCII spaces can't be represented properly
-  and are replaced with en spaces (U+2002).
+  part identical to the reading of the conjugated form. This is also true if the
+  base reading and actual reading are the same, so the Migaku version of what
+  would be `{[陥|おとしい]れる;Y5,0}` in default syntax is `陥[おとしい,おとしいれる;k5,h]れる`.
+- Since words are space-separated, regular ASCII spaces can't be represented
+  properly and are replaced with en spaces (U+2002).
 - Ambiguous accents can't be marked and thus won't be highlighted.
 - Split accents can't be accurately represented and will be displayed as
   unknown.

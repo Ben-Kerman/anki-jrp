@@ -30,8 +30,8 @@ below.
   available in a package called `gcc`, `g++`, or similar on most distros. Check
   if it works by running `g++ --version`.
 - `libiconv`. Probably already present as part of glibc.
-- `git`, for cloning the repo. You can also skip step 1 below and download the
-  source tarball linked here: https://taku910.github.io/mecab/#download.
+- `git`, for cloning the repo. You can also skip step 1 below by using the
+  source tarball linked here instead: https://taku910.github.io/mecab/#download
 
 ### Compile & Install
 
