@@ -25,6 +25,10 @@ If you didn't use the Migaku Add-on before, all you need to do is find the tag
 (in `{{`/`}}`) for the field you want to generate from, and place HTML tags
 around it like in the line above.
 
+The card script currently doesn't work properly if you use `{{FrontSide}}` in
+back templates, so replace it with the contents of the front template
+(excluding any add-on managed sections) until the underlying issue is fixed.
+
 ---
 
 If you have existing notes with Migaku syntax and don't want to upgrade to the
