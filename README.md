@@ -128,7 +128,9 @@ some limitations compared to the new syntax:
 
 ## Migrating from the Migaku Japanese Add-on
 
-Follow the guide to [getting started](#getting-started) above.
+Follow the guide to [getting started](#getting-started) above. You'll need to
+manually transfer your accent pattern colors to the note type style settings if
+you want to keep them. The add-ons have different default colors.
 
 You can easily migrate existing notes to the new syntax without losing any
 manual changes by selecting them in the browser and
