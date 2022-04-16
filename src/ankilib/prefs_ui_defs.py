@@ -105,10 +105,14 @@ addon_defs = [
     }, {
         "name": "mecab_use_system_exe",
         "desc": "Use system-wide MeCab executable",
+        "tool": "Ignore the option above and assume that there is a MeCab executable in PATH.\n"
+                "If there is no mecab exe in PATH an error will occur on syntax generation.",
         "type": WidgetType.Checkbox
     }, {
         "name": "mecab_use_system_dict",
         "desc": "Use MeCab system dictionary",
+        "tool": "Ignore the dictionary path from above and use "
+                "the default location compiled into the executable.",
         "type": WidgetType.Checkbox
     }
 ]
