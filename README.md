@@ -138,6 +138,16 @@ manual changes by selecting them in the browser and
 long as _Regenerate contents_ is disabled. Make sure to back up all notes in
 case there are bugs in the conversion algorithm.
 
+## Troubleshooting
+
+### "Mecab error: invalid line: param.cpp(69) [ifs] no such file or directory: /something/mecabrc"
+
+Occurs to macOS users.
+
+1. Copy the path that you can see in the end of the error: `/something/mecabrc`
+2. Run `touch *path*`, replacing **\*path\*** with the path you copied
+3. Press F2 in Anki again to regenerate your readings
+
 ## Reporting Issues
 
 If you encounter a bug or crash while using the add-on please report it. You can

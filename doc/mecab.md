@@ -43,6 +43,10 @@ and [MacPorts](https://ports.macports.org/port/mecab/).
 5. Paste the output into the "MeCab executable path" preference.
 6. Uncheck the "Use system-wide MeCab executable" preeference.
 
+#### mecabrc error
+
+See [Troubleshooting](../README.md#troubleshooting) in the root document.
+
 Please report any macOS-related issues that aren't mentioned here. Since I don't
 own any macOS devices I can't test the add-on on macOS myself.
 
