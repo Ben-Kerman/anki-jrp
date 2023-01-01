@@ -15,7 +15,8 @@ backups if you haven't already.
 
 ## Getting Started
 
-1. Make sure you have Anki 2.1.49 or later installed.
+1. Make sure you have a supported version of Anki installed. See [the AnkiWeb
+   page](https://ankiweb.net/shared/info/1845503807) for further information.
 2. On non-Windows platforms only, [install MeCab](/doc/mecab.md) since only a
    Windows executable is bundled with the add-on.
 3. Install the full version of the add-on from
@@ -24,10 +25,11 @@ backups if you haven't already.
    [latest release](https://github.com/Ben-Kerman/anki-jrp/releases/latest)
    and manually install it from the add-on menu.
     - The smallest file contains only the add-on itself, which means you will
-      need to supply your own pitch accent/variant data and install MeCab
-      alongside a dictionary for it to use externally.
-    - The `full` file has almost everything, including a MeCab exe for Windows,
-      but you'll still have to use your own MeCab dictionary.
+      need to supply your own pitch accent/variant data and install MeCab as
+      well as a MeCab dictionary alongside a dictionary for it to use
+      externally.
+    - The `full` file has everything except a MeCab dictionary, but including
+      a MeCab exe for Windows.
     - The `ipadic` file contains everything the add-on needs out of the box and
       is probably what most users will want to install initially.  
       This is also the version shared on AnkiWeb.
