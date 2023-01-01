@@ -171,14 +171,14 @@ class AnyFileWidget(PickerWidget):
 class DirectoryWidget(AnyFileWidget):
     def setup_picker(self) -> QFileDialog:
         picker = super().setup_picker()
-        picker.setFileMode(QFileDialog.Directory)
+        picker.setFileMode(QFileDialog.FileMode.Directory)
         return picker
 
 
 class FileWidget(AnyFileWidget):
     def setup_picker(self) -> QFileDialog:
         picker = super().setup_picker()
-        picker.setFileMode(QFileDialog.ExistingFile)
+        picker.setFileMode(QFileDialog.FileMode.ExistingFile)
         return picker
 
 
@@ -246,7 +246,7 @@ def add_form_row(parent: QWidget, prefs: T, defaults: T,
     edit_lo = QHBoxLayout()
     edit_lo.addWidget(reset_btn)
     edit_lo.addWidget(edit_wdgt)
-    edit_lo.setAlignment(Qt.AlignLeft)
+    edit_lo.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
     lbl = QLabel(transform("desc", item["desc"]), parent)
     if "tool" in item:

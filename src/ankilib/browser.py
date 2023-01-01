@@ -136,7 +136,7 @@ class ConvertDialog(QDialog):
 
     def __init__(self, brws: Browser, nt_id: NotetypeId, notes: Sequence[NoteId], parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.setWindowTitle("Bulk Conversion")
 
         self._field_cb = QComboBox(self)

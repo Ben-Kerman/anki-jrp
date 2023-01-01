@@ -86,8 +86,8 @@ class IgnoreOverrideWidget(QWidget):
 
         self._tbl.setHorizontalHeaderLabels(("Variants", "Reading"))
         hh = self._tbl.horizontalHeader()
-        hh.setSectionResizeMode(0, QHeaderView.Stretch)
-        hh.setSectionResizeMode(1, QHeaderView.Stretch)
+        hh.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        hh.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
 
         for row, ior in enumerate(ors):
             self.insert_row(row, ior)
@@ -133,9 +133,9 @@ class WordOverrideWidget(QWidget):
                                              "Pre", "Post"))
         hh = self._tbl.horizontalHeader()
         for i in range(4):
-            hh.setSectionResizeMode(i, QHeaderView.Stretch)
-        hh.setSectionResizeMode(4, QHeaderView.ResizeToContents)
-        hh.setSectionResizeMode(5, QHeaderView.ResizeToContents)
+            hh.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch)
+        hh.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        hh.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
 
         for row, wor in enumerate(ors):
             self.insert_row(row, wor)
@@ -156,7 +156,7 @@ class WordOverrideWidget(QWidget):
             container = QWidget()
             lo = QHBoxLayout(container)
             lo.addWidget(cb)
-            lo.setAlignment(Qt.AlignCenter)
+            lo.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lo.setContentsMargins(0, 0, 0, 0)
 
             return container
@@ -207,7 +207,7 @@ class AccentOverrideWidget(QWidget):
         self._tbl.setHorizontalHeaderLabels(("Variants", "Reading", "Accents"))
         hh = self._tbl.horizontalHeader()
         for i in range(3):
-            hh.setSectionResizeMode(i, QHeaderView.Stretch)
+            hh.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch)
 
         for row, aor in enumerate(ors):
             self.insert_row(row, aor)
@@ -303,7 +303,7 @@ class StyleDialog(QDialog):
         super().__init__(parent)
 
         self.setWindowTitle("Note Type Style")
-        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
         lo = QFormLayout(self)
         for item in ui_defs.style_defs:
             add_form_row(self, style_prefs, _DEFAULT_NT_PREFS.style, item, lo,
@@ -388,7 +388,7 @@ class NoteTypeWidget(QFrame):
         base_lo.addLayout(top_lo)
         base_lo.addLayout(bottom_lo)
 
-        self.setFrameShape(QFrame.Box)
+        self.setFrameShape(QFrame.Shape.Box)
 
 
 class PreferencesWidget(QTabWidget):
@@ -460,7 +460,7 @@ class PreferencesDialog(QDialog):
         self.prefs = prefs
 
         self.setWindowTitle("Japanese Readings & Pitch Accent Add-on Preferences")
-        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
 
         prefs_wdgt = PreferencesWidget(prefs, self)
 
