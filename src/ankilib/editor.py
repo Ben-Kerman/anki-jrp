@@ -1,6 +1,6 @@
 # This project is licensed under the terms of the GNU GPL v3: https://www.gnu.org/licenses/; © 2022 Ben Kerman
 from enum import Enum, auto
-from typing import Callable, Iterable, List, Optional
+from typing import Iterable, List, Optional
 
 import aqt.utils
 from aqt.editor import Editor
@@ -14,34 +14,11 @@ from ..pylib.mecab import MecabError
 from ..pylib.output import OutputType, fmt_jrp, fmt_migaku, insert_nbsp
 from ..pylib.segments import ParsingError, parse_jrp, parse_migaku
 
-_js_esc = str.maketrans({
-    "\r": "\\r",
-    "\n": "\\n",
-    "\"": "\\\"",
-    "\\": "\\\\",
-})
-
 
 class ConversionType(Enum):
     GENERATE = auto()
     READINGS = auto()  # TODO implement
     REMOVE = auto()
-
-
-def _replace(edit: Editor, transform: Callable[[str], str]):
-    def update_field_html(new_html: str):
-        transformed = transform(new_html)
-        if transformed is None:
-            return
-
-        edit.web.page().runJavaScript(f"""(function() {{
-            if(getCurrentField().codable && getCurrentField().codable.active)
-                return;
-            document.execCommand("selectAll");
-            document.execCommand("insertHTML", false, "{transformed.translate(_js_esc)}");
-        }})();""")
-
-    edit.web.page().runJavaScript("getCurrentField().editable.fieldHTML", lambda html: update_field_html(html))
 
 
 def _convert(edit: Editor, conv_type: ConversionType, out_type: Optional[OutputType] = None):
@@ -79,7 +56,13 @@ def _convert(edit: Editor, conv_type: ConversionType, out_type: Optional[OutputT
                 aqt.utils.showWarning(f"Conversion failed. Error: {e}")
                 return None
 
-    _replace(edit, transform)
+    def update_field_html() -> None:
+        if (current_field := edit.currentField) is not None:
+            if (new_html := transform(edit.note.fields[current_field])) is not None:
+                edit.note.fields[current_field] = new_html
+                edit.loadNoteKeepingFocus()
+
+    edit.call_after_note_saved(update_field_html)
 
 
 def inject_buttons(buttons: List[str], edit: Editor):
