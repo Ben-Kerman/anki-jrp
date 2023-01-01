@@ -5,13 +5,12 @@ from enum import Enum
 from typing import Iterable, List, Optional, Sequence, Tuple
 
 import aqt
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QAction, QCheckBox, QComboBox, QDialog, QFormLayout, QHBoxLayout, QPushButton, \
-    QVBoxLayout, QWidget
 from anki.errors import InvalidInput
 from anki.models import NotetypeId
 from anki.notes import Note, NoteId
 from aqt.browser import Browser
+from aqt.qt import QAction, QCheckBox, QComboBox, QDialog, QFormLayout, QHBoxLayout, QPushButton, \
+    QVBoxLayout, QWidget, Qt
 
 from . import global_vars as gv
 from ..pylib.conv_util import detect_syntax, squash_newlines

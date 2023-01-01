@@ -3,10 +3,8 @@ import os
 import re
 from typing import Any, Callable, Iterable, Optional, Sequence, TypeVar, Union
 
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QIcon
-from PyQt5.QtWidgets import QCheckBox, QColorDialog, QDialog, QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLayout, \
-    QLineEdit, QPushButton, QSpinBox, QWidget
+from aqt.qt import QCheckBox, QColor, QColorDialog, QDialog, QFileDialog, QFormLayout, QHBoxLayout, \
+    QIcon, QLabel, QLayout, QLineEdit, QPushButton, QSpinBox, QWidget, Qt, pyqtSignal
 
 from . import util
 from .prefs_ui_defs import WidgetType

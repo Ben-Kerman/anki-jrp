@@ -4,10 +4,9 @@ from enum import Enum, auto
 from typing import Callable, List, Optional, Set, TypeVar
 
 import aqt.utils
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QCheckBox, QDialog, QFormLayout, QFrame, QHBoxLayout, QHeaderView, QLabel, QPushButton, \
-    QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 from aqt.notetypechooser import NotetypeChooser
+from aqt.qt import QCheckBox, QDialog, QFormLayout, QFrame, QHBoxLayout, QHeaderView, QLabel, \
+    QPushButton, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, Qt, pyqtSignal
 
 from . import global_vars, prefs_ui_defs as ui_defs
 from .common_ui import add_form_row, insert_checkboxes

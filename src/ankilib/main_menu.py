@@ -1,6 +1,6 @@
 # This project is licensed under the terms of the GNU GPL v3: https://www.gnu.org/licenses/; © 2022 Ben Kerman
 import aqt
-from PyQt5.QtWidgets import QAction
+from aqt.qt import QAction
 
 from .prefs_ui import show_ui
 
